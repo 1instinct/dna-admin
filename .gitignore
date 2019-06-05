@@ -15,8 +15,8 @@
 /storage/*
 !/storage/.keep
 
+
 # dotenv
-envvars.txt
 .env
 .env.development
 .env.test
@@ -45,10 +45,12 @@ capybara-*.html
 rerun.txt
 pickle-email-*.html
 
+
 config/initializers/secret_token.rb
 config/master.key
 # Only include if you have production secrets in this file, which is no longer a Rails default
 # config/secrets.yml
+
 
 ## Environment normalization:
 /.bundle
@@ -72,13 +74,9 @@ bower.json
 node_modules/
 /node_modules
 
+
+
 # Ignore yarn files
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
-app/assets/images/no_soup_for_you.jpg
-secret.yaml
-*.tar
-*.yml.prod
-spree
-docker-compose.yml.local
