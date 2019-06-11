@@ -1,12 +1,10 @@
-# DOCKER SETUP
-This repo is using Spree 4.2.4
-## Build
+# Material Instinct LLC - DNA Boilerplate for Admin UI
 
-This should only have to be done once, or whenever the Gemfile is updated.
 
-```shell
-docker-compose build
-```
+
+>rails g spree:install --user_class=Spree::User
+>rails g spree:auth:install
+>rails g spree_gateway:install
 
 ## Create Containers
 
