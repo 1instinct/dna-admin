@@ -24,6 +24,7 @@ Spree::Core::Engine.add_routes do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
       resources :messages, only: [:index]
+      resources :pages, only: [:index]
     end
   end
 end
