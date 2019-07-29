@@ -9,7 +9,7 @@ module Spree
       include Spree::Core::ControllerHelpers::Store
 
       helper 'spree/admin/navigation'
-      helper 'spree/admin/tables'
+      # helper 'spree/admin/tables'
       layout 'spree/layouts/admin'
 
       ssl_required :new, :create, :destroy, :update
