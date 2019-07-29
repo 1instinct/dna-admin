@@ -12,7 +12,7 @@ module Spree
       # helper 'spree/admin/tables'
       layout 'spree/layouts/admin'
 
-      ssl_required :new, :create, :destroy, :update
+      # ssl_required :new, :create, :destroy, :update
 
       def create
         authenticate_spree_user!
