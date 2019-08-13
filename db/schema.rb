@@ -13,6 +13,7 @@
 ActiveRecord::Schema.define(version: 2019_07_10_194432) do
 
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
@@ -102,78 +103,19 @@ ActiveRecord::Schema.define(version: 2019_07_10_194432) do
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
   end
 
-  create_table "live_stream_likes", force: :cascade do |t|
-    t.bigint "live_stream_id"
-    t.bigint "user_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["live_stream_id"], name: "index_live_stream_likes_on_live_stream_id"
-    t.index ["user_id"], name: "index_live_stream_likes_on_user_id"
-  end
-
-  create_table "live_stream_products", force: :cascade do |t|
-    t.bigint "live_stream_id"
-    t.bigint "product_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["live_stream_id"], name: "index_live_stream_products_on_live_stream_id"
-    t.index ["product_id"], name: "index_live_stream_products_on_product_id"
-  end
-
-  create_table "live_streams", force: :cascade do |t|
-    t.string "title"
-    t.text "description"
-    t.string "stream_url"
-    t.string "stream_key"
-    t.string "stream_id"
-    t.text "playback_ids", default: [], array: true
-    t.string "status"
-    t.datetime "start_date"
-    t.boolean "is_active"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.bigint "thread_table_id"
-    t.integer "actor_id"
-    t.index ["thread_table_id"], name: "index_live_streams_on_thread_table_id"
-  end
-
-  create_table "menu_items", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "url"
-    t.string "item_class"
-    t.string "item_id"
-    t.string "item_target"
-    t.integer "parent_id"
-    t.integer "position", default: 0, null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.boolean "is_visible"
-    t.integer "menu_location_id"
-  end
-
-  create_table "menu_locations", force: :cascade do |t|
-    t.string "title"
-    t.string "location"
-    t.boolean "is_visible"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
   create_table "messages", force: :cascade do |t|
-    t.boolean "is_received"
-    t.boolean "is_read"
-    t.integer "sentiment"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "active", default: true
+    t.string "status", default: "unread"
+    t.text "body"
+    t.string "sender_id"
     t.string "sender_type"
-    t.bigint "sender_id"
+    t.string "receiver_id"
     t.string "receiver_type"
-    t.bigint "receiver_id"
-    t.bigint "thread_table_id"
-    t.text "message"
-    t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
-    t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
-    t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
+    t.string "channel_id"
+    t.string "message_id"
+    t.string "conversation_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
