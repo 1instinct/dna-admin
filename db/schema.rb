@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_23_054239) do
+ActiveRecord::Schema.define(version: 2020_09_06_213613) do
 
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
@@ -101,21 +100,6 @@ ActiveRecord::Schema.define(version: 2020_10_23_054239) do
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
-  end
-
-  create_table "messages", force: :cascade do |t|
-    t.boolean "active", default: true
-    t.string "status", default: "unread"
-    t.text "body"
-    t.string "sender_id"
-    t.string "sender_type"
-    t.string "receiver_id"
-    t.string "receiver_type"
-    t.string "channel_id"
-    t.string "message_id"
-    t.string "conversation_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -214,27 +198,6 @@ ActiveRecord::Schema.define(version: 2020_10_23_054239) do
     t.index ["position"], name: "index_spree_assets_on_position"
     t.index ["viewable_id"], name: "index_assets_on_viewable_id"
     t.index ["viewable_type", "type"], name: "index_assets_on_viewable_type_and_type"
-  end
-
-  create_table "spree_blog_entries", id: :serial, force: :cascade do |t|
-    t.string "title"
-    t.text "body"
-    t.string "permalink"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.boolean "visible", default: false
-    t.datetime "published_at"
-    t.text "summary"
-    t.integer "author_id"
-    t.string "meta_title"
-    t.string "meta_description"
-    t.string "meta_keywords"
-    t.index ["author_id"], name: "index_spree_blog_entries_on_author_id"
-    t.index ["created_at"], name: "index_spree_blog_entries_on_created_at"
-    t.index ["permalink"], name: "index_spree_blog_entries_on_permalink"
-    t.index ["published_at"], name: "index_spree_blog_entries_on_published_at"
-    t.index ["title"], name: "index_spree_blog_entries_on_title"
-    t.index ["visible"], name: "index_spree_blog_entries_on_visible"
   end
 
   create_table "spree_calculators", id: :serial, force: :cascade do |t|
@@ -1368,6 +1331,29 @@ ActiveRecord::Schema.define(version: 2020_10_23_054239) do
     t.index ["taxonomy_id"], name: "index_taxons_on_taxonomy_id"
   end
 
+  create_table "spree_themes", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.string "state"
+    t.string "template_file_file_name"
+    t.string "template_file_content_type"
+    t.bigint "template_file_file_size"
+    t.datetime "template_file_updated_at"
+  end
+
+  create_table "spree_themes_templates", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.text "body"
+    t.string "path"
+    t.string "format"
+    t.string "locale"
+    t.string "handler"
+    t.boolean "partial", default: false
+    t.integer "theme_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["theme_id"], name: "index_spree_themes_templates_on_theme_id"
+  end
+
   create_table "spree_trackers", id: :serial, force: :cascade do |t|
     t.string "environment"
     t.string "analytics_id"
@@ -1466,24 +1452,6 @@ ActiveRecord::Schema.define(version: 2020_10_23_054239) do
     t.string "kind", default: "state"
     t.index ["default_tax"], name: "index_spree_zones_on_default_tax"
     t.index ["kind"], name: "index_spree_zones_on_kind"
-  end
-
-  create_table "taggings", id: :serial, force: :cascade do |t|
-    t.integer "tag_id"
-    t.string "taggable_type"
-    t.integer "taggable_id"
-    t.string "tagger_type"
-    t.integer "tagger_id"
-    t.string "context", limit: 128
-    t.datetime "created_at"
-    t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
-    t.index ["taggable_id", "taggable_type", "context"], name: "index_taggings_on_taggable_id_and_taggable_type_and_context"
-  end
-
-  create_table "tags", id: :serial, force: :cascade do |t|
-    t.string "name"
-    t.integer "taggings_count", default: 0
-    t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

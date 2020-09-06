@@ -9,5 +9,4 @@
 
 //= require_tree .
 //= require spree/frontend/spree_auth
-//= require spree/frontend/spree_promo_users_codes
-//= require spree/frontend/spree_digital
+//= require spree/frontend/spree_themes
