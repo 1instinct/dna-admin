@@ -9,4 +9,5 @@
  *= require_tree .
  *= require spree/frontend/spree_static_content
  *= require spree/frontend/spree_promo_users_codes
+ *= require spree/frontend/spree_digital
 */

@@ -45,6 +45,7 @@ gem 'spree_auth_devise', '~> 3.5'
 gem 'spree_gateway', '~> 3.4'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
+gem 'spree_digital', github: 'spree-contrib/spree_digital'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

@@ -8,9 +8,11 @@
  *= require_self
  *= require_tree .
  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 
 /* admin messages css  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 .admin-msgs-gridcontainer {
     display: grid;
@@ -28,6 +30,7 @@
     flex-direction: column;
     justify-content: space-around;
     /* align-items: center;  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 }
 
@@ -55,6 +58,7 @@
     border-radius: 50%;
     background: pink;
     /* margin-top: 10%;  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 }
 
@@ -63,6 +67,7 @@
 }
 
 /* convolist  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 .admin-convolist-tbody {
     display: block;
@@ -70,12 +75,14 @@
     max-height: 60vh;
     background: linear-gradient(#FAFAFA, white)
     /* border: 1px solid black;  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 }
 
 /* .admin-convolist-wrapper {
     overflow-y: scroll;
 }  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 
 #th-avatar {
@@ -105,8 +112,10 @@
 }
 
 /* thread-list  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 /* threads  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 .admin-thread-header {
     display: flex;
@@ -134,10 +143,12 @@
     overflow-x: hidden;
     height: 60vh;
     /* margin: 8% 0 0 0;  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 }
 
 /* messages  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 
 p.message {
@@ -221,6 +232,7 @@ p.message span text {
     border-radius: 5px;
     border: 1px solid grey;
 }  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 
 .admin-thread-userinput {
@@ -245,5 +257,6 @@ p.message span text {
     outline-width: 0;
     /* display: grid;
     grid-template-columns: .8fr .2fr  *= require spree/backend/spree_promo_users_codes
+ *= require spree/backend/spree_digital
 */
 }
