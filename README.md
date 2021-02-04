@@ -1,4 +1,4 @@
-DOCKER SETUP
+#DOCKER SETUP
 
 # Local Docker Development
 This repo is using Spree 4.2.4
@@ -205,11 +205,15 @@ in a new terminal run:
 1. Run `rails s`
 
 reset db
+
 `docker-compose run web rake db:reset railties:install:migrations db:migrate db:seed spree_sample:load`
 
 create admin user if missing or fogot
+
 `docker-compose run web rake spree_auth:admin:create`
+
 default is:
+
 spree@example.com
 spree123
 
