@@ -1,5 +1,5 @@
 # https://docs.docker.com/compose/rails/#define-the-project
-FROM ruby:2.7.2
+FROM ruby:2.6.2
 # The qq is for silent output in the console
 RUN apt-get update -qq && apt-get install -y postgresql-client nodejs
 
@@ -15,26 +15,15 @@ WORKDIR /dna
 # they change.
 COPY Gemfile ./
 COPY Gemfile.lock ./
+# Installs the Gem File.
+RUN gem install bundler:2.0.1 && bundle install
 
-# Note that dotenv is NOT used in production.  Environment
-# comes from the deployment.
-COPY .env.development .env.development
-
-# Install the Gems
-RUN gem install bundler:2.2.11 && bundle install
-
-# We copy all the application files from the current directory to out
-# /dna directory
-COPY ./app /dna/app
-COPY ./bin /dna/bin
-COPY ./config /dna/config
-COPY ./config.ru /dna/
-COPY ./db /dna/db
-COPY ./docs /dna/docs
-COPY ./lib /dna/lib
-COPY ./public /dna/public
-COPY ./Rakefile /dna/
-COPY ./vendor /dna/vendor
+# We copy all the files from the current directory to out
+# /app directory
+# Pay close attention to the dot (.)
+# The first one will select ALL the files of the current directory,
+# The second dot will copy it to the WORKDIR!
+COPY . /dna
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
