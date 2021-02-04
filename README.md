@@ -16,10 +16,12 @@ create admin user if missing or fogot
 
 default is:
 
-spree@example.com
-spree123
+email: spree@example.com
+
+password: spree123
 
 all regular ruby commands work preceeded with:
+
 `docker-compose run web [you command here]`
 
 Other things we may need to cover:
