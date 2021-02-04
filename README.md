@@ -1,4 +1,4 @@
-#DOCKER SETUP
+# DOCKER SETUP
 
 `docker-compose up --build` (say "no" to all overwrites)
 
