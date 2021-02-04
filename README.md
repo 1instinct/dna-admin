@@ -1,4 +1,4 @@
-#DOCKER SETUP
+# DOCKER SETUP
 
 # Local Docker Development
 This repo is using Spree 4.2.4
