@@ -1,4 +1,4 @@
-DOCKER SETUP
+#DOCKER SETUP
 
 `docker-compose up --build` (say "no" to all overwrites)
 
@@ -7,11 +7,15 @@ in a new terminal run:
 `docker-compose run web rake db:create db:migrate db:schema:load db:seed && docker-compose run web rake spree_sample:load`
 
 reset db
+
 `docker-compose run web rake db:reset railties:install:migrations db:migrate db:seed spree_sample:load`
 
 create admin user if missing or fogot
+
 `docker-compose run web rake spree_auth:admin:create`
+
 default is:
+
 spree@example.com
 spree123
 
