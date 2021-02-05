@@ -10,6 +10,8 @@ reset db
 
 `docker-compose run web rake db:reset railties:install:migrations db:migrate db:seed spree_sample:load`
 
+DNA Admin should now be available at localhost:8080
+
 create admin user if missing or fogot
 
 `docker-compose run web rake spree_auth:admin:create`
