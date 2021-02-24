@@ -40,12 +40,14 @@ gem 'bootsnap', '~> 1.8.1'
 
 gem "aws-sdk-s3", require: false
 
-gem 'spree', '~> 3.7'
-gem 'spree_auth_devise', '~> 3.5'
-gem 'spree_gateway', '~> 3.4'
+gem 'spree', '~> 4.2.0.rc4'
+gem 'spree_auth_devise', '~> 4.3'
+gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
-gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
+
+# doesn't support spree 4
+#gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 gem 'sprockets-helpers', '~> 1.2.1'
 

@@ -9,7 +9,6 @@
 # In order to initialize a setting do:
 # config.setting_name = 'new value'
 Spree.config do |config|
-  config.admin_interface_logo = ENV['COMPANY_LOGO']
   # Example:
   # Uncomment to stop tracking inventory levels in the application
   # config.track_inventory_levels = false

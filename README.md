@@ -54,6 +54,18 @@ the install over again if you do this.
 sudo rm -rf tmp/db
 ```
 
+## Extensions
+
+The system uses 3 spree extensions
+
+* `spree_static_content`
+* `spree_digital`
+* `spree_promo_users_codes`
+
+Each one is installed _after_ spree, with it's own migrations generated using a 
+specific `bundle exec rails g` command, which can be found on the README of the github
+page for each project.  This only needs to be done once after spree is installed or upgraded.  
+
 ## TODO
 
 Other things we may need to cover:

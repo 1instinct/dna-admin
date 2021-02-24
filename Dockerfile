@@ -1,5 +1,5 @@
 # https://docs.docker.com/compose/rails/#define-the-project
-FROM ruby:2.6.2
+FROM ruby:2.7.2
 # The qq is for silent output in the console
 RUN apt-get update -qq && apt-get install -y postgresql-client nodejs
 
@@ -16,8 +16,9 @@ WORKDIR /dna
 COPY Gemfile ./
 COPY Gemfile.lock ./
 COPY .env.example .env.development
-# Installs the Gem File.
-RUN gem install bundler:2.0.2 && bundle install && rails g spree:install --user_class=Spree::User && rails g spree:auth:install && rails g spree_gateway:install
+
+# Install the Gems
+RUN gem install bundler:2.2.11 && bundle install
 
 # We copy all the files from the current directory to out
 # /app directory

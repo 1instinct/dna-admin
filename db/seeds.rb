@@ -1,5 +1,3 @@
-require 'faker'
-
 #
 # Place all seeds in /seeds/ folder.
 #
