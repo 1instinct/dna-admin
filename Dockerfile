@@ -17,7 +17,7 @@ COPY Gemfile ./
 COPY Gemfile.lock ./
 COPY .env.example .env.development
 # Installs the Gem File.
-RUN gem install bundler:2.0.1 && bundle install && rails g spree:install --user_class=Spree::User && rails g spree:auth:install && rails g spree_gateway:install
+RUN gem install bundler:2.0.2 && bundle install && rails g spree:install --user_class=Spree::User && rails g spree:auth:install && rails g spree_gateway:install
 
 # We copy all the files from the current directory to out
 # /app directory
