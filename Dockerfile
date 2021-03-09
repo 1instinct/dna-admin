@@ -16,9 +16,8 @@ WORKDIR /dna
 COPY Gemfile ./
 COPY Gemfile.lock ./
 COPY .env.example .env.development
-
-# Install the Gems
-RUN gem install bundler:2.2.11 && bundle install
+# Installs the Gem File.
+RUN gem install bundler:2.0.2 && bundle install
 
 # We copy all the files from the current directory to out
 # /app directory
