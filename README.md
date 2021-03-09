@@ -47,7 +47,7 @@ This will reset the existing database back to blank.
 docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
 ```
 
-You could also blow away all the DB files.  WARNING! You'll have to start 
+You could also blow away all the DB files.  WARNING! You'll have to start
 the install over again if you do this.
 
 ```
@@ -59,12 +59,15 @@ sudo rm -rf tmp/db
 The system uses 3 spree extensions
 
 * `spree_static_content`
+  [github](https://github.com/spree-contrib/spree_static_content)
 * `spree_digital`
+  [github](https://github.com/spree-contrib/spree_digital)
 * `spree_promo_users_codes`
+  [github](https://github.com/vinsol-spree-contrib/spree_promo_users_codes)
 
-Each one is installed _after_ spree, with it's own migrations generated using a 
+Each one is installed _after_ spree, with it's own migrations generated using a
 specific `bundle exec rails g` command, which can be found on the README of the github
-page for each project.  This only needs to be done once after spree is installed or upgraded.  
+page for each project.  This only needs to be done once after spree is installed or upgraded.
 
 ## TODO
 
