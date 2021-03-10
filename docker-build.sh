@@ -8,7 +8,8 @@ set -e
 docker-compose build
 docker-compose up -d
 
-docker-compose exec web rails db:create db:schema:load db:migrate db:seed
+docker-compose exec web rails db:create db:schema:load db:migrate
+docker-compose exec -e ADMIN_EMAIL=spree@example.com -e ADMIN_PASSWORD=spree123 web rails db:seed
 
 docker-compose exec web rails spree_sample:load
 docker-compose restart
