@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_10_155819) do
+ActiveRecord::Schema.define(version: 2021_03_10_200034) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1133,6 +1133,7 @@ ActiveRecord::Schema.define(version: 2021_03_10_155819) do
     t.string "new_order_notifications_email"
     t.integer "checkout_zone_id"
     t.string "seo_robots"
+    t.string "supported_locales"
     t.index "lower((code)::text)", name: "index_spree_stores_on_lower_code", unique: true
     t.index ["default"], name: "index_spree_stores_on_default"
     t.index ["url"], name: "index_spree_stores_on_url"
