@@ -2,6 +2,9 @@
 
 set -e
 
+# to blank the database ahead of time, run
+#  sudo rm -rf tmp/db
+
 docker-compose build
 docker-compose up -d
 
