@@ -19,12 +19,18 @@ COPY .env.example .env.development
 # Installs the Gem File.
 RUN gem install bundler:2.0.2 && bundle install
 
-# We copy all the files from the current directory to out
-# /app directory
-# Pay close attention to the dot (.)
-# The first one will select ALL the files of the current directory,
-# The second dot will copy it to the WORKDIR!
-COPY . /dna
+# We copy all the application files from the current directory to out
+# /dna directory
+COPY app /dna/
+COPY bin /dna/
+COPY config /dna/
+COPY config.ru /dna/
+COPY db /dna/
+COPY docs /dna/
+COPY lib /dna/
+COPY public /dna/
+COPY Rakefile /dna/
+COPY vendor /dna/
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
