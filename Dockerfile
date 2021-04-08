@@ -15,6 +15,9 @@ WORKDIR /dna
 # they change.
 COPY Gemfile ./
 COPY Gemfile.lock ./
+
+# Note that dotenv is NOT used in production.  Environment
+# comes from the deployment.
 COPY .env.example .env.development
 # Installs the Gem File.
 RUN gem install bundler:2.0.2 && bundle install

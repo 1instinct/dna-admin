@@ -10,6 +10,10 @@ development:
   <<: *default
   database: dna_admin_development
 
+production:
+  <<: *default
+  database: dna_admin_production
+
 test:
   <<: *default
   database: dna_admin_test
