@@ -13,3 +13,5 @@ services:
       - "8080:3000"
     depends_on:
       - db
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
