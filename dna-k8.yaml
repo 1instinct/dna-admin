@@ -28,6 +28,9 @@ spec:
           value: us-west-1
         - name: AWS_BUCKET_NAME
           value: instinct-dna-dd
+        # this won't be needed if using nginx
+        - name: RAILS_SERVE_STATIC_FILES
+          value: 1
         envFrom:
         - secretRef:
             name: aws-secrets
