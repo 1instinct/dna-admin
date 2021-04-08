@@ -81,3 +81,5 @@ node_modules/
 yarn-debug.log*
 .yarn-integrity
 app/assets/images/no_soup_for_you.jpg
+secret.yaml
+*.tar
