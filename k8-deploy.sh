@@ -12,5 +12,5 @@ docker tag dna-admin_web dna-admin:0.1
 docker save dna-admin > dna-admin.tar
 microk8s ctr image import dna-admin.tar
 
-kubectl delete deployment.apps/dna-admin || :
-kubectl apply -f dna-k8.yaml
+microk8s kubectl delete deployment.apps/dna-admin || :
+microk8s kubectl apply -f dna-k8.yaml

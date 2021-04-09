@@ -21,16 +21,16 @@ spec:
         imagePullPolicy: Never
         env:
         - name: DATABASE_URL
-          value: postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production
+          value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
         - name: RAILS_ENV
-          value: production
+          value: "production"
         - name: AWS_REGION_NAME
-          value: us-west-1
+          value: "us-west-1"
         - name: AWS_BUCKET_NAME
-          value: instinct-dna-dd
+          value: "instinct-dna-dd"
         # this won't be needed if using nginx
         - name: RAILS_SERVE_STATIC_FILES
-          value: 1
+          value: "1"
         envFrom:
         - secretRef:
             name: aws-secrets
