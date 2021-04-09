@@ -11,6 +11,7 @@ echo RAILS_ENV=$RAILS_ENV
 if [ ! -e assets_precompiled ] ; then
     rails assets:precompile
     touch assets_precompiled
+    exit 0
 fi
 
 >>>>>>> fa55c3c (compile assets once on container start)
