@@ -8,7 +8,14 @@ set -ex
 # or another registry server.
 
 docker-compose build
-docker tag dna-admin_web dna-admin:0.1
+
+# wait for web to build assets
+# FIXME: this doesn't work
+docker-compose up
+sleep 5 ; docker-compose stop
+
+docker commit dna-admin_web_1 dna-admin_web:0.1
+docker tag dna-admin_web:0.1 dna-admin:0.1
 docker save dna-admin > dna-admin.tar
 microk8s ctr image import dna-admin.tar
 
