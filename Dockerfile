@@ -21,16 +21,16 @@ RUN gem install bundler:2.0.2 && bundle install
 
 # We copy all the application files from the current directory to out
 # /dna directory
-COPY app /dna/
-COPY bin /dna/
-COPY config /dna/
+COPY app /dna/app
+COPY bin /dna/bin
+COPY config /dna/config
 COPY config.ru /dna/
-COPY db /dna/
-COPY docs /dna/
-COPY lib /dna/
-COPY public /dna/
+COPY db /dna/db
+COPY docs /dna/docs
+COPY lib /dna/lib
+COPY public /dna/public
 COPY Rakefile /dna/
-COPY vendor /dna/
+COPY vendor /dna/vendor
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
