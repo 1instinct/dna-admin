@@ -76,7 +76,10 @@ page for each project.  This only needs to be done once after spree is installed
 
 ## Deploy
 
-This uses heroku ruby buildpack on the heroku-20 stack.
+This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
+on github is hooked in to the deployment.
+
+Git: https://github.com/POL-Clothing/pol-admin
 
 ## TODO
 
