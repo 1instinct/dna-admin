@@ -6,10 +6,5 @@ rm -f /myapp/tmp/pids/server.pid
 
 echo RAILS_ENV=$RAILS_ENV
 
-if [ ! -e assets_precompiled ] ; then
-    rails assets:precompile
-    touch assets_precompiled
-fi
-
 # Then exec the container's main process (what's set as CMD in the Dockerfile).
 exec "$@"
