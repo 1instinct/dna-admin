@@ -20,7 +20,13 @@ Spree::Core::Engine.add_routes do
 
     get "/messages" => "messages#index"
     get "/messages/support" => "messages#message_support"
-
+    resources :live_stream
+    # resources :live_stream, only: [:index] do
+    #   collection do
+    #     get :create_stream
+    #     delete :destroy
+    #   end
+    # end
   end
 
 end
