@@ -10,38 +10,27 @@
 <div class="table-responsive">
   <table class="table">
     <thead>
-      <th>Id</th>
       <th>Title</th>
       <th>Description</th>
       <th>Stream URL</th>
       <th>Stream Key</th>
       <th>Start Date</th>
       <th>Is Active</th>
-      <th data-hook="admin_stores_index_header_actions" class="actions"></th>
+      <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
     <thead>
     <tbody>
       <%# @response[1]['data'].each do |stream| %>
       <% @live_streams.each do |live_stream| %>
         <tr class="live_stream_<%= live_stream.id %>">
-          <td><%= link_to live_stream.id, admin_live_stream_path(live_stream.id) %></td>
-          <td><%= live_stream.title %></td>
+          <td><%= link_to live_stream.title, admin_live_stream_path(live_stream.id) %></td>
           <td><%= live_stream.description %></td>
           <td><%= live_stream.stream_url %></td>
           <td><%= live_stream.stream_key %></td>
           <td><%= live_stream.start_date %></td>
-          <td><%= live_stream.is_active %></td>
+          <td><%= live_stream.is_active.present? ? live_stream.is_active : true %></td>
           <td class="actions actions-2 text-right" data-hook="admin_live_stream_index_row_actions">
-            <%#= link_to_edit_url spree.edit_admin_store_path(store), no_text: true if can?(:edit, store) %>
-
-            <%# if can?(:edit, store) %>
-              <%# btn_url = store.default? ? '#' : spree.set_default_admin_store_path(store) %>
-              <%# btn_class = store.default? ? 'outline-secondary disabled' : 'warning' %>
-              <%# btn_label = store.default? ? nil : Spree.t(:store_set_default_button) %>
-              <%#= link_to_with_icon('save.svg', btn_label, btn_url, no_text: true, method: (store.default? ? nil : :put), class: "btn btn-#{btn_class} btn-sm with-tip", aria: {disabled: store.default?}) %>
-            <%# end %>
-
+            <%= link_to_edit_url spree.edit_admin_live_stream_path(live_stream.id), no_text: true if can?(:edit, live_stream) %>
             <%= link_to_delete live_stream.id, no_text: true, url: admin_live_stream_path(id: live_stream.id) if can?(:destroy, live_stream.id) %>
-
           </td>
         </tr>
       <% end %>
