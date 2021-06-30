@@ -1609,3 +1609,6 @@ en:
       live_stream_show: Live Stream fetch successfully
       live_stream_menu: Live Streams
       generating: Generating Playback Id
+      fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+      update_success: Live Stream updated successfully.
+      added_success: Live Stream Added successfully.
