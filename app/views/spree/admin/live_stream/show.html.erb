@@ -1,1 +1,82 @@
-<h1>Hello</h1>
+<h1><%= @live_stream.inspect %></h1>
+<h1><%= @response[1] %></h1>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @live_stream } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:live_streams), spree.admin_live_stream_index_path %> /
+  <%= Spree.t(:live_stream_detail) %>
+<% end %>
+
+<%#= form_for [:admin, admin_live_stream_index_path, @live_stream], html: { multipart: true } do |f| %>
+<%= form_for [:admin, @live_stream], url: admin_live_stream_index_path, html: { multipart: true }, method: :post do |f| %>
+  <fieldset data-hook="new_product">
+    <%= f.field_container :title, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:title) %> <span class="required">*</span>
+      <%= f.text_field :title, class: 'form-control title', required: :required %>
+      <%= f.error_message_on :title %>
+    <% end %>
+
+    <%= f.field_container :description, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:description) %> <span class="required">*</span>
+      <%= f.text_field :description, class: 'form-control title', required: :required %>
+      <%= f.error_message_on :description %>
+    <% end %>
+
+    <div id="start_date_field" class="form-group">
+      <%= f.label :start_date %>
+      <div class="input-group datePickerTo"
+           data-wrap="true"
+           data-enable-time='true'
+           data-alt-format="<%= Spree.t(:fpr_human_friendly_date_time_format, scope: 'date_picker', default: 'M j, Y H:i') %>"
+           data-min-date="<%= DateTime.now %>">
+        <%= f.datetime_field :start_date,
+                              placeholder:Spree.t('start_at'),
+                              class: 'form-control shadow-none',
+                              'data-input':'' %>
+
+        <%= render partial: 'spree/admin/shared/cal_close' %>
+      </div>
+    </div>
+
+    <%= f.field_container :stream_url, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:stream_url) %> <span class="required">*</span>
+      <%= f.text_field :stream_url, class: 'form-control title', required: :required, readonly: :true %>
+      <%= f.error_message_on :stream_url %>
+    <% end %>
+
+    <%= f.field_container :stream_key, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:stream_key) %> <span class="required">*</span>
+      <%= f.text_field :stream_key, class: 'form-control title', required: :required, readonly: :true %>
+      <%= f.error_message_on :stream_key %>
+    <% end %>
+
+    <%= f.field_container :stream_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:stream_id) %> <span class="required">*</span>
+      <%= f.text_field :stream_id, class: 'form-control title', required: :required, readonly: :true %>
+      <%= f.error_message_on :stream_id %>
+    <% end %>
+
+    <%= f.field_container :playback_ids, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:playback_ids) %> <span class="required">*</span>
+      <%= f.text_field :playback_ids, class: 'form-control title', required: :required, readonly: :true %>
+      <%= f.error_message_on :playback_ids %>
+    <% end %>
+
+    <%= f.field_container :status, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:status) %> <span class="required">*</span>
+      <%= f.text_field :status, class: 'form-control title', required: :required, readonly: :true %>
+      <%= f.error_message_on :status %>
+    <% end %>
+
+    <% is_active = @live_stream.is_active.present? ? @live_stream.is_active : false %>
+    <%= f.field_container :is_active, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:is_active) %> <span class="required">*</span>
+      <%= f.text_field :is_active, class: 'form-control title', value: is_active, required: :required, readonly: :true %>
+      <%= f.error_message_on :is_active %>
+    <% end %>
+
+    <%= render partial: 'spree/admin/live_stream/new_resource_links' %>
+
+  </fieldset>
+<% end %>

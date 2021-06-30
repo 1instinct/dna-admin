@@ -23,7 +23,7 @@
       <%# @response[1]['data'].each do |stream| %>
       <% @live_streams.each do |live_stream| %>
         <tr class="live_stream_<%= live_stream.id %>">
-          <td><%= live_stream.id %></td>
+          <td><%= link_to live_stream.id, admin_live_stream_path(live_stream.id) %></td>
           <td><%= live_stream.title %></td>
           <td><%= live_stream.description %></td>
           <td><%= live_stream.stream_url %></td>

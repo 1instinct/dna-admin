@@ -251,6 +251,9 @@ en:
       spree/promotion_category:
         one: Promotion Category
         other: Promotion Categories
+      spree/live_stream:
+        one: LiveStream
+        other: LiveStreams
       spree/property:
         one: Property
         other: Properties
@@ -573,6 +576,9 @@ en:
         store_credits: Store Credits
         no_store_credit: User has no Store Credit available.
         available_store_credit: User has %{amount} in Store Credit available.
+      live_stream:
+        list: Live stream list fetch successfully.
+        add_live_stream: New Live Stream
     administration: Administration
     advertise: Advertise
     agree_to_privacy_policy: Agree to Privacy Policy
@@ -843,6 +849,7 @@ en:
     height: Height
     home: Home
     help_center: Help Center
+    live_stream_index: LiveStreams
     i18n:
       available_locales: Available Locales
       fields: Fields
@@ -1595,3 +1602,8 @@ en:
     zipcode: Zip Code
     zone: Zone
     zones: Zones
+    start_at: Start Date Time
+    live_stream:
+      live_stream_deleted: Live Stream has been deleted
+      live_stream_show: Live Stream fetch successfully
+      live_stream_menu: Live Streams

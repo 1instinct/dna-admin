@@ -39,6 +39,40 @@ module Spree
       end
 
       def show
+        @live_stream = LiveStream.find(params[:id])
+        require 'json'
+        headers = {
+          "Content-Type" => "application/json"
+        }
+        url = "https://api.mux.com/video/v1/live-streams/#{@live_stream.stream_id}"
+        @response = RestClient::Request.new({
+          method: :get,
+          url: url,
+          user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
+          password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+          headers: headers
+          }).execute do |response, request, result|
+            case response.code
+            when 400
+              [ :error, JSON.parse(response.to_str) ]
+            when 200
+              [ :success, JSON.parse(response.to_str) ]
+            else
+              fail "Invalid response #{response.to_str} received."
+            end
+          end
+          if @response[0] == :success
+            status = @response[1]['data']['status']
+            playback_ids = @response[1]['data']['playback_ids'].pluck('id') if @response[1]['data']['playback_ids'].present?
+            puts "*****************************#{playback_ids}"
+
+            @live_stream.update(status: status, playback_ids: playback_ids)
+
+            flash[:success] = Spree.t('live_stream.live_stream_show')
+          else
+            flash[:error] = @response[1]['error']['messages'].join("")
+            redirect_to admin_live_stream_index_path
+          end
       end
 
       def create
@@ -77,7 +111,8 @@ module Spree
               flash[:notice] = 'Live Stream Added successfully.'
               redirect_to admin_live_stream_index_path
             else
-              invalid_resource!(@live_stream)
+              flash[:error] = @response[1]['error']['messages'].join("")
+              redirect_to admin_live_stream_index_path
             end
           else
             flash[:error] = @response[1]
