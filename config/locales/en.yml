@@ -492,6 +492,7 @@ en:
       refund: Refund
       save: Save
       update: Update
+      generate_playback: Generate Playback Id
     activate: Activate
     active: Active
     add: Add
@@ -1607,3 +1608,4 @@ en:
       live_stream_deleted: Live Stream has been deleted
       live_stream_show: Live Stream fetch successfully
       live_stream_menu: Live Streams
+      generating: Generating Playback Id
