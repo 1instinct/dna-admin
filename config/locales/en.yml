@@ -251,9 +251,6 @@ en:
       spree/promotion_category:
         one: Promotion Category
         other: Promotion Categories
-      spree/live_stream:
-        one: LiveStream
-        other: LiveStreams
       spree/property:
         one: Property
         other: Properties
