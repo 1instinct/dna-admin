@@ -9,7 +9,11 @@ Rails.application.routes.draw do
   # the default of "spree".
 
   mount Spree::Core::Engine, at: '/'
-
+  resources :apidocs, only: [:index] do
+    collection do
+      get 'swagger_ui'
+    end
+  end
 end
 
 Spree::Core::Engine.add_routes do
@@ -25,12 +29,10 @@ Spree::Core::Engine.add_routes do
         get :generate_playback
       end
     end
-    # resources :live_stream, only: [:index] do
-    #   collection do
-    #     get :create_stream
-    #     delete :destroy
-    #   end
-    # end
   end
-
+  namespace :api, constraints: { format: 'json' } do
+    namespace :v1 do
+      resources :live_stream
+    end
+  end
 end
