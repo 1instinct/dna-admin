@@ -15,6 +15,7 @@ WORKDIR /dna
 # they change.
 COPY Gemfile ./
 COPY Gemfile.lock ./
+COPY ./external /dna/external
 
 # Note that dotenv is NOT used in production.  Environment
 # comes from the deployment.
@@ -27,14 +28,14 @@ RUN gem install bundler:2.2.11 && bundle install
 
 # We copy all the application files from the current directory to out
 # /dna directory
-COPY ./app /dna/app/
-COPY ./bin /dna/bin/
-COPY ./config /dna/config/
+COPY ./app /dna/app
+COPY ./bin /dna/bin
+COPY ./config /dna/config
 COPY ./config.ru /dna/
-COPY ./db /dna/db/
-COPY ./docs /dna/docs/
-COPY ./lib /dna/lib/
-COPY ./public /dna/public/
+COPY ./db /dna/db
+COPY ./docs /dna/docs
+COPY ./lib /dna/lib
+COPY ./public /dna/public
 COPY ./Rakefile /dna/
 COPY ./vendor /dna/vendor
 
