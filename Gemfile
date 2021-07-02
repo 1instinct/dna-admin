@@ -52,6 +52,8 @@ gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'sprockets-helpers', '~> 1.2.1'
 
 gem 'rest-client'
+# Tool to create APi and it's documentation
+gem 'swagger-blocks'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
