@@ -1609,3 +1609,4 @@ en:
       fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
       update_success: Live Stream updated successfully.
       added_success: Live Stream Added successfully.
+      list_success: Live Stream listed successfully.
