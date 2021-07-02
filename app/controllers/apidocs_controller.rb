@@ -4,16 +4,15 @@ class ApidocsController < ActionController::Base
     key :swagger, '2.0'
     info do
       key :version, '1.0.0'
-      key :title, ENV['SITE_TITLE']
-      key :description, ENV['SITE_DESCRIPTION']
+      key :title, 'POL Ecommerce website'
+      key :description, 'POL App and Website. Types of user in this are User.'
       contact do
-        key :name, ENV['SITE_ADMIN_NAME']
+        key :name, 'Vishwas Patil'
       end
     end
-    key :host, 'http://localhost:8080/apidocs.json' if Rails.env.development?
-    key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
-    key :host, 'https://admin.instinct.is/' if Rails.env.production?
-
+    key :host, 'localhost:3000/' if Rails.env.development?
+    key :host, 'localhost:3000/' if Rails.env.staging?
+    key :host, 'localhost:3000/' if Rails.env.production?
 
     key :basePath, '/api/v1'
     key :consumes, ['application/x-www-form-urlencoded'] #this means what responce we are going to send
@@ -24,13 +23,6 @@ class ApidocsController < ActionController::Base
   SWAGGERED_CLASSES_V1 = [
     #SwaggerController, #controller details goes from here where from you are creating api
     Spree::Api::V1::LiveStreamController,
-    Spree::Api::V1::UsersController,
-    Spree::Api::V1::PagesController,
-    Spree::Api::V1::ContactsController,
-    Spree::Api::V1::MessagesController,
-    Spree::Api::V1::ThreadsController,
-    Spree::Api::V1::MenuLocationsController,
-    Spree::Api::V1::MenuItemsController,
     SwaggerGlobalModel,
     self,
   ].freeze
