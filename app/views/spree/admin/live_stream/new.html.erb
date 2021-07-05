@@ -20,6 +20,13 @@
       <%= f.error_message_on :description %>
     <% end %>
 
+
+    <%= f.field_container :product_ids, class: ['form-group'] do %>
+      <%= f.label :product_ids, Spree.t('live_stream.product_ids') %>
+      <%= f.collection_select(:product_ids, Spree::Product.all, :id, :name, { include_blank: Spree.t('match_choices.none') }, { class: 'select2', multiple: true }) %>
+      <%= f.error_message_on :product_ids %>
+    <% end %>
+
     <div id="start_date_field" class="form-group">
       <%= f.label :start_date %>
       <div class="input-group datePickerTo"
@@ -35,8 +42,6 @@
         <%= render partial: 'spree/admin/shared/cal_close' %>
       </div>
     </div>
-
-
 
     <%= render partial: 'spree/admin/live_stream/new_resource_links' %>
 
