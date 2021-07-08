@@ -24,20 +24,13 @@ Spree::Core::Engine.add_routes do
 
     get "/messages" => "messages#index"
     get "/messages/support" => "messages#message_support"
-    resources :live_stream do
-      collection do
-        get :generate_playback
-      end
-    end
+    get "pages/about_us" => "pages#about_us"
+
   end
-  namespace :api, constraints: { format: 'json' } do
-    namespace :v1 do
-      resources :live_stream
-      resources :users do
-        collection do
-          post :sign_up
-          post :sign_in
-        end
+  namespace :admin do
+    resources :menu_items, except: :show do
+      member do
+        get :children
       end
     end
   end

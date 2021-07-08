@@ -1,28 +1,24 @@
 module Spree
   module Admin
-    class MenuItemsController < Spree::Admin::BaseController
+    class MenuItemsController < BaseController
       before_action :set_menu_item, only: [:edit, :update, :destroy, :children]
 
       def index
-         @menu_items = MenuItem.top_level
-         @menu_location = MenuLocation.all
-
-         if params[:menu_location_id].present?
-           @menu_items = MenuLocation.find_by(id: params[:menu_location_id].to_i).menu_items
-         end
-          respond_to do |format|
-            format.html
-            format.json { render :children, status: :ok }
-          end
+        #binding.pry
+        @menu_items = Spree::MenuItem.all
+        respond_to do |format|
+          format.html
+          format.json { render :children, status: :ok }
+        end
       end
 
       def new
-        @menu_location = MenuLocation.all
-        @menu_item = MenuItem.new
+        @menu_item = Spree::MenuItem.new
       end
 
       def create
-        @menu_item = MenuItem.new(menu_item_params)
+        @menu_item = Spree::MenuItem.new(menu_item_params)
+      #  binding.pry
         respond_to do |format|
           if @menu_item.save
             format.html { submit_success_redirect(:create) }
@@ -56,18 +52,16 @@ module Spree
       end
 
       def children
-        @menu_items = MenuItem.find(params[:id]).childrens
-
+        @menu_items = Spree::MenuItem.find(params[:id]).children
         respond_to do |format|
           format.json { render :children, status: :ok }
         end
       end
 
-
       protected
 
       def submit_success_redirect(type)
-        scope = 'menu_navigator.admin.flash.success'
+        scope = 'navigator.admin.flash.success'
         redirect_to admin_menu_items_path, flash: {
           success: Spree.t(type, name: @menu_item.name, scope: scope)
         }
@@ -78,8 +72,7 @@ module Spree
       end
 
       def set_menu_item
-        @menu_item = MenuItem.find(params[:id].to_i)
-        @menu_location = MenuLocation.all
+        @menu_item = Spree::MenuItem.find(params[:id])
       end
 
       def permitted_menu_item_attributes
@@ -90,25 +83,25 @@ module Spree
           :item_class,
           :item_target,
           :parent_id,
-          :position,
-          :menu_location_id
+          :position
         ]
       end
 
       def menu_item_params
-      if params[:menu_item][:parent_id] == 'menu_tree'
+        if params[:menu_item][:parent_id] == 'menu_tree'
           params[:menu_item][:parent_id] = nil
-
-      end
+        else
+          params[:menu_item][:parent_id] = params[:id]
+        end
         params.require(:menu_item).permit(permitted_menu_item_attributes)
       end
 
       def organize_items
-        MenuItem.where(parent_id: menu_item_params[:parent_id])
+        Spree::MenuItem.where(parent_id: menu_item_params[:parent_id])
           .order(updated_at: :desc)
           .map(&:id)
           .each_with_index do |id, index|
-          MenuItem.find(id).update(position: index)
+          Spree::MenuItem.find(id).update_attributes(position: index)
         end
       end
     end
