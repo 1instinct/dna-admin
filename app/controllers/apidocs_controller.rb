@@ -7,7 +7,7 @@ class ApidocsController < ActionController::Base
       key :title, 'POL Ecommerce website'
       key :description, 'POL App and Website. Types of user in this are User.'
       contact do
-        key :name, 'Vishwas Patil'
+        key :name, 'Mayank Gandhi'
       end
     end
     key :host, 'localhost:3000/' if Rails.env.development?

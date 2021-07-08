@@ -1611,3 +1611,10 @@ en:
       added_success: Live Stream Added successfully.
       list_success: Live Stream listed successfully.
       product_ids: Select live stream products
+    user:
+      error:
+        user_exists: User exists with given email.
+        email_password_unmatch: Email and Password does not match. Please enter valid credentials.
+      success:
+        sign_up: User created successfully.
+        sign_in: User Sign in Successfully.
