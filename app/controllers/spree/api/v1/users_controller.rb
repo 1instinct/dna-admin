@@ -78,13 +78,12 @@ module Spree
           @user = Spree::User.find_by_email(params[:user][:email])
 
           if @user.present?
-            error_model(401, Spree.t('user.error.user_exists'))
-            return
+            render "spree/api/users/user_exists", :status => 401 and return
           end
 
           @user = Spree::User.new(user_params)
           if !@user.save
-            error_model(400, @user.errors.full_messages.join(','))
+            unauthorized
             return
           end
           @user.generate_spree_api_key!
@@ -93,7 +92,7 @@ module Spree
             spree_api_key: @user.spree_api_key || "",
             email: @user.email || ""
           }
-          singular_success_model(200,  Spree.t('user.success.sign_up'), response_data)
+          singular_success_model(200,  "User Created Successfully.", response_data)
         end
 
         swagger_path "/users/sign_in" do
@@ -134,7 +133,7 @@ module Spree
         def sign_in
           @user = Spree::User.find_by_email(params[:user][:email])
           if !@user.present? || !@user.valid_password?(params[:user][:password])
-            error_model(401, Spree.t('user.error.email_password_unmatch'))
+            unauthorized
             return
           else
             @user.generate_spree_api_key! if @user.spree_api_key.blank?
@@ -142,8 +141,8 @@ module Spree
               id: @user.id || 0,
               spree_api_key: @user.spree_api_key || "",
               email: @user.email || ""
-            }            
-            singular_success_model(200,  Spree.t('user.success.sign_in'), response_data)
+            }
+            singular_success_model(200,  "User Sign in Successfully.", response_data)
           end
         end
 
