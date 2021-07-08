@@ -1,5 +1,5 @@
 module Spree::Api::V1
-  class LiveStreamController < Spree::BaseController
+  class LiveStreamController < Spree::Api::BaseController
     include Swagger::Blocks
     include Response
 
@@ -10,6 +10,13 @@ module Spree::Api::V1
         key :tags, [
           'LiveStream'
         ]
+        parameter do
+          key :name, :'X-Spree-Token'
+          key :description, "User API Key"
+          key :type, :string
+          key :in, :header
+          key :required, true
+        end
         response 200 do
           key :description, "Successfull"
           schema do
