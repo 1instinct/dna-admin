@@ -33,6 +33,13 @@ Spree::Core::Engine.add_routes do
   namespace :api, constraints: { format: 'json' } do
     namespace :v1 do
       resources :live_stream
+      resources :users do
+        collection do
+          post :sign_up
+          post :sign_in
+        end
+      end
     end
   end
+
 end
