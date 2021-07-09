@@ -4,8 +4,8 @@ module Spree
       before_action :set_menu_item, only: [:edit, :update, :destroy, :children]
 
       def index
-        #binding.pry
-        @menu_items = Spree::MenuItem.all
+        @menu_items = Spree::MenuItem.top_level
+
         respond_to do |format|
           format.html
           format.json { render :children, status: :ok }
@@ -18,7 +18,7 @@ module Spree
 
       def create
         @menu_item = Spree::MenuItem.new(menu_item_params)
-      #  binding.pry
+
         respond_to do |format|
           if @menu_item.save
             format.html { submit_success_redirect(:create) }
@@ -52,7 +52,8 @@ module Spree
       end
 
       def children
-        @menu_items = Spree::MenuItem.find(params[:id]).children
+        @menu_items = Spree::MenuItem.find(params[:id]).childrens
+
         respond_to do |format|
           format.json { render :children, status: :ok }
         end
@@ -88,11 +89,13 @@ module Spree
       end
 
       def menu_item_params
-        if params[:menu_item][:parent_id] == 'menu_tree'
+
+      if params[:menu_item][:parent_id].present?
+        if Spree::MenuItem.find_by(parent_id: params[:menu_item][:parent_id]).present?
           params[:menu_item][:parent_id] = nil
-        else
-          params[:menu_item][:parent_id] = params[:id]
+
         end
+      end
         params.require(:menu_item).permit(permitted_menu_item_attributes)
       end
 
