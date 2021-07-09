@@ -2,6 +2,7 @@ module Spree::Api::V1
   class LiveStreamController < Spree::Api::BaseController
     include Swagger::Blocks
     include Response
+    include Spree::Api::V1::LiveStreamHelper
 
     swagger_path "/live_stream" do
       operation :get do
@@ -92,19 +93,7 @@ module Spree::Api::V1
       live_streams = []
       @live_streams = LiveStream.all
       @live_streams.each do |live_stream|
-        live_streams << {
-          id: live_stream&.id || 0,
-          title: live_stream&.title || "",
-          description: live_stream&.description || "",
-          stream_url: live_stream&.stream_url || "",
-          stream_key: live_stream&.stream_key || "",
-          stream_id: live_stream&.stream_id || "",
-          playback_ids: live_stream&.playback_ids || [],
-          status: live_stream&.status || "",
-          start_date: live_stream&.start_date || "",
-          is_active: live_stream&.is_active || true,
-          product_ids: live_stream&.product_ids || []
-        }
+        live_streams << live_stream_detail(live_stream.id)
       end
       singular_success_model(200, Spree.t('live_stream.list_success'), live_streams)
     end
@@ -158,20 +147,7 @@ module Spree::Api::V1
     def show
       live_stream = LiveStream.find(params[:id])
       if live_stream.present?
-        response_data = {
-          id: live_stream&.id || 0,
-          title: live_stream&.title || "",
-          description: live_stream&.description || "",
-          stream_url: live_stream&.stream_url || "",
-          stream_key: live_stream&.stream_key || "",
-          stream_id: live_stream&.stream_id || "",
-          playback_ids: live_stream&.playback_ids || [],
-          status: live_stream&.status || "",
-          start_date: live_stream&.start_date || "",
-          is_active: live_stream&.is_active || true,
-          product_ids: live_stream&.product_ids || []
-        }
-        singular_success_model(200, "Live Stream fetch successfully.", response_data)
+        singular_success_model(200, "Live Stream fetch successfully.", live_stream_detail(live_stream.id))
       else
         error_model(400, "Live Stream not found.")
       end
