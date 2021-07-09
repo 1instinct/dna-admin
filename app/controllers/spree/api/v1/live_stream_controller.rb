@@ -145,11 +145,11 @@ module Spree::Api::V1
       end
     end
     def show
-      live_stream = LiveStream.find(params[:id])
+      live_stream = LiveStream.find_by_id(params[:id])
       if live_stream.present?
-        singular_success_model(200, "Live Stream fetch successfully.", live_stream_detail(live_stream.id))
+        singular_success_model(200, Spree.t('live_stream.live_stream_show'), live_stream_detail(live_stream.id))
       else
-        error_model(400, "Live Stream not found.")
+        error_model(400, Spree.t('live_stream.live_stream_not_found'))
       end
     end
   end

@@ -1611,6 +1611,7 @@ en:
       added_success: Live Stream Added successfully.
       list_success: Live Stream listed successfully.
       product_ids: Select live stream products
+      live_stream_not_found: Live Stream not found.
     user:
       error:
         user_exists: User exists with given email.
