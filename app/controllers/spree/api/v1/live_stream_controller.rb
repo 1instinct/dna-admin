@@ -76,7 +76,8 @@ module Spree::Api::V1
         key :type, :string
       end
       property :start_date do
-        key :type, :string
+        key :type, :integer
+        key :format, :int64
       end
       property :is_active do
         key :type, :boolean
@@ -84,7 +85,7 @@ module Spree::Api::V1
       property :product_ids do
         key :type, :array
         items do
-          key :type, :string
+          key :type, :integer
         end
       end
     end
