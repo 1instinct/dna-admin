@@ -1,4 +1,5 @@
 module Spree::Api::V1::LiveStreamHelper
+  include Spree::Api::V1::GlobalHelper
   def live_stream_detail(id)
     live_stream = LiveStream.find(id)
     live_stream = {
@@ -10,7 +11,7 @@ module Spree::Api::V1::LiveStreamHelper
       stream_id: live_stream&.stream_id || "",
       playback_ids: live_stream&.playback_ids || [],
       status: live_stream&.status || "",
-      start_date: live_stream&.start_date || "",
+      start_date: to_timestamp(live_stream&.start_date) || "",
       is_active: live_stream&.is_active || true,
       product_ids: live_stream&.product_ids || []
     }
