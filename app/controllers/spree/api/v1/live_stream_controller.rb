@@ -80,6 +80,12 @@ module Spree::Api::V1
       property :is_active do
         key :type, :boolean
       end
+      property :product_ids do
+        key :type, :array
+        items do
+          key :type, :string
+        end
+      end
     end
 
     def index
@@ -96,10 +102,79 @@ module Spree::Api::V1
           playback_ids: live_stream&.playback_ids || [],
           status: live_stream&.status || "",
           start_date: live_stream&.start_date || "",
-          is_active: live_stream&.is_active || true
+          is_active: live_stream&.is_active || true,
+          product_ids: live_stream&.product_ids || []
         }
       end
       singular_success_model(200, Spree.t('live_stream.list_success'), live_streams)
+    end
+    swagger_path "/live_stream/{id}" do
+      operation :get do
+        key :summary, "Fetch Live Stream"
+        key :description, "Fetch Live Stream"
+        key :tags, [
+          'LiveStream'
+        ]
+        parameter do
+          key :name, :'X-Spree-Token'
+          key :description, "User API Key"
+          key :type, :string
+          key :in, :header
+          key :required, true
+        end
+        parameter do
+            key :name, :id
+            key :in, :path
+            key :description, 'ID of live stream to fetch'
+            key :required, true
+            key :type, :integer
+          end
+        response 200 do
+          key :description, "Successfull"
+          schema do
+            key :'$ref', :single_live_stream_response
+          end
+        end
+        response 400 do
+          key :description, "Error"
+          schema do
+            key :'$ref', :common_response_model
+          end
+        end
+      end
+    end
+    swagger_schema :single_live_stream_response do
+      key :required, [:response_code, :response_message]
+      property :response_code do
+        key :type, :integer
+      end
+      property :response_message do
+        key :type, :string
+      end
+      property :response_data do
+        key :'$ref', :live_stream
+      end
+    end
+    def show
+      live_stream = LiveStream.find(params[:id])
+      if live_stream.present?
+        response_data = {
+          id: live_stream&.id || 0,
+          title: live_stream&.title || "",
+          description: live_stream&.description || "",
+          stream_url: live_stream&.stream_url || "",
+          stream_key: live_stream&.stream_key || "",
+          stream_id: live_stream&.stream_id || "",
+          playback_ids: live_stream&.playback_ids || [],
+          status: live_stream&.status || "",
+          start_date: live_stream&.start_date || "",
+          is_active: live_stream&.is_active || true,
+          product_ids: live_stream&.product_ids || []
+        }
+        singular_success_model(200, "Live Stream fetch successfully.", response_data)
+      else
+        error_model(400, "Live Stream not found.")
+      end
     end
   end
 end
