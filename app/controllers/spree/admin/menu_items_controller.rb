@@ -91,7 +91,6 @@ module Spree
       end
 
       def menu_item_params
-        binding.pry
       if params[:menu_item][:parent_id] == 'menu_tree'
           params[:menu_item][:parent_id] = nil
 
