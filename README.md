@@ -1,5 +1,5 @@
 # DOCKER SETUP
-
+This repo is using Spree 4.2.4
 ## Build
 This should only have to be done once, or whenever the Gemfile is updated.
 ```
@@ -53,7 +53,8 @@ the install over again if you do this.
 ```
 sudo rm -rf tmp/db
 ```
-
+## Rails Console
+`docker exec -it dna-admin_web_1 bin/rails console`
 ## Extensions
 
 The system uses 3 spree extensions
@@ -69,6 +70,12 @@ Each one is installed _after_ spree, with it's own migrations generated using a
 specific `bundle exec rails g` command, which can be found on the README of the github
 page for each project.  This only needs to be done once after spree is installed or upgraded.
 
+## CLI Scripts
+`./tools/docker-scripts.sh reload_db`
+## Swagger UI
+
+http://localhost:8080/apidocs/swagger_ui
+Make sure to change the port that the UI is expecting in the search bar
 ## TODO
 
 Other things we may need to cover:
