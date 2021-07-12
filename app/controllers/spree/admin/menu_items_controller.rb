@@ -89,12 +89,10 @@ module Spree
       end
 
       def menu_item_params
-
-      if params[:menu_item][:parent_id].present?
-        if Spree::MenuItem.find_by(parent_id: params[:menu_item][:parent_id]).present?
+        binding.pry
+      if params[:menu_item][:parent_id] == 'menu_tree'
           params[:menu_item][:parent_id] = nil
 
-        end
       end
         params.require(:menu_item).permit(permitted_menu_item_attributes)
       end
