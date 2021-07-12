@@ -132,25 +132,7 @@ class Spree::Api::V1::PagesController < ApplicationController
     total_count = pages.count
     pages = pages.slice(offset, limit) unless limit == 0
     pages&.each do |page|
-      page_listing << {
-        id: page&.id || 0,
-        title: page&.title || "",
-        body: page&.body || "",
-        slug: page&.slug || "",
-        created_at: to_timestamp(page&.created_at) || 0,
-        updated_at: to_timestamp(page&.updated_at) || 0,
-        show_in_header: page&.show_in_header || false,
-        foreign_link: page&.foreign_link || "",
-        position: page&.position || 0,
-        visible: page&.visible || false,
-        meta_keywords: page&.meta_keywords || "",
-        meta_description: page&.meta_description || "",
-        layout: page&.layout || "",
-        show_in_sidebar: page&.show_in_sidebar || false,
-        meta_title: page&.meta_title || "",
-        render_layout_as_partial: page&.render_layout_as_partial || false,
-        show_in_footer: page&.show_in_footer || false
-      }
+      page_listing << page_detail(page.id)
     end
 
     response_data = {
@@ -203,28 +185,33 @@ class Spree::Api::V1::PagesController < ApplicationController
   def show
     page = Spree::Page.find_by_slug(params[:slug])
     if page.present?
-      response_data = {
-        id: page&.id || 0,
-        title: page&.title || "",
-        body: page&.body || "",
-        slug: page&.slug || "",
-        created_at: to_timestamp(page&.created_at) || 0,
-        updated_at: to_timestamp(page&.updated_at) || 0,
-        show_in_header: page&.show_in_header || false,
-        foreign_link: page&.foreign_link || "",
-        position: page&.position || 0,
-        visible: page&.visible || false,
-        meta_keywords: page&.meta_keywords || "",
-        meta_description: page&.meta_description || "",
-        layout: page&.layout || "",
-        show_in_sidebar: page&.show_in_sidebar || false,
-        meta_title: page&.meta_title || "",
-        render_layout_as_partial: page&.render_layout_as_partial || false,
-        show_in_footer: page&.show_in_footer || false
-      }
-      singular_success_model(200, Spree.t('page.success.show'), response_data)
+      singular_success_model(200, Spree.t('page.success.show'), page_detail(page.id))
     else
       error_model(400, Spree.t('page.error.page_not_found'))
     end
+  end
+  private
+  def page_detail(id)
+    page = Spree::Page.find(id)
+    page = {
+      id: page&.id || 0,
+      title: page&.title || "",
+      body: page&.body || "",
+      slug: page&.slug || "",
+      created_at: to_timestamp(page&.created_at) || 0,
+      updated_at: to_timestamp(page&.updated_at) || 0,
+      show_in_header: page&.show_in_header || false,
+      foreign_link: page&.foreign_link || "",
+      position: page&.position || 0,
+      visible: page&.visible || false,
+      meta_keywords: page&.meta_keywords || "",
+      meta_description: page&.meta_description || "",
+      layout: page&.layout || "",
+      show_in_sidebar: page&.show_in_sidebar || false,
+      meta_title: page&.meta_title || "",
+      render_layout_as_partial: page&.render_layout_as_partial || false,
+      show_in_footer: page&.show_in_footer || false
+    }
+    return page
   end
 end
