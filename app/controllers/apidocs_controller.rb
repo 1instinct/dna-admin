@@ -24,6 +24,7 @@ class ApidocsController < ActionController::Base
     #SwaggerController, #controller details goes from here where from you are creating api
     Spree::Api::V1::LiveStreamController,
     Spree::Api::V1::UsersController,
+    Spree::Api::V1::PagesController,
     SwaggerGlobalModel,
     self,
   ].freeze
