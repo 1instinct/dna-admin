@@ -32,7 +32,7 @@ Spree::Core::Engine.add_routes do
       member do
         get :children
       end
-      resources :pages, only: [:index]
+      resources :pages, only: [:index, :show], param: :slug        
     end
   end
 
