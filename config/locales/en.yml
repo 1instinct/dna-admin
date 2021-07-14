@@ -228,8 +228,8 @@ en:
         one: Line Item
         other: Line Items
       spree/navigator:
-        one: Menu
-        other: Menus
+        one: Menu Item
+        other: Menu Items
       spree/option_type:
         one: Option Type
         other: Option Types
