@@ -1,4 +1,72 @@
 GIT
+  remote: https://github.com/ddombrowsky/spree.git
+  revision: 88fded86a662147a3c2c974f2978ca83bd3bc75d
+  branch: instinct-dna
+  specs:
+    spree (4.2.5)
+      spree_api (= 4.2.5)
+      spree_backend (= 4.2.5)
+      spree_cmd (= 4.2.5)
+      spree_core (= 4.2.5)
+      spree_frontend (= 4.2.5)
+      spree_sample (= 4.2.5)
+    spree_api (4.2.5)
+      doorkeeper (~> 5.2, >= 5.2.1)
+      jsonapi-serializer (~> 2.1)
+      rabl (~> 0.14, >= 0.14.2)
+      spree_core (= 4.2.5)
+    spree_backend (4.2.5)
+      bootstrap (~> 4.0)
+      flatpickr (~> 4.6)
+      glyphicons (~> 1.0)
+      inline_svg (~> 1.5)
+      jquery-rails (~> 4.3)
+      jquery-ui-rails (~> 6.0)
+      select2-rails (~> 4.0)
+      spree_api (= 4.2.5)
+      spree_core (= 4.2.5)
+    spree_cmd (4.2.5)
+      thor (~> 1.0)
+    spree_core (4.2.5)
+      active_storage_validations (~> 0.9)
+      activemerchant (~> 1.67)
+      acts_as_list (>= 0.8)
+      awesome_nested_set (~> 3.3, >= 3.3.1)
+      cancancan (~> 3.2)
+      carmen (>= 1.0)
+      friendly_id (~> 5.2, >= 5.2.1)
+      highline (~> 2.0)
+      image_processing (~> 1.2)
+      kaminari (~> 1.2)
+      mini_magick (~> 4.9, >= 4.9.4)
+      monetize (~> 1.9)
+      money (~> 6.13)
+      paranoia (~> 2.4)
+      premailer-rails
+      rails (>= 5.2, < 6.2)
+      ransack (~> 2.3)
+      responders
+      rexml
+      sprockets (~> 3.7)
+      sprockets-rails
+      state_machines-activemodel (~> 0.7)
+      state_machines-activerecord (~> 0.6)
+      stringex
+      twitter_cldr (>= 4.3)
+    spree_frontend (4.2.5)
+      bootstrap (~> 4.0)
+      canonical-rails (~> 0.2, >= 0.2.10)
+      glyphicons (~> 1.0)
+      inline_svg (~> 1.5)
+      jquery-rails (~> 4.3)
+      spree_api (= 4.2.5)
+      spree_core (= 4.2.5)
+      turbolinks (~> 5.2)
+    spree_sample (4.2.5)
+      ffaker (~> 2.9)
+      spree_core (= 4.2.5)
+
+GIT
   remote: https://github.com/spree-contrib/spree_digital.git
   revision: 0163cd1968eb3e828dba341683ca95d78f467d15
   specs:
@@ -18,72 +86,6 @@ GIT
       deface (~> 1.5)
       spree_core (>= 3.7.0, < 5.0)
       spree_extension
-
-PATH
-  remote: external/spree
-  specs:
-    spree (4.2.4)
-      spree_api (= 4.2.4)
-      spree_backend (= 4.2.4)
-      spree_cmd (= 4.2.4)
-      spree_core (= 4.2.4)
-      spree_frontend (= 4.2.4)
-      spree_sample (= 4.2.4)
-    spree_api (4.2.4)
-      doorkeeper (~> 5.2, >= 5.2.1)
-      jsonapi-serializer (~> 2.1)
-      rabl (~> 0.14.2)
-      spree_core (= 4.2.4)
-    spree_backend (4.2.4)
-      bootstrap (>= 4.3.1, < 4.7.0)
-      flatpickr (~> 4.6.0)
-      glyphicons (~> 1.0.2)
-      inline_svg (~> 1.5)
-      jquery-rails (~> 4.3)
-      jquery-ui-rails (~> 6.0.1)
-      select2-rails (~> 4.0.0)
-      spree_api (= 4.2.4)
-      spree_core (= 4.2.4)
-    spree_cmd (4.2.4)
-      thor (~> 1.0)
-    spree_core (4.2.4)
-      active_storage_validations (~> 0.9)
-      activemerchant (~> 1.67)
-      acts_as_list (~> 0.8)
-      awesome_nested_set (>= 3.3.1, < 4.0)
-      cancancan (~> 3.2)
-      carmen (>= 1.0, < 1.2)
-      ffaker (~> 2.9)
-      friendly_id (>= 5.2.1, < 5.5.0)
-      highline (~> 2.0.0)
-      image_processing (~> 1.2)
-      kaminari (~> 1.2.1)
-      mini_magick (>= 4.9.4, < 4.12.0)
-      monetize (~> 1.9)
-      money (~> 6.13)
-      paranoia (~> 2.4.2)
-      premailer-rails
-      rails (>= 6.0, < 6.2)
-      ransack (>= 2.3, < 2.5)
-      responders
-      rexml
-      sprockets (~> 3.7)
-      sprockets-rails
-      state_machines-activemodel (~> 0.7)
-      state_machines-activerecord (~> 0.6)
-      stringex
-      twitter_cldr (>= 4.3, < 7.0)
-    spree_frontend (4.2.4)
-      bootstrap (>= 4.3.1, < 4.7.0)
-      canonical-rails (~> 0.2.10)
-      glyphicons (~> 1.0.2)
-      inline_svg (~> 1.5)
-      jquery-rails (~> 4.3)
-      spree_api (= 4.2.4)
-      spree_core (= 4.2.4)
-      turbolinks (~> 5.2.0)
-    spree_sample (4.2.4)
-      spree_core (= 4.2.4)
 
 GEM
   remote: https://rubygems.org/
@@ -154,8 +156,8 @@ GEM
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    acts_as_list (0.9.19)
-      activerecord (>= 3.0)
+    acts_as_list (1.0.4)
+      activerecord (>= 4.2)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     archive-zip (0.12.0)
@@ -442,12 +444,13 @@ GEM
       activerecord (>= 5.1)
       state_machines-activemodel (>= 0.8.0)
     stringex (2.8.5)
+    swagger-blocks (3.0.0)
     thor (1.1.0)
     tilt (2.0.10)
     turbolinks (5.2.1)
       turbolinks-source (~> 5.2)
     turbolinks-source (5.2.0)
-    twitter_cldr (6.6.1)
+    twitter_cldr (6.6.2)
       camertron-eprun
       cldr-plurals-runtime-rb (~> 1.1)
       tzinfo
@@ -501,6 +504,7 @@ DEPENDENCIES
   spring
   spring-watcher-listen (~> 2.0.0)
   sprockets-helpers (~> 1.2.1)
+  swagger-blocks
   turbolinks (~> 5)
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
