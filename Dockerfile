@@ -15,7 +15,6 @@ WORKDIR /dna
 # they change.
 COPY Gemfile ./
 COPY Gemfile.lock ./
-COPY ./external /dna/external
 
 # Note that dotenv is NOT used in production.  Environment
 # comes from the deployment.
