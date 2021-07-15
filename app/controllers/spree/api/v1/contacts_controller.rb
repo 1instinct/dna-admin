@@ -78,14 +78,14 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
     contact = Contact.new(user_params)
     if contact.save
       response_data = {
-        id: contact&.id,
-        actor_id: contact&.actor_id,
-        full_name: contact&.full_name,
-        email: contact&.email,
-        phone: contact&.phone,
-        ip: contact&.ip,
-        created_at: contact&.created_at,
-        updated_at: contact&.updated_at
+        id: contact&.id || 0,
+        actor_id: contact&.actor_id || 0,
+        full_name: contact&.full_name || "",
+        email: contact&.email&.split(",") || "",
+        phone: contact&.phone&.split(",") || "",
+        ip: contact&.ip || "",
+        created_at: to_timestamp(contact&.created_at) || 0,
+        updated_at: to_timestamp(contact&.updated_at) || 0
       }
       singular_success_model(200, Spree.t('contact.success.create'), response_data)
     else

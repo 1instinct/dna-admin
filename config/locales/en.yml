@@ -1107,24 +1107,9 @@ en:
       success:
         page_list: Pages listed successfully.
         show: Page fetch successfully.
-    menu_location:
+    contact:
       success:
-          create: Menu Location add successfully.
-          update: Menu Location updated successfully.
-          index: Menu Location listed successfully.
-          delete: Menu Location deleted successfully.
-          show: Menu Location fetched successfully.
-      error:
-          not_found: Menu Location not found.
-    menu_item:
-      success:
-          create: Menu Item add successfully.
-          update: Menu Item updated successfully.
-          index: Menu Item listed successfully.
-          delete: Menu Item deleted successfully.
-          show: Menu Item fetched successfully.
-      error:
-          not_found: Menu Item not found.
+          create: Create contact successfully.
     pagination:
       next_page: next page &raquo;
       previous_page: ! '&laquo; previous page'
