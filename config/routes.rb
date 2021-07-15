@@ -43,8 +43,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :pages, only: [:index, :show], param: :slug
-      resources :menu_locations
-      resources :menu_items
+      resources :contacts, only: [:create]
     end
   end
   namespace :admin do
