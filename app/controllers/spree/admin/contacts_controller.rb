@@ -4,8 +4,7 @@ module Spree
       before_action :set_session
 
       def index
-        @q = Contact.ransack(params[:q])
-        @collection = @q.result(distinct: true).order(created_at: :desc).page(params[:page]).per(params[:per_page])
+        @contacts = Contact.all
       end
 
       def new
