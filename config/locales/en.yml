@@ -1109,7 +1109,8 @@ en:
         show: Page fetch successfully.
     contact:
       success:
-          create: Create contact successfully.
+          create: Contact Detail created successfully.
+          update: Contact Detail updated successfully.
     pagination:
       next_page: next page &raquo;
       previous_page: ! '&laquo; previous page'

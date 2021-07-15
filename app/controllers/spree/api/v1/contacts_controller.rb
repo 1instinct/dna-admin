@@ -75,7 +75,7 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
     end
   end
   def create
-    contact = Contact.new(user_params)
+    contact = Contact.new(contact_params)
     if contact.save
       response_data = {
         id: contact&.id || 0,
@@ -94,7 +94,7 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
     end
   end
   private
-  def user_params
+  def contact_params
     params.require(:contact).permit(:actor_id, :full_name, :email, :phone, :ip)
   end
 end

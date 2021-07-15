@@ -31,7 +31,7 @@ Spree::Core::Engine.add_routes do
         get :generate_playback
       end
     end
-    resources :menu_locations
+    resources :contacts
   end
   namespace :api, constraints: { format: 'json' } do
     namespace :v1 do
