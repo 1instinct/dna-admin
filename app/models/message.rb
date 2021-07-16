@@ -1,44 +1,4 @@
-class Message < Spree::Base
-  belongs_to :sender, polymorphic: true
-  belongs_to :receiver, polymorphic: true
-  belongs_to :thread_table, class_name: "ThreadTable", optional: :true
-
-  self.whitelisted_ransackable_attributes = %w[message]
-  self.whitelisted_ransackable_scopes = %w[search_by_message]
-
-  def self.search_by_message(query)
-    if defined?(SpreeGlobalize)
-      joins(:translations).order(:message).where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%").distinct
-    else
-      where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%")
-    end
-  end
-  after_create :assign_thread_id
-
-  def assign_thread_id
-    unless self.thread_table_id.present?
-      messages = message_transaction_between_two_parties(self.sender, self.receiver)
-      message = messages.first
-      if messages.count > 0
-        if ((Time.now - message.created_at) / 86400).to_i > 7
-          thread_table = ThreadTable.create(stale: true, archived: true)
-          self.update(thread_table_id: thread_table.id)
-        else
-          self.update(thread_table_id: message.thread_table_id)
-        end
-      else
-        thread_table = ThreadTable.create(stale: true, archived: true)
-        self.update(thread_table_id: thread_table.id)
-      end
-    end
-  end
-
-  def message_transaction_between_two_parties(user_1, user_2)
-    user_1_sent_messages = user_1.sent_messages.where(receiver_id: user_2.id).where.not(thread_table_id: nil)
-    user_2_sent_messages = user_2.sent_messages.where(receiver_id: user_1.id).where.not(thread_table_id: nil)
-    all_messages = (user_1_sent_messages + user_2_sent_messages).sort{|a,b| a.created_at <=> b.created_at }
-  end
-
+class Message < ApplicationRecord		
 end
 
 # class Message < ApplicationRecord
