@@ -70,6 +70,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, Contact %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarContact">
+      <%= tab :contacts, icon: 'list.svg', url: admin_contacts_path %>
+    </ul>
+  <% end %>
+
   <% if Spree.user_class && can?(:admin, Spree.user_class) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarUser">
       <%= tab *Spree::BackendConfiguration::USER_TABS, url: spree.admin_users_path, icon: 'users.svg' %>
