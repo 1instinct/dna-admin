@@ -1,9 +1,11 @@
 module Spree
   module Admin
     class LiveStreamController < Spree::Admin::BaseController
+      include Spree::FrontendHelper
       before_action :set_session
-      def index        
-        @live_streams = LiveStream.all
+      def index
+        collection(LiveStream)
+        respond_with(@collection)
       end
       def new
         @live_stream = LiveStream.new
@@ -181,6 +183,16 @@ module Spree
               end
               def live_stream_params
                 params.require(:live_stream).permit(:title, :description, :stream_url, :stream_key, :stream_id, :playback_ids, :status, :start_date, :is_active, :product_ids => [])
+              end
+              def collection(resource)
+                return @collection if @collection.present?
+
+                params[:q] ||= {}
+
+                @collection = resource.all
+                # @search needs to be defined as this is passed to search_form_for
+                @search = @collection.ransack(params[:q])
+                @collection = @search.result.order(created_at: :desc).page(params[:page]).per(params[:per_page])
               end
             end
           end

@@ -6,7 +6,26 @@
   <%= button_link_to Spree.t(:add_message), spree.new_admin_message_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
 <% end %>
 
-<% if @messages.present? %>
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">
+    <%= search_form_for [:admin, @search], url: admin_messages_path do |f| %>
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_by_message, Spree.t(:title) %>
+            <%= f.search_field :creator_id, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+
+<% if @collection.present? %>
 <div class="table-responsive">
   <table class="table">
     <thead>
@@ -20,7 +39,7 @@
       <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
     <thead>
     <tbody>
-      <% @messages.each do |message| %>
+      <% @collection.each do |message| %>
         <tr class="contact_<%= message.id %>">
           <td><%= link_to message.id, admin_message_path(message.id) %></td>
           <td><%= message&.creator_id %></td>
@@ -43,3 +62,5 @@
     <%= Spree.t(:no_resource_found, resource: plural_resource_name(Contact)) %>
   </div>
 <% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>
