@@ -1,6 +1,17 @@
 class Message < ApplicationRecord
   belongs_to :sender, polymorphic: true
   belongs_to :receiver, polymorphic: true
+  belongs_to :thread, class_name: "ThreadTable", optional: :true
+  after_create :assign_thread_id
+  def assign_thread_id
+    if self.sender.sent_messages.where(receiver_id: self.receiver.id)&.last&.created_at > 7.days
+      thread_table = ThreadTable.create(stale: true, archived: true)
+      self.update(thread_table_id: thread_table.id)
+    else
+      thread_table_id = self.sender.sent_messages.where(receiver_id: self.receiver.id)&.last&.thread_table_id
+      self.update(thread_table_id: thread_table_id)
+    end
+  end
 end
 
 # class Message < ApplicationRecord
