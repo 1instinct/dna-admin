@@ -14,7 +14,7 @@
         <div class="col-12 col-lg-6">
           <div class="form-group">
             <%= f.label :search_by_message, Spree.t(:title) %>
-            <%= f.search_field :creator_id, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+            <%= f.search_field :sender_id, size: 15, class: "form-control js-quick-search-target js-filterable" %>
           </div>
         </div>
         </div>
@@ -30,8 +30,10 @@
   <table class="table">
     <thead>
       <th>Id</th>
-      <th>Creator Id</th>
-      <th>Recipients</th>
+      <th>Sender Type</th>
+      <th>Sender Id</th>
+      <th>Receiver Type</th>
+      <th>Receiver Id</th>
       <th>Is Received</th>
       <th>Is Read</th>
       <th>Sentiment</th>
@@ -42,8 +44,10 @@
       <% @collection.each do |message| %>
         <tr class="contact_<%= message.id %>">
           <td><%= link_to message.id, admin_message_path(message.id) %></td>
-          <td><%= message&.creator_id %></td>
-          <td><%= message&.recipients %></td>
+          <td><%= message&.sender_type %></td>
+          <td><%= message&.sender_id %></td>
+          <td><%= message&.receiver_type %></td>
+          <td><%= message&.receiver_id %></td>
           <td><%= message&.is_received %></td>
           <td><%= message&.is_read %></td>
           <td><%= message&.sentiment %></td>

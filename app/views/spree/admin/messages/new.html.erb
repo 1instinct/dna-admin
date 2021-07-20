@@ -7,16 +7,18 @@
 
 <%= form_for [:admin, @message], url: admin_messages_path, html: { multipart: true }, method: :post do |f| %>
   <fieldset data-hook="new_product">
-    <%= f.field_container :creator_id, class: ['form-group'] do %>
-      <%= f.label :name, Spree.t(:creator_id) %> <span class="required">*</span>
-      <%= f.text_field :creator_id, class: 'form-control creator_id', required: :required %>
-      <%= f.error_message_on :creator_id %>
+    <%= f.hidden_field :sender_type, value: "Spree::User" %>
+    <%= f.hidden_field :receiver_type, value: "Spree::User" %>
+    <%= f.field_container :sender_id, class: ['form-group'] do %>
+      <%= f.label :sender_id, Spree.t(:sender_id) %>
+      <%= f.select :sender_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2' } %>
+      <%= f.error_message_on :sender_id %>
     <% end %>
 
-    <%= f.field_container :recipients, class: ['form-group'] do %>
-      <%= f.label :name, Spree.t(:recipients) %> <span class="required">*</span>
-      <%= f.text_field :recipients, class: 'form-control recipients', required: :required %>
-      <%= f.error_message_on :recipients %>
+    <%= f.field_container :receiver_id, class: ['form-group'] do %>
+      <%= f.label :receiver_id, Spree.t(:receiver_id) %>
+      <%= f.select :receiver_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2' } %>
+      <%= f.error_message_on :receiver_id %>
     <% end %>
 
     <%= f.field_container :sentiment, class: ['form-group'] do %>
@@ -34,7 +36,7 @@
       <%= f.check_box :is_read %>
       <%= Spree.t(:is_read) %>
     <% end %>
-    
+
     <%= render partial: 'spree/admin/messages/new_resource_links' %>
 
   </fieldset>

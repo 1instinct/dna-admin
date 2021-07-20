@@ -7,16 +7,25 @@
 
 <%= form_for [:admin, @message], url: admin_message_path(id: @message.id), html: { multipart: true }, method: :patch do |f| %>
   <fieldset data-hook="new_message">
-    <%= f.field_container :creator_id, class: ['form-group'] do %>
-      <%= f.label :name, Spree.t(:creator_id) %> <span class="required">*</span>
-      <%= f.text_field :creator_id, class: 'form-control creator_id', required: :required, readonly: :true %>
-      <%= f.error_message_on :creator_id %>
+    <%= f.field_container :sender_type, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sender_type) %> <span class="required">*</span>
+      <%= f.text_field :sender_type, class: 'form-control sender_type', required: :required, readonly: :true %>
+      <%= f.error_message_on :sender_type %>
     <% end %>
-
-    <%= f.field_container :recipients, class: ['form-group'] do %>
-      <%= f.label :name, Spree.t(:recipients) %> <span class="required">*</span>
-      <%= f.text_field :recipients, class: 'form-control recipients', required: :required, readonly: :true %>
-      <%= f.error_message_on :recipients %>
+    <%= f.field_container :sender_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sender_id) %> <span class="required">*</span>
+      <%= f.text_field :sender_id, class: 'form-control sender_id', required: :required, readonly: :true %>
+      <%= f.error_message_on :sender_id %>
+    <% end %>
+    <%= f.field_container :receiver_type, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:receiver_type) %> <span class="required">*</span>
+      <%= f.text_field :receiver_type, class: 'form-control receiver_type', required: :required, readonly: :true %>
+      <%= f.error_message_on :receiver_type %>
+    <% end %>
+    <%= f.field_container :receiver_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:receiver_id) %> <span class="required">*</span>
+      <%= f.text_field :receiver_id, class: 'form-control receiver_id', required: :required, readonly: :true %>
+      <%= f.error_message_on :receiver_id %>
     <% end %>
 
     <%= f.field_container :is_received, class: ['form-group'] do %>
