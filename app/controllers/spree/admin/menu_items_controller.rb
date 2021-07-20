@@ -4,7 +4,7 @@ module Spree
       before_action :set_menu_item, only: [:edit, :update, :destroy, :children]
 
       def index
-        @menu_items = Spree::MenuItem.top_level
+         @menu_items = Spree::MenuItem.top_level
 
         respond_to do |format|
           format.html
@@ -17,6 +17,7 @@ module Spree
       end
 
       def create
+
         @menu_item = Spree::MenuItem.new(menu_item_params)
 
         respond_to do |format|
@@ -73,7 +74,7 @@ module Spree
       end
 
       def set_menu_item
-        @menu_item = Spree::MenuItem.find(params[:id])
+        @menu_item = Spree::MenuItem.find(params[:id].to_i)
       end
 
       def permitted_menu_item_attributes
@@ -101,7 +102,7 @@ module Spree
           .order(updated_at: :desc)
           .map(&:id)
           .each_with_index do |id, index|
-          Spree::MenuItem.find(id).update_attributes(position: index)
+          Spree::MenuItem.find(id).update(position: index)
         end
       end
     end
