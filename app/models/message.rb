@@ -1,4 +1,6 @@
-class Message < ApplicationRecord		
+class Message < ApplicationRecord
+  belongs_to :sender, polymorphic: true
+  belongs_to :receiver, polymorphic: true
 end
 
 # class Message < ApplicationRecord
