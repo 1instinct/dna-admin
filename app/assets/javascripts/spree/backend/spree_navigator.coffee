@@ -97,6 +97,7 @@ root.setup_menu_tree = () ->
           data: menu_item
           ajax:
             url: (e) ->
+
               Spree.url(base_url.path() + '/' + e.prop('id') + '/children').toString()
         themes:
           theme: "apple"
@@ -126,7 +127,9 @@ root.setup_menu_tree = () ->
         .bind("create.jstree", handle_menu_create)
         .bind("rename.jstree", handle_menu_rename)
         .bind "loaded.jstree", ->
-          $(this).jstree("core").toggle_node($('.jstree-icon').first())
+          $(this).jstree("open_all").toggle_node($('.jstree-icon'))
+
+
 
 
 root.menu_tree_menu = (obj, context) ->
