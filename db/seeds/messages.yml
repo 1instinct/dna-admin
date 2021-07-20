@@ -1,7 +1,9 @@
 <% (1..50).each do |i| %>
 -
-  creator_id: <%= i %>
-  recipients: <%= Array.new(10) { |e| rand(1..10) }.uniq %>
+  sender_type: "Spree::User"
+  sender_id: <%= Spree::User.pluck(:id).sample %>
+  receiver_type: "Spree::User"
+  receiver_id: <%= Spree::User.pluck(:id).sample %>
   is_received: true
   is_read: true
   sentiment: <%= 1 %>
