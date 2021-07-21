@@ -59,7 +59,7 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		session[:return_to] = request.url
 	end
 	def message_params
-		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id)
+		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message)
 	end
 	def collection(resource)
 		return @collection if @collection.present?
