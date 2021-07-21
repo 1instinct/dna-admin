@@ -207,6 +207,27 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
       key :tags, [
         'Contacts'
       ]
+      parameter do
+        key :name, 'search'
+        key :in, :query
+        key :description, 'Search String'
+        key :required, false
+        key :type, :string
+      end
+      parameter do
+        key :name, :limit
+        key :description, "limit"
+        key :in, :query
+        key :required, false
+        key :type, :integer
+      end
+      parameter do
+        key :name, :offset
+        key :description, "offset"
+        key :in, :query
+        key :required, false
+        key :type, :integer
+      end
       response 200 do
         key :description, "Successfull"
         schema do
@@ -220,7 +241,7 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
         end
       end
     end
-  end
+  end  
   swagger_schema :contact_list_response do
     key :required, [:response_code, :response_message]
     property :response_code do
@@ -230,19 +251,40 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
       key :type, :string
     end
     property :response_data do
-      key :type, :array
-      items do
-        key :'$ref', :contact
+      property :total_records do
+        key :type, :integer
+      end
+      property :offset do
+        key :type, :integer
+      end
+      property :contact_listing do
+        key :type, :array
+        items do
+          key :'$ref', :contact
+        end
       end
     end
   end
   def index
-    contacts = []
-    @contacts = Contact.all
-    @contacts.each do |contact|
-      contacts << contact_detail(contact.id)
+    contact_listing = []
+    query = params[:search]
+    contacts = Contact.all
+    contacts = contacts.where("full_name ILIKE :query", query: "%#{query}%")&.distinct
+    limit = params[:limit].present? ? params[:limit].to_i : 0
+    offset = params[:offset].present? ? params[:offset].to_i : 0
+    total_count = contacts.count
+    contacts = contacts.slice(offset, limit) unless limit == 0
+    if contacts.present?
+      contacts.each do |contact|
+        contact_listing << contact_detail(contact.id)
+      end
     end
-    singular_success_model(200, Spree.t('contact.success.index'), contacts)
+    response_data = {
+      total_records: total_count,
+      offset: offset,
+      contact_listing: contact_listing
+    }
+    singular_success_model(200, Spree.t('contact.success.index'), response_data)
   end
 
   swagger_path "/contacts/{id}" do
