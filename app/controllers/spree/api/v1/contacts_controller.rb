@@ -68,12 +68,44 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
       key :type, :string
     end
     property :response_data do
-      key :type, :array
-      items do
-        key :'$ref', :contact
-      end
+      key :'$ref', :contact
     end
   end
+  swagger_schema :contact do
+    property :id do
+      key :type, :integer
+    end
+    property :actor_id do
+      key :type, :integer
+    end
+    property :full_name do
+      key :type, :string
+    end
+    property :email do
+      key :type, :array
+      items do
+        key :type, :string
+      end
+    end
+    property :phone do
+      key :type, :array
+      items do
+        key :type, :string
+      end
+    end
+    property :ip do
+      key :type, :string
+    end
+    property :created_at do
+      key :type, :integer
+      key :format, :int64
+    end
+    property :updated_at do
+      key :type, :integer
+      key :format, :int64
+    end
+  end
+
   def create
     contact = Contact.new(contact_params)
     if contact.save
