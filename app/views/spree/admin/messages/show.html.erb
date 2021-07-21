@@ -18,7 +18,7 @@
         <%= text_field_tag 'query', @message.sender.email, class: 'form-control', readonly: :true %>
         <%= f.error_message_on :sender_email %>
       <% end %>
-    <% elsif message&.sender_type == "Spree::User" %>
+    <% elsif @message&.sender_type == "Spree::User" %>
       <%= f.field_container :sender_full_name, class: ['form-group'] do %>
         <%= f.label :name, Spree.t(:sender_full_name) %> <span class="required">*</span>
         <%= text_field_tag 'query', @message.sender.full_name, class: 'form-control', readonly: :true %>

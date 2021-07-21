@@ -1116,6 +1116,15 @@ en:
           show: Contact Detail fetched successfully.
       error:
           not_found: Contact not found.
+    message:
+      success:
+          create: Message sent successfully.
+          update: Message updated successfully.
+          index: Message listed successfully.
+          delete: Message deleted successfully.
+          show: Message fetched successfully.
+      error:
+          not_found: Message not found.
 
     pagination:
       next_page: next page &raquo;
