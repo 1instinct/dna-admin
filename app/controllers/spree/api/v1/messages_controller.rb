@@ -66,13 +66,6 @@ class Spree::Api::V1::MessagesController < Spree::Api::BaseController
         key :required, true
         key :type, :string
       end
-      parameter do
-        key :name, 'message[thread_table_id]'
-        key :in, :formData
-        key :description, "thread_id"
-        key :required, false
-        key :type, :string
-      end
       response 200 do
         key :description, "Successfull"
         schema do
@@ -429,7 +422,7 @@ class Spree::Api::V1::MessagesController < Spree::Api::BaseController
 
   private
   def message_params
-    params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message, :thread_table_id)
+    params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message)
   end
   def message_detail(id)
     message = Message.find(id)
