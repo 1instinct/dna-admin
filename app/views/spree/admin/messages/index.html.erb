@@ -30,13 +30,15 @@
   <table class="table">
     <thead>
       <th>Id</th>
+      <th>Message</th>
       <th>Sender Type</th>
-      <th>Sender Id</th>
+      <th>Sender email or name</th>
       <th>Receiver Type</th>
       <th>Receiver Id</th>
       <th>Is Received</th>
       <th>Is Read</th>
       <th>Sentiment</th>
+      <th>Thread Id</th>
       <th>Created At</th>
       <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
     <thead>
@@ -44,13 +46,25 @@
       <% @collection.each do |message| %>
         <tr class="contact_<%= message.id %>">
           <td><%= link_to message.id, admin_message_path(message.id) %></td>
-          <td><%= message&.sender_type %></td>
-          <td><%= message&.sender_id %></td>
-          <td><%= message&.receiver_type %></td>
-          <td><%= message&.receiver_id %></td>
+          <td><%= message&.message %></td>
+          <% if message&.sender_type == "Spree::User" %>
+            <td>User</td>
+            <td><%= message&.sender&.email %></td>
+          <% elsif message&.sender_type == "Contact" %>
+            <td>Contact</td>
+            <td><%= message&.sender&.full_name %></td>
+          <% end %>
+          <% if message&.receiver_type == "Spree::User" %>
+            <td>User</td>
+            <td><%= message&.receiver&.email %></td>
+          <% elsif message&.receiver_type == "Contact" %>
+            <td>Contact</td>
+            <td><%= message&.sender&.full_name %></td>
+          <% end %>
           <td><%= message&.is_received %></td>
           <td><%= message&.is_read %></td>
           <td><%= message&.sentiment %></td>
+          <td><%= message&.thread_table_id %></td>
           <td><%= message&.created_at %></td>
           <td class="actions actions-2 text-right" data-hook="admin_message_index_row_actions">
             <%= link_to_edit_url spree.edit_admin_message_path(id: message.id), no_text: true if can?(:edit, message) %>
