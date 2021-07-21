@@ -2,7 +2,7 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
   include Swagger::Blocks
   include Response
   include Spree::Api::V1::GlobalHelper
-  before_action :authenticate_user, :except => [:create, :update, :index]
+  before_action :authenticate_user, :except => [:create, :update, :index, :destroy, :show]
   swagger_path "/contacts/" do
     operation :post do
       key :summary, "Create Contact"
@@ -242,8 +242,94 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
     @contacts.each do |contact|
       contacts << contact_detail(contact.id)
     end
-    singular_success_model(200, Spree.t('live_stream.list_success'), contacts)
+    singular_success_model(200, Spree.t('contact.success.index'), contacts)
   end
+
+  swagger_path "/contacts/{id}" do
+    operation :delete do
+      key :summary, "Delete Contact"
+      key :description, "Delete Contact"
+      key :tags, [
+        'Contacts'
+      ]
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID of Contact to fetch'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        key :description, "Successfull"
+        schema do
+          key :'$ref', :common_response_model
+        end
+      end
+      response 400 do
+        key :description, "Error"
+        schema do
+          key :'$ref', :common_response_model
+        end
+      end
+    end
+  end
+  def destroy
+    @contact = Contact.find(params[:id])
+    if @contact.destroy
+      success_model(200, Spree.t('contact.success.delete'))
+    else
+      error_model(400, @contact.errors.full_messages.join(','))
+    end
+  end
+  swagger_path "/contacts/{id}" do
+    operation :get do
+      key :summary, "Show Contact"
+      key :description, "Show Contact"
+      key :tags, [
+        'Contacts'
+      ]
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID of Contact to fetch'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        key :description, "Successfull"
+        schema do
+          key :'$ref', :contact_show_response
+        end
+      end
+      response 400 do
+        key :description, "Error"
+        schema do
+          key :'$ref', :common_response_model
+        end
+      end
+    end
+  end
+  swagger_schema :contact_show_response do
+    key :required, [:response_code, :response_message]
+    property :response_code do
+      key :type, :integer
+    end
+    property :response_message do
+      key :type, :string
+    end
+    property :response_data do
+      key :'$ref', :contact
+    end
+  end
+  def show
+    @contact = Contact.find_by_id(params[:id])
+    if @contact.present?
+      singular_success_model(200, Spree.t('contact.success.show'), contact_detail(@contact.id))
+    else
+      error_model(400, Spree.t('contact.error.not_found'))
+    end
+  end
+
   private
   def contact_params
     params.require(:contact).permit(:actor_id, :full_name, :email, :phone, :ip)

@@ -1111,6 +1111,12 @@ en:
       success:
           create: Contact Detail created successfully.
           update: Contact Detail updated successfully.
+          index: Contact Detail listed successfully.
+          delete: Contact deleted successfully.
+          show: Contact Detail fetched successfully.
+      error:
+          not_found: Contact not found.
+
     pagination:
       next_page: next page &raquo;
       previous_page: ! '&laquo; previous page'
