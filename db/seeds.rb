@@ -10,13 +10,16 @@ end
 Spree::Core::Engine.load_seed if defined?(Spree::Core)
 Spree::Auth::Engine.load_seed if defined?(Spree::Auth)
 
-
-load_seed('contacts').each do |s|
-  Contact.create(s)
+unless Contact.count > 0
+  load_seed('contacts').each do |s|
+    Contact.create(s)
+  end
+  puts("Created Contact on #{Rails.env} environment")
 end
-puts("Created Contact on #{Rails.env} environment")
 
-load_seed('messages').each do |s|
-  Message.create(s)
+unless Message.count > 0
+  load_seed('messages').each do |s|
+    Message.create(s)
+  end
+  puts("Created messages on #{Rails.env} environment")
 end
-puts("Created messages on #{Rails.env} environment")

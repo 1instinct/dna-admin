@@ -1,8 +1,8 @@
 <% (1..50).each do |i| %>
 -
-  actor_id: <%= i %>
+  actor_id: <%= Spree::User.pluck(:id).sample %>
   full_name: <%= Faker::Name.name %>
-  email: <%= Array.new(3) { |e| Faker::Internet.email } %>
+  email: <%= Faker::Internet.email %>
   phone: <%= Faker::PhoneNumber.phone_number.to_s %>
   ip: <%= Faker::Internet.ip_v6_address %>
 <% end %>
