@@ -41,7 +41,7 @@
       <% @collection.each do |contact| %>
         <tr class="contact_<%= contact.id %>">
           <td><%= link_to contact.id, admin_contact_path(contact.id) %></td>
-          <td><%= contact&.actor_id %></td>
+          <td><%= contact&.actor&.email %></td>
           <td><%= contact&.full_name %></td>
           <td><%= contact&.email %></td>
           <td><%= contact&.phone %></td>

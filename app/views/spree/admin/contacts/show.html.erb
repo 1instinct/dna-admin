@@ -9,7 +9,7 @@
   <fieldset data-hook="new_contact">
     <%= f.field_container :actor_id, class: ['form-group'] do %>
       <%= f.label :name, Spree.t(:actor_id) %> <span class="required">*</span>
-      <%= f.text_field :actor_id, class: 'form-control actor_id', required: :required, readonly: :true %>
+      <%= f.select :actor_id, options_for_select(Spree::User.pluck(:email, :id), @contact.actor_id), {}, { class: 'select2', disabled: true } %>
       <%= f.error_message_on :actor_id %>
     <% end %>
 
