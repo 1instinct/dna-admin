@@ -71,18 +71,25 @@ handle_menu_delete = (e, data) ->
   delete_url         = base_url.clone()
   delete_url.setPath delete_url.path() + '/' + node.prop("id")
 
-  jConfirm Spree.translations.are_you_sure_delete, Spree.translations.confirm_delete, (r) ->
-    if r
-      $.ajax
-        type:     "POST"
-        dataType: "json"
-        url:      delete_url.toString()
-        data:
-          _method: "delete"
-        error:    handle_menu_ajax_error
-    else
-      $.jstree.rollback(last_menu_rollback)
-      last_menu_rollback = null
+  $.confirm
+    title: 'Confirm!'
+    content: Spree.translations.are_you_sure_delete
+    buttons:
+      confirm: ->
+        $.ajax
+              type:     "POST"
+              dataType: "json"
+              url:      delete_url.toString()
+              data:
+                _method: "delete"
+              error:    handle_menu_ajax_error
+        return
+      cancel: ->
+        $.jstree.rollback last_menu_rollback
+        last_menu_rollback = null
+        return
+
+
 
 
 root.setup_menu_tree = () ->
@@ -97,7 +104,6 @@ root.setup_menu_tree = () ->
           data: menu_item
           ajax:
             url: (e) ->
-
               Spree.url(base_url.path() + '/' + e.prop('id') + '/children').toString()
         themes:
           theme: "apple"
@@ -127,9 +133,7 @@ root.setup_menu_tree = () ->
         .bind("create.jstree", handle_menu_create)
         .bind("rename.jstree", handle_menu_rename)
         .bind "loaded.jstree", ->
-          $(this).jstree("open_all").toggle_node($('.jstree-icon'))
-
-
+          $(this).jstree("open_all")
 
 
 root.menu_tree_menu = (obj, context) ->
