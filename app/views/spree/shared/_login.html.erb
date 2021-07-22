@@ -1,6 +1,6 @@
 <div class="divclass">
 <div class="col-lg-11 mx-auto wrapper">
-  <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= Spree.t(:log_in_to_continue) %></h3>
+  <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag 'instinct_logo.png', :style => "height: 100px;" %></h3>
   <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
     <div id="password-credentials" class="mb-4">
       <div class="form-group mb-4">
