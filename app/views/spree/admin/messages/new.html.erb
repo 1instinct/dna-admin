@@ -8,7 +8,7 @@
 <%= form_for [:admin, @message], url: admin_messages_path, html: { multipart: true }, method: :post do |f| %>
   <fieldset data-hook="new_product">
     <%= f.field_container :message, class: ['form-group'] do %>
-      <%= f.label :name, Spree.t(:message) %> <span class="required">*</span>
+      <%= f.label :message, Spree.t(:message) %> <span class="required">*</span>
       <%= f.text_field :message, class: 'form-control message', required: :required %>
       <%= f.error_message_on :message %>
     <% end %>
