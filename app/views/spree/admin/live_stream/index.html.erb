@@ -13,8 +13,8 @@
       <div data-hook="admin_products_index_search" class="row">
         <div class="col-12 col-lg-6">
           <div class="form-group">
-            <%= f.label :search_by_title, Spree.t(:title) %>
-            <%= f.search_field :title, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+            <%= f.label :search_livestream, Spree.t(:title) %>
+            <%= f.text_field :search_livestream, size: 15, class: "form-control js-quick-search-target js-filterable" %>
           </div>
         </div>
         </div>
@@ -24,6 +24,7 @@
       </div>
     <% end %>
 <% end %>
+
 
 <% if @collection.present? %>
 <div class="table-responsive">

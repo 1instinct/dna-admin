@@ -14,7 +14,7 @@
         <div class="col-12 col-lg-6">
           <div class="form-group">
             <%= f.label :search_by_message, Spree.t(:title) %>
-            <%= f.search_field :sender_id, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+            <%= f.text_field :search_by_message, size: 15, class: "form-control js-quick-search-target js-filterable" %>
           </div>
         </div>
         </div>
@@ -38,7 +38,7 @@
       <th>Is Received</th>
       <th>Is Read</th>
       <th>Sentiment</th>
-      <th>Thread Id</th>      
+      <th>Thread Id</th>
       <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
     <thead>
     <tbody>

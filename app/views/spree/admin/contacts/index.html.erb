@@ -11,17 +11,17 @@
     <%= search_form_for [:admin, @search], url: admin_contacts_path do |f| %>
       <%- locals = {f: f} %>
       <div data-hook="admin_products_index_search" class="row">
-          <div class="col-12 col-lg-6">
-            <div class="form-group">
-              <%= f.label :search_by_message, Spree.t(:title) %>
-              <%= f.search_field :full_name, size: 15, class: "form-control js-quick-search-target js-filterable" %>
-            </div>
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_contact, Spree.t(:title) %>
+            <%= f.search_field :search_contact, size: 15, class: "form-control js-quick-search-target js-filterable" %>
           </div>
         </div>
       </div>
-      <div data-hook="admin_products_index_search_buttons" class="form-actions">
-        <%= button Spree.t(:search), 'search.svg' %>
-      </div>
+    </div>
+    <div data-hook="admin_products_index_search_buttons" class="form-actions">
+      <%= button Spree.t(:search), 'search.svg' %>
+    </div>
     <% end %>
 <% end %>
 <% if @collection.present? %>
