@@ -7,4 +7,5 @@
   is_received: true
   is_read: true
   sentiment: <%= 1 %>
+  message: <%= Faker::Lorem.sentence %>
 <% end %>
