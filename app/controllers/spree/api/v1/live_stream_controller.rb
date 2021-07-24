@@ -19,7 +19,7 @@ module Spree::Api::V1
           key :required, true
         end
         response 200 do
-          key :description, "Successfull"
+          key :description, "Successful"
           schema do
             key :'$ref', :live_stream_response
           end
