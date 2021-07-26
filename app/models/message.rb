@@ -3,10 +3,12 @@ class Message < Spree::Base
   belongs_to :receiver, polymorphic: true
   belongs_to :thread, class_name: "ThreadTable", optional: :true
 
+  self.whitelisted_ransackable_attributes = %w[message]
   self.whitelisted_ransackable_scopes = %w[search_by_message]
+
   def self.search_by_message(query)
     if defined?(SpreeGlobalize)
-      joins(:translations).order(:message).where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%").distinct      
+      joins(:translations).order(:message).where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%").distinct
     else
       where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%")
     end
