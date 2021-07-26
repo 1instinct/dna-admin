@@ -1,7 +1,7 @@
 module Spree
   module BaseHelper
     def navigator_menu
-      menu_items = Spree::MenuItem.top_level
+      menu_items = MenuItem.top_level
       if menu_items.any?
         navigator_levels(menu_items)
       else
@@ -29,7 +29,7 @@ module Spree
 
     def navigator_default
       [
-        navigator_item(Spree::MenuItem.new(
+        navigator_item(MenuItem.new(
           id:      0,
           name:    Spree.t(:home),
           url:     spree.root_path,
