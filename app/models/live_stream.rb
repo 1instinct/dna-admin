@@ -4,7 +4,7 @@ class LiveStream < Spree::Base
   belongs_to :thread, class_name: "ThreadTable", optional: :true
 
   after_create :assign_thread_id
-
+  self.whitelisted_ransackable_attributes = %w[title]
   self.whitelisted_ransackable_scopes = %w[search_livestream]
 
   def self.search_livestream(query)
