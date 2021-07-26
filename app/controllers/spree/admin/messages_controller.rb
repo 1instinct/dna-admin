@@ -1,8 +1,8 @@
 class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	before_action :set_session
 	def index
-		collection(Message)
-		respond_with(@collection)
+		@q = Message.ransack(params[:q])
+		@collection = @q.result(distinct: true).order(created_at: :desc).page(params[:page]).per(params[:per_page])
 	end
 
 	def new
@@ -60,14 +60,7 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	end
 	def message_params
 		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message)
-	end
-	def collection(resource)
-		return @collection if @collection.present?
-		params[:q] ||= {}
-		@collection = resource.all
-		@search = @collection.ransack(params[:q])
-		@collection = @search.result.order(created_at: :desc).page(params[:page]).per(params[:per_page])
-	end
+	end	
 end
 # class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 #
