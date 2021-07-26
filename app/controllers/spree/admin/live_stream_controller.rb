@@ -370,16 +370,6 @@ module Spree
               def live_stream_params
                 params.require(:live_stream).permit(:title, :description, :stream_url, :stream_key, :stream_id, :playback_ids, :status, :start_date, :is_active)
               end
-              def collection(resource)
-            		return @collection if @collection.present?
-            		params[:q] ||= {}
-            		@collection = resource.all
-
-                puts "**********************#{@collection.inspect}"
-            		@search = @collection.ransack(params[:q])
-            		@collection = @search.result.order(created_at: :desc).page(params[:page]).per(params[:per_page])
-                puts "*************2*********#{@collection.inspect}"
-            	end
             end
           end
         end
