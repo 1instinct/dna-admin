@@ -82,9 +82,9 @@
     </ul>
   <% end %>
 
-  <% if Spree.user_class && can?(:admin, Spree.user_class) %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarUsermenu">
-      <%= tab "Menu Navigator", url: new_admin_menu_item_path, icon: 'users.svg' %>
-    </ul>
-  <% end %>
+  <% if can? :admin, Message %>
+  <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
+    <%= tab 'menu_locations', icon: 'list.svg', url: admin_menu_locations_path %>
+  </ul>
+<% end %>
 </nav>
