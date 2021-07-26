@@ -8,7 +8,7 @@
 
 <% content_for :table_filter do %>
   <div data-hook="admin_products_sidebar">
-    <%= search_form_for [:admin, @search], url: admin_contacts_path do |f| %>
+    <%= search_form_for @q, url: admin_contacts_path do |f| %>
       <%- locals = {f: f} %>
       <div data-hook="admin_products_index_search" class="row">
         <div class="col-12 col-lg-6">
@@ -28,10 +28,10 @@
 <div class="table-responsive">
   <table class="table">
     <thead>
-      <th>Id</th>
+      <th scope="col"><%= sort_link(@q, :id, "ID", default_order: :asc) %></th>
       <th>Actor Id</th>
-      <th>Full Name</th>
-      <th>Emails</th>
+      <th scope="col"><%= sort_link(@q, :full_name, "Full name", default_order: :desc) %></th>
+      <th scope="col"><%= sort_link(@q, :email, "Email", default_order: :asc) %></th>
       <th>Phone</th>
       <th>Ip</th>
       <th>Created At</th>
