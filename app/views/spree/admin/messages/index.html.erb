@@ -8,7 +8,7 @@
 
 <% content_for :table_filter do %>
   <div data-hook="admin_products_sidebar">
-    <%= search_form_for [:admin, @search], url: admin_messages_path do |f| %>
+    <%= search_form_for @q, url: admin_messages_path do |f| %>
       <%- locals = {f: f} %>
       <div data-hook="admin_products_index_search" class="row">
         <div class="col-12 col-lg-6">
@@ -30,7 +30,7 @@
   <table class="table">
     <thead>
       <th>Id</th>
-      <th>Message</th>
+      <th scope="col"><%= sort_link(@q, :message, "Message", default_order: :asc) %></th>
       <th>Sender Type</th>
       <th>Sender email or name</th>
       <th>Receiver Type</th>
