@@ -64,6 +64,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, ThreadTable %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarThreadTable">
+      <%= tab :threads, icon: 'thread.svg', url: admin_threads_path %>
+    </ul>
+  <% end %>
+
   <% if Spree.user_class && can?(:admin, Spree.user_class) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarUser">
       <%= tab *Spree::BackendConfiguration::USER_TABS, url: spree.admin_users_path, icon: 'users.svg' %>
