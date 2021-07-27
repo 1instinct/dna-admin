@@ -46,6 +46,7 @@ Spree::Core::Engine.add_routes do
       resources :pages, only: [:index, :show], param: :slug
       resources :contacts
       resources :messages
+      resources :threads
     end
   end
   namespace :admin do
