@@ -1125,6 +1125,15 @@ en:
           show: Message fetched successfully.
       error:
           not_found: Message not found.
+    thread:
+      success:
+          create: Thread created successfully.
+          update: Thread updated successfully.
+          index: Thread listed successfully.
+          delete: Thread deleted successfully.
+          show: Thread fetched successfully.
+      error:
+          not_found: Thread not found.
 
     pagination:
       next_page: next page &raquo;
