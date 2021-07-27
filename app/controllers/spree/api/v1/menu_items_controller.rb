@@ -1,4 +1,4 @@
-class Spree::Api::V1::MenuItemsController < ApplicationController
+class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
   include Swagger::Blocks
   include Response
   include Spree::Api::V1::GlobalHelper
@@ -69,7 +69,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       response 200 do
         key :description, "Successfull"
         schema do
-          key :'$ref', :menu_location_create_response
+          key :'$ref', :menu_item_create_response
         end
       end
       response 400 do
@@ -80,7 +80,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       end
     end
   end
-  swagger_schema :menu_location_create_response do
+  swagger_schema :menu_item_create_response do
     key :required, [:response_code, :response_message]
     property :response_code do
       key :type, :integer
@@ -131,7 +131,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
   end
 
   def create
-    menu_item = MenuItem.new(menu_location_params)
+    menu_item = MenuItem.new(menu_item_params)
     if menu_item.save
       singular_success_model(200, Spree.t('menu_item.success.create'), menu_item_detail(menu_item.id))
     else
@@ -213,7 +213,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       response 200 do
         key :description, "Successfull"
         schema do
-          key :'$ref', :menu_location_update_response
+          key :'$ref', :menu_item_update_response
         end
       end
       response 400 do
@@ -224,7 +224,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       end
     end
   end
-  swagger_schema :menu_location_update_response do
+  swagger_schema :menu_item_update_response do
     key :required, [:response_code, :response_message]
     property :response_code do
       key :type, :integer
@@ -242,7 +242,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       error_model(400, "Menu Item not found.")
       return
     end
-    if menu_item.update(menu_location_params)
+    if menu_item.update(menu_item_params)
       singular_success_model(200, Spree.t('menu_item.success.update'), menu_item_detail(menu_item.id))
     else
       error_model(400, menu_item.errors.full_messages.join(','))
@@ -280,7 +280,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       response 200 do
         key :description, "Successfull"
         schema do
-          key :'$ref', :menu_location_list_response
+          key :'$ref', :menu_item_list_response
         end
       end
       response 400 do
@@ -291,7 +291,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       end
     end
   end
-  swagger_schema :menu_location_list_response do
+  swagger_schema :menu_item_list_response do
     key :required, [:response_code, :response_message]
     property :response_code do
       key :type, :integer
@@ -306,7 +306,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       property :offset do
         key :type, :integer
       end
-      property :menu_location_listing do
+      property :menu_item_listing do
         key :type, :array
         items do
           key :'$ref', :menu_item
@@ -315,7 +315,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
     end
   end
   def index
-    menu_location_listing = []
+    menu_item_listing = []
     query = params[:search]
     @menu_item = MenuItem.all
     @menu_item = @menu_item.where("name ILIKE :query", query: "%#{query}%")&.distinct
@@ -325,13 +325,13 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
     @menu_item = @menu_item.slice(offset, limit) unless limit == 0
     if @menu_item.present?
       @menu_item.each do |menu_item|
-        menu_location_listing << menu_item_detail(menu_item.id)
+        menu_item_listing << menu_item_detail(menu_item.id)
       end
     end
     response_data = {
       total_records: total_count,
       offset: offset,
-      menu_location_listing: menu_location_listing
+      menu_item_listing: menu_item_listing
     }
     singular_success_model(200, Spree.t('menu_item.success.index'), response_data)
   end
@@ -367,7 +367,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
   def destroy
     @menu_item = MenuItem.find_by_id(params[:id])
     unless @menu_item.present?
-      error_model(400, "menu_item not found")
+      error_model(400, "Menu Item not found")
       return
     end
     if @menu_item.destroy
@@ -393,7 +393,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       response 200 do
         key :description, "Successfull"
         schema do
-          key :'$ref', :menu_location_show_response
+          key :'$ref', :menu_item_show_response
         end
       end
       response 400 do
@@ -404,7 +404,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
       end
     end
   end
-  swagger_schema :menu_location_show_response do
+  swagger_schema :menu_item_show_response do
     key :required, [:response_code, :response_message]
     property :response_code do
       key :type, :integer
@@ -426,7 +426,7 @@ class Spree::Api::V1::MenuItemsController < ApplicationController
   end
 
   private
-  def menu_location_params
+  def menu_item_params
     params.require(:menu_item).permit(:name, :url, :item_class, :item_id, :item_target, :parent_id, :position, :is_visible)
   end
   def menu_item_detail(id)
