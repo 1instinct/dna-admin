@@ -32,6 +32,7 @@ Spree::Core::Engine.add_routes do
       end
     end
     resources :contacts
+    resources :threads
   end
   namespace :api, constraints: { format: 'json' } do
     namespace :v1 do
