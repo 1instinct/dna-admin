@@ -18,7 +18,7 @@ class Spree::Admin::MenuLocationsController <  Spree::Admin::BaseController
 		@menu_location = MenuLocation.find(params[:id])
 		respond_to do |format|
 			if @menu_location.update(menu_location_params)
-				flash[:success] = Spree.t('message.success.update')
+				flash[:success] = Spree.t('menu_location.success.update')
 				format.html { redirect_to admin_menu_location_path }
 			else
 				flash[:error] = @message.errors.full_messages.join(', ')
@@ -34,7 +34,7 @@ class Spree::Admin::MenuLocationsController <  Spree::Admin::BaseController
 	def create
 		@menu_location = MenuLocation.new(menu_location_params)
 		if @menu_location.save
-			flash[:success] = Spree.t('message.added_success')
+			flash[:success] = Spree.t('menu_location.success.create')
 			redirect_to admin_menu_locations_path
 		else
 			flash[:error] = @menu_location.errors.full_messages.join(', ')
@@ -45,7 +45,7 @@ class Spree::Admin::MenuLocationsController <  Spree::Admin::BaseController
 	def destroy
 		@menu_location = MenuLocation.find(params[:id])
 		if @menu_location.destroy
-			flash[:success] = Spree.t('message.message_deleted')
+			flash[:success] = Spree.t('menu_location.success.delete')
 			respond_with do |format|
 				format.html { redirect_to collection_url }
 				format.js  { render_js_for_destroy }
