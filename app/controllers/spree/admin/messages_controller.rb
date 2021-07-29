@@ -54,13 +54,28 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 			redirect_to admin_message_path
 		end
 	end
+	def conversation
+		message = Message.find_by_id(params[:id])
+		@user_1 = message.sender
+		@user_2 = message.receiver
+		@one_to_one_messages = message.message_transaction_between_two_parties(message.sender, message.receiver)
+		@one_to_one_messages = Message.where(id: @one_to_one_messages.pluck(:id))
+		puts "+++++++++++++++#{@one_to_one_messages.class}"
+		thread_ids = @one_to_one_messages.pluck(:thread_table_id).uniq
+		puts "------------------#{thread_ids}"
+		@threads = []
+		thread_ids.each do |thread_id|
+			@threads << @one_to_one_messages.where(thread_table_id: thread_id)
+		end
+		puts "************#{@threads.class}"
+	end
 	private
 	def set_session
 		session[:return_to] = request.url
 	end
 	def message_params
 		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message)
-	end	
+	end
 end
 # class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 #

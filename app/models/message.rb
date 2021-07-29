@@ -34,8 +34,9 @@ class Message < Spree::Base
   def message_transaction_between_two_parties(user_1, user_2)
     user_1_sent_messages = user_1.sent_messages.where(receiver_id: user_2.id).where.not(thread_table_id: nil)
     user_2_sent_messages = user_2.sent_messages.where(receiver_id: user_1.id).where.not(thread_table_id: nil)
-    all_messages = (user_1_sent_messages + user_2_sent_messages).sort.reverse{|a,b| a.created_at <=> b.created_at }
-  end
+    all_messages = (user_1_sent_messages + user_2_sent_messages).sort{|a,b| a.created_at <=> b.created_at }
+  end 
+
 end
 
 # class Message < ApplicationRecord
