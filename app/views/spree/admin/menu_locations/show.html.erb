@@ -18,5 +18,10 @@
       <%= f.error_message_on :location %>
     <% end %>
 
+    <%= f.field_container :is_visible, class: ['form-group'] do %>
+      <%= f.check_box :is_visible, readonly: :true %>
+      <%= Spree.t(:is_visible) %>
+    <% end %>
+
   </fieldset>
 <% end %>

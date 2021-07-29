@@ -4,7 +4,7 @@
   <%= Spree.t(:edit_menu_locations) %>
 <% end %>
 <%= form_for [:admin, @menu_location], url: admin_menu_location_path(id: @menu_location.id), html: { multipart: true }, method: :patch do |f| %>
-  <fieldset data-hook="new_message">
+  <fieldset data-hook="new_menu_location">
     <%= f.field_container :title, class: ['form-group'] do %>
       <%= f.label :title, Spree.t(:title) %> <span class="required">*</span>
       <%= f.text_field :title, class: 'form-control message', required: :required %>
@@ -15,6 +15,11 @@
       <%= f.label :location, Spree.t(:location) %> <span class="required">*</span>
       <%= f.text_field :location, class: 'form-control sentiment', required: :required %>
       <%= f.error_message_on :location %>
+    <% end %>
+
+    <%= f.field_container :is_visible, class: ['form-group'] do %>
+      <%= f.check_box :is_visible %>
+      <%= Spree.t(:is_visible) %>
     <% end %>
     <%= render partial: 'spree/admin/menu_locations/edit_resource_links' %>
   </fieldset>

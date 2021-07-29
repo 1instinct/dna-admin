@@ -1,5 +1,5 @@
 <% content_for :page_title do %>
-  <%= Spree.t(:"admin.menu_location.list") %>
+  <%= Spree.t(:"admin.menu_location") %>
 <% end %>
 <% content_for :page_actions do %>
   <%= button_link_to Spree.t(:add_menu_location), spree.new_admin_menu_location_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
@@ -42,7 +42,7 @@
 
           <td><%= menu_location&.is_visible %></td>
 
-          <td class="actions actions-2 text-right" data-hook="admin_message_index_row_actions">
+          <td class="actions actions-2" data-hook="admin_menu_location_index_row_actions">
             <%= link_to_edit_url spree.edit_admin_menu_location_path(id: menu_location.id), no_text: true if can?(:edit, menu_location) %>
             <%= link_to_delete menu_location.id, no_text: true, url: admin_menu_location_path(id: menu_location.id) if can?(:destroy, menu_location.id) %>
           </td>
