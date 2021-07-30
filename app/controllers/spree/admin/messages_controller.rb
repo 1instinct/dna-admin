@@ -5,6 +5,10 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		@collection = @q.result(distinct: true).order(created_at: :desc).page(params[:page]).per(params[:per_page])
 	end
 
+	def conversations
+		@users_array = Message.pluck(:sender_id, :sender_type, :receiver_id, :receiver_type).uniq
+	end
+
 	def new
 		@message = Message.new
 	end

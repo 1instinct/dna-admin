@@ -43,7 +43,15 @@
           <td><%= thread&.stale %></td>
           <td><%= thread&.created_at %></td>
           <td class="actions actions-2 text-right" data-hook="admin_thread_index_row_actions">
-            <%= link_to "conversation", spree.conversation_admin_thread_path(id: thread.id) %>
+            <% if thread.live_stream.present? %>
+              <%= link_to spree.conversation_admin_thread_path(id: thread.id) do %>
+                <%= image_tag('group.svg', height: 30, width: 30) %>
+              <% end %>
+            <% else %>
+            <%= link_to spree.conversation_admin_thread_path(id: thread.id) do %>
+              <%= image_tag('backend-chat.svg', height: 25, width: 25) %>
+            <% end %>
+            <% end %>
             <%= link_to_edit_url spree.edit_admin_thread_path(id: thread.id), no_text: true if can?(:edit, thread) %>
             <%= link_to_delete thread.id, no_text: true, url: admin_thread_path(id: thread.id) if can?(:destroy, thread.id) %>
           </td>

@@ -241,7 +241,7 @@ class Spree::Api::V1::ContactsController < Spree::Api::BaseController
         end
       end
     end
-  end  
+  end
   swagger_schema :contact_list_response do
     key :required, [:response_code, :response_message]
     property :response_code do

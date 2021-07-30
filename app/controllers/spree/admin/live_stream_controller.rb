@@ -182,7 +182,7 @@ module Spree
                 session[:return_to] = request.url
               end
               def live_stream_params
-                params.require(:live_stream).permit(:title, :description, :stream_url, :stream_key, :stream_id, :playback_ids, :status, :start_date, :is_active, :product_ids => [])
+                params.require(:live_stream).permit(:title, :description, :stream_url, :stream_key, :stream_id, :playback_ids, :status, :start_date, :is_active, :actor_id, :product_ids => [])
               end
             end
           end
