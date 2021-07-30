@@ -5,21 +5,20 @@ module Spree
 
       def index
          @menu_items = MenuItem.top_level
-
-        respond_to do |format|
-          format.html
-          format.json { render :children, status: :ok }
-        end
+         @menu_location = MenuLocation.all
+          respond_to do |format|
+            format.html
+            format.json { render :children, status: :ok }
+          end
       end
 
       def new
+        @menu_location = MenuLocation.all
         @menu_item = MenuItem.new
       end
 
       def create
-
         @menu_item = MenuItem.new(menu_item_params)
-
         respond_to do |format|
           if @menu_item.save
             format.html { submit_success_redirect(:create) }
@@ -60,6 +59,10 @@ module Spree
         end
       end
 
+      def show_menu_item
+        @menu_items = MenuLocation.find_by(id: params[:menu_location_id].to_i).menu_items
+      end
+
       protected
 
       def submit_success_redirect(type)
@@ -85,7 +88,8 @@ module Spree
           :item_class,
           :item_target,
           :parent_id,
-          :position
+          :position,
+          :menu_location_id
         ]
       end
 

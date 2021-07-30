@@ -914,6 +914,18 @@ en:
     lifetime_stats: Lifetime Stats
     line_item_adjustments: "Line item adjustments"
     list: List
+    menu_location: Menu Location
+    live_stream:
+      live_stream_deleted: Live Stream has been deleted
+      live_stream_show: Live Stream fetch successfully
+      live_stream_menu: Live Streams
+      generating: Generating Playback Id
+      fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+      update_success: Live Stream updated successfully.
+      added_success: Live Stream Added successfully.
+      list_success: Live Stream listed successfully.
+      product_ids: Select live stream products
+      live_stream_not_found: Live Stream not found.
     loading: Loading
     loading_tree: Loading tree. Please wait…
     locale_changed: Locale Changed

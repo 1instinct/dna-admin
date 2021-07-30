@@ -24,7 +24,7 @@ Spree::Core::Engine.add_routes do
 
     get "/messages" => "messages#index"
     get "/messages/support" => "messages#message_support"
-    get "pages/about_us" => "pages#about_us"
+    get "/menu_items/show_menu_item" => "menu_items#show_menu_item"
 
     resources :live_stream do
       collection do
