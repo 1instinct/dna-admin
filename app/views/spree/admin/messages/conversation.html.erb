@@ -122,8 +122,7 @@ img {
         <div class="panel-body msg_container_base">
             <% @threads.each do |thread| %>
 
-              <% thread.each do |message| %>
-                <%= message.inspect %>
+              <% thread.each do |message| %>                
                 <% if message.sender == @user_1 %>
                 <div class="row msg_container base_sent">
                 <div class="col-md-10 col-xs-10">
