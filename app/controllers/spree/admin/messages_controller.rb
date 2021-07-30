@@ -59,16 +59,24 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		end
 	end
 	def conversation
-		message = Message.find_by_id(params[:id])
-		@user_1 = message.sender
-		@user_2 = message.receiver
-		@one_to_one_messages = message.message_transaction_between_two_parties(message.sender, message.receiver)
-		@one_to_one_messages = Message.where(id: @one_to_one_messages.pluck(:id))
-		thread_ids = @one_to_one_messages.pluck(:thread_table_id).uniq
+		users = []
+		params[:users].each do |user|
+			if user[:type] == "User"
+				users << Spree::User.find_by_id(user[:id])
+			elsif user[:type] == "Contact"
+				users << Contact.find_by_id(user[:id])
+			end
+		end
+		@user_1 = users.first
+		@user_2 = users.second
+		one_to_one_messages = conversation_between_two_parties(users.first, users.second)
+		one_to_one_messages = Message.where(id: one_to_one_messages.pluck(:id))
+		thread_ids = one_to_one_messages.pluck(:thread_table_id).uniq
 		@threads = []
 		thread_ids.each do |thread_id|
-			@threads << @one_to_one_messages.where(thread_table_id: thread_id)
+			@threads << one_to_one_messages.where(thread_table_id: thread_id)
 		end
+		puts @threads.inspect
 	end
 	private
 	def set_session
@@ -77,6 +85,11 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	def message_params
 		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id, :message)
 	end
+	def conversation_between_two_parties(user_1, user_2)
+    user_1_sent_messages = user_1.sent_messages.where(receiver_id: user_2.id).where.not(thread_table_id: nil)
+    user_2_sent_messages = user_2.sent_messages.where(receiver_id: user_1.id).where.not(thread_table_id: nil)
+    all_messages = (user_1_sent_messages + user_2_sent_messages).sort{|a,b| a.created_at <=> b.created_at }
+  end
 end
 # class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 #

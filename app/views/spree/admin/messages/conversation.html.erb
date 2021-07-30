@@ -103,11 +103,11 @@ img {
   bottom:0;
 }
 </style>
-<% first_user = @user_1.class.to_s == "Spree::User" ? @user_1.email : @user_1.full_name %>
-<% second_user = @user_1.class.to_s == "Spree::User" ? @user_2.email : @user_2.full_name %>
+<%# first_user = @user_1.class.to_s == "Spree::User" ? @user_1.email : @user_1.full_name %>
+<%# second_user = @user_1.class.to_s == "Spree::User" ? @user_2.email : @user_2.full_name %>
 <% content_for :page_title do %>
   <%= link_to Spree.t(:messages), spree.admin_messages_path %> /
-  conversation between <%= first_user %> and <%= second_user %>
+  conversation between <%#= first_user %> and <%#= second_user %>
 <% end %>
 <div class="container">
   <div class="row">
@@ -115,13 +115,15 @@ img {
       <div class="panel panel-default">
         <div class="panel-heading top-bar">
           <div class="col-md-12 col-xs-12">
-            <h3 class="panel-title"><span class="glyphicon glyphicon-comment"></span> Chat between <%= first_user %> and <%= second_user %></h3>
+            <h3 class="panel-title"><span class="glyphicon glyphicon-comment"></span> Chat between <%#= first_user %> and <%#= second_user %></h3>
           </div>
         </div>
 
         <div class="panel-body msg_container_base">
             <% @threads.each do |thread| %>
+
               <% thread.each do |message| %>
+                <%= message.inspect %>
                 <% if message.sender == @user_1 %>
                 <div class="row msg_container base_sent">
                 <div class="col-md-10 col-xs-10">

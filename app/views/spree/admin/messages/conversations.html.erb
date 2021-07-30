@@ -77,29 +77,23 @@
               </div>
             </div>
           </div>
-
-          <a href="#" class="list-group-item list-group-item-action border-0">
-            <span>
-              <div class="badge bg-success float-right">5</div>
-              <div class="d-flex align-items-start">
-                <img src="https://bootdey.com/img/Content/avatar/avatar5.png" class="rounded-circle mr-1" alt="Vanessa Tucker" width="40" height="40">
-                <div class="flex-grow-1 ml-3">
-                  Vanessa Tucker
-                  <div class="small"><span class="fas fa-circle chat-online"></span> Online</div>
-                </div>
-              </div>
-            </span>
-            <span>
-              <div class="badge bg-success float-right">5</div>
-              <div class="d-flex align-items-start">
-                <img src="https://bootdey.com/img/Content/avatar/avatar5.png" class="rounded-circle mr-1" alt="Vanessa Tucker" width="40" height="40">
-                <div class="flex-grow-1 ml-3">
-                  Vanessa Tucker
-                  <div class="small"><span class="fas fa-circle chat-online"></span> Online</div>
-                </div>
-              </div>
-            </span>
-          </a>
+          <% @users_array.each do |user_hash| %>
+            <% users = fetch_users(user_hash) %>
+            <%= link_to spree.conversation_admin_messages_path(users: users), class: "list-group-item list-group-item-action border-0" do %>
+              <% users.each do |user| %>
+                <span>
+                  <div class="badge bg-success float-right">5</div>
+                  <div class="d-flex align-items-start">
+                    <img src="https://bootdey.com/img/Content/avatar/avatar5.png" class="rounded-circle mr-1" alt="Vanessa Tucker" width="40" height="40">
+                    <div class="flex-grow-1 ml-3">
+                      <%= user[:name] %>
+                      <div class="small"><span class="fas fa-circle chat-online"></span> Online</div>
+                    </div>
+                  </div>
+                </span>
+              <% end %>
+            <% end %>
+          <% end %>
           <hr class="d-block d-lg-none mt-1 mb-0">
         </div>
         <div class="col-12 col-lg-7 col-xl-8">

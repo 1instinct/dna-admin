@@ -18,11 +18,9 @@ end
 
 Spree::Core::Engine.add_routes do
   namespace :admin, path: Spree.admin_path do
-    resources :messages do
-      member do
-        get :conversation
-      end
+    resources :messages do      
       collection do
+        get :conversation
         get :conversations
       end
       resources :message_support, only: [:index]
