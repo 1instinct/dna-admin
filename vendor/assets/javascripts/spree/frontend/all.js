@@ -9,3 +9,4 @@
 
 //= require_tree .
 //= require spree/frontend/spree_navigator
+//= require spree/frontend/spree_reffiliate
