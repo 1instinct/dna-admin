@@ -1,6 +1,13 @@
 GIT
-  remote: https://github.com/1instinct/spree.git
-  revision: 6bda546328a300aff04591d89d40c7b3f4b02473
+  remote: https://github.com/Gaurav2728/spree_reffiliate.git
+  revision: f7ee16000c6f278a13f2c7ae9c98e0926fdeeec7
+  specs:
+    spree_reffiliate (3.2.0.alpha)
+      spree_core (>= 3.2.0, <= 4.2.5)
+
+GIT
+  remote: https://github.com/ddombrowsky/spree.git
+  revision: 88fded86a662147a3c2c974f2978ca83bd3bc75d
   branch: instinct-dna
   specs:
     spree (4.2.5)
@@ -313,6 +320,7 @@ GEM
     mime-types-data (3.2021.0704)
     mini_magick (4.11.0)
     mini_mime (1.1.0)
+    mini_portile2 (2.5.3)
     minitest (5.14.4)
     monetize (1.11.0)
       money (~> 6.12)
@@ -320,8 +328,11 @@ GEM
       i18n (>= 0.6.4, <= 2)
     msgpack (1.4.2)
     netrc (0.11.0)
-    nio4r (2.5.8)
-    nokogiri (1.12.2-x86_64-linux)
+    nio4r (2.5.7)
+    nokogiri (1.11.7)
+      mini_portile2 (~> 2.5.0)
+      racc (~> 1.4)
+    nokogiri (1.11.7-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     paranoia (2.4.3)
@@ -483,6 +494,7 @@ GEM
     zeitwerk (2.4.2)
 
 PLATFORMS
+  ruby
   x86_64-linux
 
 DEPENDENCIES
@@ -509,6 +521,7 @@ DEPENDENCIES
   spree_auth_devise (~> 4.3)
   spree_digital!
   spree_gateway (~> 3.9)
+  spree_reffiliate!
   spree_static_content!
   spring
   spring-watcher-listen (~> 2.0.0)
@@ -522,4 +535,4 @@ RUBY VERSION
    ruby 2.7.2p137
 
 BUNDLED WITH
-   2.2.21
+   2.2.25

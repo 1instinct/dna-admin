@@ -45,6 +45,7 @@ gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
+gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
