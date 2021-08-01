@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/ddombrowsky/spree.git
+  remote: https://github.com/1instinct/spree.git
   revision: 88fded86a662147a3c2c974f2978ca83bd3bc75d
   branch: instinct-dna
   specs:
@@ -68,7 +68,7 @@ GIT
 
 GIT
   remote: https://github.com/spree-contrib/spree_digital.git
-  revision: 0163cd1968eb3e828dba341683ca95d78f467d15
+  revision: a4f6651164273ba4cd20b1642fafa52751804bc0
   specs:
     spree_digital (4.1.0)
       deface (~> 1.0)
@@ -167,24 +167,24 @@ GEM
     awesome_nested_set (3.4.0)
       activerecord (>= 4.0.0, < 7.0)
     aws-eventstream (1.1.1)
-    aws-partitions (1.478.0)
-    aws-sdk-core (3.117.0)
+    aws-partitions (1.482.0)
+    aws-sdk-core (3.119.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
       jmespath (~> 1.0)
-    aws-sdk-kms (1.44.0)
-      aws-sdk-core (~> 3, >= 3.112.0)
+    aws-sdk-kms (1.46.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.96.1)
-      aws-sdk-core (~> 3, >= 3.112.0)
+    aws-sdk-s3 (1.98.0)
+      aws-sdk-core (~> 3, >= 3.119.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.1)
     aws-sigv4 (1.2.4)
       aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.16)
     bindex (0.8.1)
-    bootsnap (1.7.5)
+    bootsnap (1.7.6)
       msgpack (~> 1.0)
     bootstrap (4.6.0)
       autoprefixer-rails (>= 9.1.0)
@@ -220,7 +220,7 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
-    css_parser (1.9.0)
+    css_parser (1.10.0)
       addressable
     deface (1.8.1)
       nokogiri (>= 1.6)
@@ -250,8 +250,8 @@ GEM
     flatpickr (4.6.6.0)
     friendly_id (5.4.2)
       activerecord (>= 4.0.0)
-    globalid (0.4.2)
-      activesupport (>= 4.2.0)
+    globalid (0.5.1)
+      activesupport (>= 5.0)
     glyphicons (1.0.2)
     highline (2.0.3)
     htmlentities (4.3.4)
@@ -294,7 +294,7 @@ GEM
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
-    loofah (2.10.0)
+    loofah (2.11.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
@@ -450,7 +450,7 @@ GEM
     turbolinks (5.2.1)
       turbolinks-source (~> 5.2)
     turbolinks-source (5.2.0)
-    twitter_cldr (6.6.2)
+    twitter_cldr (6.7.0)
       camertron-eprun
       cldr-plurals-runtime-rb (~> 1.1)
       tzinfo
