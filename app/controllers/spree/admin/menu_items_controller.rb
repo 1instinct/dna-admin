@@ -79,6 +79,7 @@ module Spree
 
       def set_menu_item
         @menu_item = MenuItem.find(params[:id].to_i)
+        @menu_location = MenuLocation.all
       end
 
       def permitted_menu_item_attributes
