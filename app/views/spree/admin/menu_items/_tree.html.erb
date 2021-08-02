@@ -1,16 +1,4 @@
-<% content_for :head do %>
-  <%= javascript_tag "
-    var loading = '#{escape_javascript Spree.t(:loading)}',
-        new_menu = '#{escape_javascript Spree.t('navigator.admin.ajax.new_menu')}',
-        server_error = '#{escape_javascript Spree.t(:server_error)}',
-        menu_tree_error = '#{escape_javascript Spree.t('navigator.admin.ajax.menu_tree_error')}';
 
-    $(document).ready(function(){
-      setup_menu_tree();
-    });
-    "
-  %>
-<% end %>
 
 <div id="ajax_error" class="errorExplanation" style="display:none;"></div>
 <%= render '/spree/admin/menu_items/children_menu' %>

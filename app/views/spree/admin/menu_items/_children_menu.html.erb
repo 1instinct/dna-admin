@@ -1,20 +1,20 @@
 <%= select_tag "Menu Items", options_from_collection_for_select(@menu_location, "id", "title"), { :prompt => 'Select a Menu Location', class: 'form-control'}%>
 
 <div class="menuitems">
-  <%#= render '/spree/admin/menu_items/show_menu_item' %>
 </div>
-<%# binding.pry %>
 <script type="text/javascript">
   $('select').on('change', function() {
-
-  var menu_location_id = this.value
-  $.ajax({
-  url: "/admin/menu_items/show_menu_item",
-  type: "get",
-  data: {menu_location_id: menu_location_id},
-  success: function(data) {},
-  error: function(data) {}
-})
+    var loading = '#{escape_javascript Spree.t(:loading)}';
+    var new_menu = 'New Menu Item';
+    var server_error = '#{escape_javascript Spree.t(:server_error)}';
+    var  menu_tree_error = 'The requested change has not been accepted and the tree has been returned to its previous state, please try again.';
+    var menu_location_id = this.value
+    $.ajax({
+      url: "/admin/menu_items",
+      type: "get",
+      data: {menu_location_id: menu_location_id},
+      success: function(data) {setup_menu_tree();},
+      error: function(data) {}
+    })
 });
-//url: "/admin/menu_items/"+menu_location_id+"/children"
 </script>
