@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_22_190132) do
+ActiveRecord::Schema.define(version: 2021_06_29_112950) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,38 @@ ActiveRecord::Schema.define(version: 2021_06_22_190132) do
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
+  end
+
+  create_table "live_stream_likes", force: :cascade do |t|
+    t.bigint "live_stream_id"
+    t.bigint "user_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["live_stream_id"], name: "index_live_stream_likes_on_live_stream_id"
+    t.index ["user_id"], name: "index_live_stream_likes_on_user_id"
+  end
+
+  create_table "live_stream_products", force: :cascade do |t|
+    t.bigint "live_stream_id"
+    t.bigint "product_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["live_stream_id"], name: "index_live_stream_products_on_live_stream_id"
+    t.index ["product_id"], name: "index_live_stream_products_on_product_id"
+  end
+
+  create_table "live_streams", force: :cascade do |t|
+    t.string "title"
+    t.text "description"
+    t.string "stream_url"
+    t.string "stream_key"
+    t.string "stream_id"
+    t.text "playback_ids", default: [], array: true
+    t.string "status"
+    t.datetime "start_date"
+    t.boolean "is_active"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -351,6 +383,18 @@ ActiveRecord::Schema.define(version: 2021_06_22_190132) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["source_id", "source_type"], name: "index_spree_log_entries_on_source_id_and_source_type"
+  end
+
+  create_table "spree_menu_items", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "url"
+    t.string "item_class"
+    t.string "item_id"
+    t.string "item_target"
+    t.integer "parent_id"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "spree_oauth_access_grants", force: :cascade do |t|
