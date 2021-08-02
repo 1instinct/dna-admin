@@ -7,6 +7,26 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 
 	def conversations
 		@users_array = Message.pluck(:sender_id, :sender_type, :receiver_id, :receiver_type).uniq
+		if params[:users].present?
+			users = []
+			params[:users].each do |user|
+				if user[:type] == "User"
+					users << Spree::User.find_by_id(user[:id])
+				elsif user[:type] == "Contact"
+					users << Contact.find_by_id(user[:id])
+				end
+			end
+			@user_1 = users.first
+			@user_2 = users.second
+			one_to_one_messages = conversation_between_two_parties(users.first, users.second)
+			one_to_one_messages = Message.where(id: one_to_one_messages.pluck(:id))
+			thread_ids = one_to_one_messages.pluck(:thread_table_id).uniq
+			@threads = []
+			thread_ids.each do |thread_id|
+				@threads << one_to_one_messages.where(thread_table_id: thread_id)
+			end
+			puts @threads.inspect
+		end
 	end
 
 	def new
@@ -58,6 +78,7 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 			redirect_to admin_message_path
 		end
 	end
+
 	def conversation
 		users = []
 		params[:users].each do |user|
@@ -76,8 +97,8 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		thread_ids.each do |thread_id|
 			@threads << one_to_one_messages.where(thread_table_id: thread_id)
 		end
-		puts @threads.inspect
 	end
+
 	private
 	def set_session
 		session[:return_to] = request.url

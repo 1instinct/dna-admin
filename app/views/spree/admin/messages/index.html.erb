@@ -65,7 +65,8 @@
           <td><%= message&.sentiment %></td>
           <td><%= message&.thread_table_id %></td>
           <td class="actions actions-2 text-right" data-hook="admin_message_index_row_actions">
-            <%= link_to spree.conversation_admin_message_path(id: message.id) do %>
+            <% users = fetch_users_from_message(message.id) %>
+            <%= link_to spree.conversations_admin_messages_path(users: users) do %>
               <%= image_tag('backend-chat.svg', height: 25, width: 25) %>
             <% end %>
             <%= link_to_edit_url spree.edit_admin_message_path(id: message.id), no_text: true if can?(:edit, message) %>
