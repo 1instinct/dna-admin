@@ -118,7 +118,6 @@
               <% if @threads.present? %>
                 <% @threads.each do |thread| %>
                   <% thread.each do |message| %>
-                    <hr size="5" width="" color="pink">
                     <% if message.sender == @user_1 %>
                       <div class="chat-message-right pb-4">
                         <div>
@@ -143,6 +142,7 @@
                       </div>
                     <% end %>
                   <% end %>
+                  <hr width=100%>                  
                 <% end %>
               <% end %>
             </div>
