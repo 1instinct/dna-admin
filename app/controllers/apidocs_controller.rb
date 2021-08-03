@@ -10,9 +10,10 @@ class ApidocsController < ActionController::Base
         key :name, 'Mayank Gandhi'
       end
     end
-    key :host, 'localhost:3000/' if Rails.env.development?
-    key :host, 'localhost:3000/' if Rails.env.staging?
-    key :host, 'localhost:3000/' if Rails.env.production?
+    key :host, 'https://dna-admin-dev.instinct.is/' if Rails.env.development?
+    key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
+    key :host, 'https://admin.instinct.is/' if Rails.env.production?
+
 
     key :basePath, '/api/v1'
     key :consumes, ['application/x-www-form-urlencoded'] #this means what responce we are going to send
