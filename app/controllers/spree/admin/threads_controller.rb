@@ -55,11 +55,14 @@ class Spree::Admin::ThreadsController <  Spree::Admin::BaseController
 			redirect_to admin_thread_path
 		end
 	end
+
 	def conversation
 		@thread = ThreadTable.find(params[:id])
 		@messages = @thread.messages
-		@user_1 = @messages.first.sender
-		@user_2 = @messages.first.receiver
+		if @messages.count > 0			
+			@user_1 = @messages.first.sender
+			@user_2 = @messages.first.receiver
+		end
 	end
 	private
 	def set_session
