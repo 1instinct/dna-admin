@@ -128,6 +128,12 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     property :is_visible do
       key :type, :boolean
     end
+    property :childrens do
+      key :type, :array
+      items do
+        key :'$ref', :menu_item
+      end
+    end
   end
 
   def create
@@ -257,6 +263,13 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
         'Menu Item'
       ]
       parameter do
+        key :name, 'menu_location_id'
+        key :in, :query
+        key :description, 'fetch  menu items according to menu location'
+        key :required, false
+        key :type, :integer
+      end
+      parameter do
         key :name, 'search'
         key :in, :query
         key :description, 'Search String'
@@ -306,32 +319,55 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
       property :offset do
         key :type, :integer
       end
-      property :menu_item_listing do
+      property :menu_location_listing do
         key :type, :array
         items do
-          key :'$ref', :menu_item
+          key :'$ref', :menu_location_with_menu_items
         end
       end
     end
   end
+  swagger_schema :menu_location_with_menu_items do
+    property :id do
+      key :type, :integer
+    end
+    property :title do
+      key :type, :string
+    end
+    property :menu_item_listing do
+      key :type, :array
+      items do
+        key :'$ref', :menu_item
+      end
+    end
+  end
+
   def index
+    menu_location_listing = []
     menu_item_listing = []
     query = params[:search]
+    menu_locations = MenuLocation.all
     @menu_item = MenuItem.all
+    menu_locations = menu_locations.where(id: params[:menu_location_id]) if params[:menu_location_id].present?
     @menu_item = @menu_item.where("name ILIKE :query", query: "%#{query}%")&.distinct
     limit = params[:limit].present? ? params[:limit].to_i : 0
     offset = params[:offset].present? ? params[:offset].to_i : 0
     total_count = @menu_item.count
     @menu_item = @menu_item.slice(offset, limit) unless limit == 0
-    if @menu_item.present?
-      @menu_item.each do |menu_item|
+    menu_locations.each do |menu_location|
+      menu_location.menu_items.each do |menu_item|
         menu_item_listing << menu_item_detail(menu_item.id)
       end
+      menu_location_listing << {
+        id: menu_location&.id || 0,
+        title: menu_location&.title || "",
+        menu_item_listing: menu_item_listing
+      }
     end
     response_data = {
       total_records: total_count,
       offset: offset,
-      menu_item_listing: menu_item_listing
+      menu_location_listing: menu_location_listing
     }
     singular_success_model(200, Spree.t('menu_item.success.index'), response_data)
   end
@@ -431,6 +467,12 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
   end
   def menu_item_detail(id)
     menu_item = MenuItem.find(id)
+    childrens = []
+    @fetch_childrens = fetch_childrens(menu_item)
+    @fetch_childrens = @fetch_childrens.where(parent_id: menu_item.id)
+    @fetch_childrens.each do |mi|
+      childrens << menu_item_detail(mi.id)
+    end
     menu_item = {
       id: menu_item&.id || 0,
       name: menu_item&.name || "",
@@ -442,8 +484,13 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
       position: menu_item&.position || 0,
       is_visible: menu_item&.is_visible || false,
       created_at: to_timestamp(menu_item&.created_at) || 0,
-      updated_at: to_timestamp(menu_item&.updated_at) || 0
+      updated_at: to_timestamp(menu_item&.updated_at) || 0,
+      childrens: childrens || []
     }
     return menu_item
+  end
+  def fetch_childrens(menu_item)
+    childrens = MenuItem.all.where(id: menu_item.child_chain.pluck(:id))
+    return childrens
   end
 end
