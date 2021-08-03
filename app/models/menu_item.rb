@@ -18,6 +18,27 @@ class MenuItem < Spree::Base
 
   scope :top_level, -> { where(parent_id: nil) }
 
+  def parent_chain
+    Enumerator.new do |enum|
+      parent_product = parent
+      while !parent_product.nil?
+        enum.yield parent_product
+        parent_product = parent_product.parent
+      end
+    end.to_a.reverse + [self]
+  end
+  def child_chain
+    Enumerator.new do |enum|
+      child_products = childrens
+      unless child_products.nil?
+        child_products.each do |child_product|
+          enum.yield child_product unless child_product.nil?
+          child_products = child_product.childrens unless child_product.nil?
+        end
+      end
+    end.to_a + [self]
+  end
+
   protected
 
   def set_item_position
