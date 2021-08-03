@@ -349,11 +349,11 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     menu_locations = MenuLocation.all
     @menu_item = MenuItem.all
     menu_locations = menu_locations.where(id: params[:menu_location_id]) if params[:menu_location_id].present?
-    @menu_item = @menu_item.where("name ILIKE :query", query: "%#{query}%")&.distinct
+    menu_locations = menu_locations.where("title ILIKE :query", query: "%#{query}%")&.distinct
     limit = params[:limit].present? ? params[:limit].to_i : 0
     offset = params[:offset].present? ? params[:offset].to_i : 0
-    total_count = @menu_item.count
-    @menu_item = @menu_item.slice(offset, limit) unless limit == 0
+    total_count = menu_locations.count
+    @menu_item = menu_locations.slice(offset, limit) unless limit == 0
     menu_locations.each do |menu_location|
       menu_location.menu_items.each do |menu_item|
         menu_item_listing << menu_item_detail(menu_item.id)
