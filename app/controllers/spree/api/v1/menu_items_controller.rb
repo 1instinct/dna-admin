@@ -92,7 +92,6 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
 
   def index
     menu_location_listing = []
-    menu_item_listing = []
     query = params[:search]
     menu_locations = MenuLocation.all
     @menu_item = MenuItem.all
@@ -103,6 +102,7 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     total_count = menu_locations.count
     @menu_item = menu_locations.slice(offset, limit) unless limit == 0
     menu_locations.each do |menu_location|
+      menu_item_listing = []
       menu_location.menu_items.each do |menu_item|
         menu_item_listing << menu_item_detail(menu_item.id)
       end
@@ -175,6 +175,9 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
   end
   def menu_item_detail(id)
     menu_item = MenuItem.find(id)
+    puts "====================================="
+    puts menu_item.inspect
+    puts "====================================="
     childrens = []
     @fetch_childrens = fetch_childrens(menu_item)
     @fetch_childrens = @fetch_childrens.where(parent_id: menu_item.id)
