@@ -81,10 +81,4 @@
       <%= main_menu_tree Spree.t(:configurations), icon: "settings.svg", sub_menu: "configuration", url: "#sidebar-configuration" %>
     </ul>
   <% end %>
-
-  <% if can? :admin, Message %>
-  <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
-    <%= tab 'menu_locations', icon: 'list.svg', url: admin_menu_locations_path %>
-  </ul>
-<% end %>
 </nav>

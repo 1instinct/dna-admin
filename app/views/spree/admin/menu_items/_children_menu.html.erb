@@ -1,4 +1,4 @@
-<%= select_tag "Menu Items", options_from_collection_for_select(@menu_location, "id", "title"), { :prompt => 'Select a Menu Location', class: 'form-control'}%>
+<%= select_tag "Menu Items", options_from_collection_for_select(@menu_location, "id", "title" || @menu_location.first.id), { :prompt => 'Select a Menu Location', class: 'form-control'}%>
 
 <div class="menuitems">
 </div>
@@ -9,12 +9,27 @@
     var server_error = '#{escape_javascript Spree.t(:server_error)}';
     var  menu_tree_error = 'The requested change has not been accepted and the tree has been returned to its previous state, please try again.';
     var menu_location_id = this.value
-    $.ajax({
-      url: "/admin/menu_items",
-      type: "get",
-      data: {menu_location_id: menu_location_id},
-      success: function(data) {setup_menu_tree();},
-      error: function(data) {}
-    })
+    ajaxFunction();
 });
+
+function ajaxFunction(menu_location_id){
+  $.ajax({
+    url: "/admin/menu_items",
+    type: "get",
+    data: {menu_location_id: menu_location_id},
+    success: function(data) {setup_menu_tree();},
+    error: function(data) {}
+  })
+}
+
+window.onload = function() {
+    var selItem = sessionStorage.getItem("MenuItem");
+    $('#Menu_Items').val(selItem);
+    var menu_location_id = $('#Menu_Items')[0].value
+    ajaxFunction(menu_location_id);
+    }
+    $('#Menu_Items').change(function() {
+        var selVal = $(this).val();
+        sessionStorage.setItem("MenuItem", selVal);
+    });
 </script>
