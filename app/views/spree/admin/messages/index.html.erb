@@ -58,7 +58,7 @@
             <td><%= message&.receiver&.email %></td>
           <% elsif message&.receiver_type == "Contact" %>
             <td>Contact</td>
-            <td><%= message&.sender&.full_name %></td>
+            <td><%= message&.receiver&.full_name %></td>
           <% end %>
           <td><%= message&.is_received %></td>
           <td><%= message&.is_read %></td>
