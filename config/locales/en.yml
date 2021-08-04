@@ -955,6 +955,41 @@ en:
     max_items: Max Items
     member_since: Member Since
     memo: Memo
+    menu_navigator:
+      admin:
+        no_resource_found: No menu items found
+        sidebar: Navigation Manager
+        ajax:
+          new_menu: New Menu Item
+          menu_tree_error: The requested change has not been accepted and the tree has been returned to its previous state, please try again.
+          instructions: '* Right click an item to access the menu for adding, editing, deleting and renaming. Drag an item around to sort it.'
+        button:
+          back: Back to Menu Items
+          new: New Menu Item
+          new_menu_location: New Menu
+        table:
+          header:
+            name: Name
+            url: URL/Path
+        title:
+          index: Navigation Manager
+          new: New Menu Item
+          edit: 'Edit `%{name}` Menu Item'
+        fieldset:
+          legend:
+            new: New Menu Item
+            edit: Update Menu Item
+        label: &labels
+          name: Label
+          url: Path/URL
+          id: ID
+          class: Class
+          target: Target
+        flash:
+          success:
+            create: 'Menu item `%{name}` has been successfully created!'
+            update: 'Menu item `%{name}` has been successfully updated!'
+            destroy: 'Menu item `%{name}` has been successfully removed!'
     meta_description: Meta Description
     meta_keywords: Meta Keywords
     meta_title: Meta Title

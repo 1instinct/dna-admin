@@ -67,7 +67,7 @@ module Spree
       protected
 
       def submit_success_redirect(type)
-        scope = 'navigator.admin.flash.success'
+        scope = 'menu_navigator.admin.flash.success'
         redirect_to admin_menu_items_path, flash: {
           success: Spree.t(type, name: @menu_item.name, scope: scope)
         }
