@@ -59,8 +59,8 @@
   <% end %>
 
   <% if can? :admin, Message %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
-      <%= tab :messages, icon: 'message.svg', url: admin_messages_path %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarPromotion">
+      <%= main_menu_tree Spree.t(:messages), icon: "message.svg", sub_menu: "message", url: "#sidebar-messages" %>
     </ul>
   <% end %>
 
