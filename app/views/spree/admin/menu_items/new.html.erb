@@ -1,11 +1,11 @@
 <%#= render partial: 'spree/admin/shared/configuration_menu' %>
 
 <% content_for :page_title do %>
-  <%= Spree.t('navigator.admin.title.new') %>
+  <%= Spree.t('menu_navigator.admin.title.new') %>
 <% end %>
 
 <% content_for :page_actions do %>
-    <%= button_link_to Spree.t('navigator.admin.button.back'), admin_menu_items_path, class: "btn-success", icon: 'arrow-left' %>
+    <%= button_link_to Spree.t('menu_navigator.admin.button.back'), admin_menu_items_path, class: "btn-success", icon: 'arrow-left' %>
 
 <% end %>
 

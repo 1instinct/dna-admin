@@ -1,12 +1,13 @@
 <%#= render partial: 'spree/admin/shared/configuration_menu' %>
 
 <% content_for :page_title do %>
-  <%= Spree.t('navigator.admin.title.index') %>
+  <%= Spree.t('menu_navigator.admin.title.index') %>
 <% end %>
 
 <% content_for :page_actions do %>
 
-    <%= button_link_to Spree.t('navigator.admin.button.new'), new_admin_menu_item_path, class: "btn-success", icon: 'add.svg' %>
+    <%= button_link_to Spree.t('menu_navigator.admin.button.new'), new_admin_menu_item_path, class: "btn-info", icon: 'add.svg' %>
+    <%= button_link_to Spree.t('menu_navigator.admin.button.new_menu'), new_admin_menu_location_path, class: "btn-success", icon: 'add.svg' %>
 
 <% end %>
 <% if @menu_items.any? %>
@@ -14,7 +15,7 @@
   <%= render partial: 'spree/admin/menu_items/tree' %>
 <% else %>
   <div class="alpha twelve columns no-objects-found">
-    <%= Spree.t('navigator.admin.no_resource_found') %>,
+    <%= Spree.t('menu_navigator.admin.no_resource_found') %>,
     <%= link_to Spree.t(:add_one), spree.new_admin_menu_item_path %>!
   </div>
 <% end %>

@@ -1,19 +1,19 @@
 <fieldset data-hook="admin_menu_items_form_fields" class="no-border-top">
   <% if f.object.id.nil? %>
-    <legend align="center"><%= Spree.t('navigator.admin.fieldset.legend.new') %></legend>
+    <legend align="center"><%= Spree.t('menu_navigator.admin.fieldset.legend.new') %></legend>
   <% else %>
-    <legend align="center"><%= Spree.t('navigator.admin.fieldset.legend.edit') %></legend>
+    <legend align="center"><%= Spree.t('menu_navigator.admin.fieldset.legend.edit') %></legend>
   <% end %>
 
 
   <div class="row" style="flex-wrap: unset;">
     <div class="field" style="margin: 10px;">
-      <%= f.label :name, Spree.t('navigator.admin.label.name') %>
+      <%= f.label :name, Spree.t('menu_navigator.admin.label.name') %>
       <%= f.text_field :name, class: 'fullwidth' %>
     </div>
 
     <div class="field" style="margin: 10px;">
-      <%= f.label :url, Spree.t('navigator.admin.label.url') %>
+      <%= f.label :url, Spree.t('menu_navigator.admin.label.url') %>
       <%= f.text_field :url, class: 'fullwidth' %>
     </div>
 
