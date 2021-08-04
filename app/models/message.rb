@@ -1,7 +1,7 @@
 class Message < Spree::Base
   belongs_to :sender, polymorphic: true
   belongs_to :receiver, polymorphic: true
-  belongs_to :thread, class_name: "ThreadTable", optional: :true
+  belongs_to :thread_table, class_name: "ThreadTable", optional: :true
 
   self.whitelisted_ransackable_attributes = %w[message]
   self.whitelisted_ransackable_scopes = %w[search_by_message]
