@@ -59,11 +59,16 @@ class Spree::Admin::ThreadsController <  Spree::Admin::BaseController
 	def conversation
 		@thread = ThreadTable.find(params[:id])
 		@messages = @thread.messages
-		if @messages.count > 0			
-			@user_1 = @messages.first.sender
-			@user_2 = @messages.first.receiver
+		if @thread.live_stream.present?
+			@user_1 = Spree::User.admin.first
+		else
+			if @messages.count > 0
+				@user_1 = @messages.first.sender
+				@user_2 = @messages.first.receiver
+			end
 		end
 	end
+
 	private
 	def set_session
 		session[:return_to] = request.url
