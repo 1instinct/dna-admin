@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/1instinct/spree.git
-  revision: 88fded86a662147a3c2c974f2978ca83bd3bc75d
+  revision: 6bda546328a300aff04591d89d40c7b3f4b02473
   branch: instinct-dna
   specs:
     spree (4.2.5)
@@ -162,12 +162,12 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     archive-zip (0.12.0)
       io-like (~> 0.3.0)
-    autoprefixer-rails (10.2.5.1)
-      execjs (> 0)
+    autoprefixer-rails (10.3.1.0)
+      execjs (~> 2)
     awesome_nested_set (3.4.0)
       activerecord (>= 4.0.0, < 7.0)
     aws-eventstream (1.1.1)
-    aws-partitions (1.482.0)
+    aws-partitions (1.484.0)
     aws-sdk-core (3.119.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
@@ -184,7 +184,7 @@ GEM
       aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.16)
     bindex (0.8.1)
-    bootsnap (1.7.6)
+    bootsnap (1.7.7)
       msgpack (~> 1.0)
     bootstrap (4.6.0)
       autoprefixer-rails (>= 9.1.0)
@@ -250,7 +250,7 @@ GEM
     flatpickr (4.6.6.0)
     friendly_id (5.4.2)
       activerecord (>= 4.0.0)
-    globalid (0.5.1)
+    globalid (0.5.2)
       activesupport (>= 5.0)
     glyphicons (1.0.2)
     highline (2.0.3)
@@ -313,8 +313,8 @@ GEM
       i18n (>= 0.6.4, <= 2)
     msgpack (1.4.2)
     netrc (0.11.0)
-    nio4r (2.5.7)
-    nokogiri (1.11.7-x86_64-linux)
+    nio4r (2.5.8)
+    nokogiri (1.12.2-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     paranoia (2.4.3)
