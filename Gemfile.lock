@@ -67,6 +67,20 @@ GIT
       spree_core (= 4.2.5)
 
 GIT
+  remote: https://github.com/Gaurav2728/spree-loyalty-points.git
+  revision: e99d2ed4913fd52bed865a5c814fefec7d82a28f
+  specs:
+    spree_loyalty_points (1.2.1)
+      spree_core (~> 4.2.5)
+
+GIT
+  remote: https://github.com/Gaurav2728/spree_reffiliate.git
+  revision: f7ee16000c6f278a13f2c7ae9c98e0926fdeeec7
+  specs:
+    spree_reffiliate (3.2.0.alpha)
+      spree_core (>= 3.2.0, <= 4.2.5)
+
+GIT
   remote: https://github.com/spree-contrib/spree_digital.git
   revision: a4f6651164273ba4cd20b1642fafa52751804bc0
   specs:
@@ -509,6 +523,7 @@ DEPENDENCIES
   spree_auth_devise (~> 4.3)
   spree_digital!
   spree_gateway (~> 3.9)
+  spree_loyalty_points!
   spree_reffiliate!
   spree_static_content!
   spring

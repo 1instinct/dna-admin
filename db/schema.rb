@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_31_171148) do
+ActiveRecord::Schema.define(version: 2021_08_06_153324) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -432,6 +432,22 @@ ActiveRecord::Schema.define(version: 2021_07_31_171148) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "spree_loyalty_points_transactions", force: :cascade do |t|
+    t.integer "loyalty_points"
+    t.string "type"
+    t.integer "user_id", null: false
+    t.integer "source_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "source_type"
+    t.integer "balance", default: 0, null: false
+    t.string "comment"
+    t.string "transaction_id"
+    t.index ["source_type", "source_id"], name: "by_source"
+    t.index ["type"], name: "index_spree_loyalty_points_transactions_on_type"
+    t.index ["user_id"], name: "index_spree_loyalty_points_transactions_on_user_id"
+  end
+
   create_table "spree_oauth_access_grants", force: :cascade do |t|
     t.integer "resource_owner_id", null: false
     t.bigint "application_id", null: false
@@ -560,6 +576,7 @@ ActiveRecord::Schema.define(version: 2021_07_31_171148) do
     t.decimal "non_taxable_adjustment_total", precision: 10, scale: 2, default: "0.0", null: false
     t.boolean "store_owner_notification_delivered"
     t.integer "affiliate_id"
+    t.datetime "paid_at"
     t.index ["affiliate_id"], name: "index_spree_orders_on_affiliate_id"
     t.index ["approver_id"], name: "index_spree_orders_on_approver_id"
     t.index ["bill_address_id"], name: "index_spree_orders_on_bill_address_id"
@@ -1366,6 +1383,8 @@ ActiveRecord::Schema.define(version: 2021_07_31_171148) do
     t.datetime "confirmation_sent_at"
     t.decimal "referral_credits"
     t.boolean "referrer_benefit_enabled", default: true
+    t.integer "loyalty_points_balance", default: 0, null: false
+    t.integer "lock_version", default: 0, null: false
     t.index ["bill_address_id"], name: "index_spree_users_on_bill_address_id"
     t.index ["deleted_at"], name: "index_spree_users_on_deleted_at"
     t.index ["email"], name: "email_idx_unique", unique: true
