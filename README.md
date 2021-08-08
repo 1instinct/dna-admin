@@ -55,6 +55,8 @@ The system uses 3 spree extensions
 
 * `spree_reffiliate` (Thanks @Gaurav2728)
   [github](https://github.com/Gaurav2728/spree_reffiliate)
+* `spree_loyalty_points` (Thanks @Gaurav2728)
+  [github](https://github.com/Gaurav2728/spree_loyalty_points)
 * `spree_static_content`
   [github](https://github.com/spree-contrib/spree_static_content)
 * `spree_digital`
@@ -67,9 +69,11 @@ specific `bundle exec rails g` command, which can be found on the README of the 
 page for each project.  This only needs to be done once after spree is installed or upgraded.
 
 ## CLI Scripts
+
 `./tools/docker-scripts.sh reload_db`
 
 ## Swagger UI
+
 ## Scripts
 
 1. Generate **Affiliate Codes** for Existing Users: `bundle exec rake reffiliate:generate`
@@ -81,7 +85,7 @@ page for each project.  This only needs to be done once after spree is installed
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.
 
-Git: https://github.com/POL-Clothing/pol-admin
+Git: <https://github.com/POL-Clothing/pol-admin>
 
 ### Testing Production Settings
 
@@ -135,6 +139,7 @@ Done!
 
 http://localhost:8080/apidocs/swagger_ui
 Make sure to change the port that the UI is expecting in the search bar
+
 ## TODO
 
 Other things we may need to cover:
