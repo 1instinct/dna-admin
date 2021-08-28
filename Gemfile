@@ -40,7 +40,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 gem "aws-sdk-s3", require: false
 
-gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
+gem 'spree', github: '1instinct/spree'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
