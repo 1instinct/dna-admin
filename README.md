@@ -50,11 +50,8 @@ The system uses 3 spree extensions
 
 * `spree_reffiliate` (Thanks @Gaurav2728)
   [github](https://github.com/Gaurav2728/spree_reffiliate)
-<<<<<<< HEAD
 * `spree_loyalty_points` (Thanks @Gaurav2728)
   [github](https://github.com/Gaurav2728/spree_loyalty_points)
-=======
->>>>>>> master
 * `spree_static_content`
   [github](https://github.com/spree-contrib/spree_static_content)
 * `spree_digital`
@@ -66,34 +63,24 @@ Each one is installed _after_ spree, with it's own migrations generated using a
 specific `bundle exec rails g` command, which can be found on the README of the github
 page for each project.  This only needs to be done once after spree is installed or upgraded.
 
-<<<<<<< HEAD
 ## CLI Scripts
 
 `./tools/docker-scripts.sh reload_db`
 
 ## Swagger UI
 
-=======
->>>>>>> master
 ## Scripts
 
 1. Generate **Affiliate Codes** for Existing Users: `bundle exec rake reffiliate:generate`
 1. Create or reset a **New Admin User**: `docker-compose exec web rails spree_auth:admin:create`
-<<<<<<< HEAD
 1. Load Spree sample data & seed data: `rake db:seed && rails spree_sample:load`
-=======
->>>>>>> master
 
 ## Deploy
 
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.
 
-<<<<<<< HEAD
 Git: <https://github.com/POL-Clothing/pol-admin>
-=======
-Git: https://github.com/POL-Clothing/pol-admin
->>>>>>> master
 
 ### Testing Production Settings
 
