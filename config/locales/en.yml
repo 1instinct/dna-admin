@@ -227,6 +227,7 @@ en:
       spree/line_item:
         one: Line Item
         other: Line Items
+      spree/navigator:
       spree/option_type:
         one: Option Type
         other: Option Types
@@ -913,6 +914,18 @@ en:
     lifetime_stats: Lifetime Stats
     line_item_adjustments: "Line item adjustments"
     list: List
+    menu_location: Menu Location
+    live_stream:
+      live_stream_deleted: Live Stream has been deleted
+      live_stream_show: Live Stream fetch successfully
+      live_stream_menu: Live Streams
+      generating: Generating Playback Id
+      fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+      update_success: Live Stream updated successfully.
+      added_success: Live Stream Added successfully.
+      list_success: Live Stream listed successfully.
+      product_ids: Select live stream products
+      live_stream_not_found: Live Stream not found.
     loading: Loading
     loading_tree: Loading tree. Please wait…
     locale_changed: Locale Changed
@@ -942,6 +955,41 @@ en:
     max_items: Max Items
     member_since: Member Since
     memo: Memo
+    menu_navigator:
+      admin:
+        no_resource_found: No menu items found
+        sidebar: Navigation Manager
+        ajax:
+          new_menu: New Menu Item
+          menu_tree_error: The requested change has not been accepted and the tree has been returned to its previous state, please try again.
+          instructions: '* Right click an item to access the menu for adding, editing, deleting and renaming. Drag an item around to sort it.'
+        button:
+          back: Back to Menu Items
+          new: New Menu Item
+          new_menu_location: New Menu
+        table:
+          header:
+            name: Name
+            url: URL/Path
+        title:
+          index: Navigation Manager
+          new: New Menu Item
+          edit: 'Edit `%{name}` Menu Item'
+        fieldset:
+          legend:
+            new: New Menu Item
+            edit: Update Menu Item
+        label: &labels
+          name: Label
+          url: Path/URL
+          id: ID
+          class: Class
+          target: Target
+        flash:
+          success:
+            create: 'Menu item `%{name}` has been successfully created!'
+            update: 'Menu item `%{name}` has been successfully updated!'
+            destroy: 'Menu item `%{name}` has been successfully removed!'
     meta_description: Meta Description
     meta_keywords: Meta Keywords
     meta_title: Meta Title
@@ -1088,6 +1136,57 @@ en:
     backordered_confirm_info: Selected item is backordered so expect delays. Are you sure you want to order it?
     overview: Overview
     package_from: package from
+    page:
+      error:
+        page_not_found: Page not found with passed slug.
+      success:
+        page_list: Pages listed successfully.
+        show: Page fetch successfully.
+    contact:
+      success:
+          create: Contact Detail created successfully.
+          update: Contact Detail updated successfully.
+          index: Contact Detail listed successfully.
+          delete: Contact deleted successfully.
+          show: Contact Detail fetched successfully.
+      error:
+          not_found: Contact not found.
+    message:
+      success:
+          create: Message sent successfully.
+          update: Message updated successfully.
+          index: Message listed successfully.
+          delete: Message deleted successfully.
+          show: Message fetched successfully.
+      error:
+          not_found: Message not found.
+    thread:
+      success:
+          create: Thread created successfully.
+          update: Thread updated successfully.
+          index: Thread listed successfully.
+          delete: Thread deleted successfully.
+          show: Thread fetched successfully.
+      error:
+          not_found: Thread not found.
+    menu_location:
+      success:
+          create: Menu Location add successfully.
+          update: Menu Location updated successfully.
+          index: Menu Location listed successfully.
+          delete: Menu Location deleted successfully.
+          show: Menu Location fetched successfully.
+      error:
+          not_found: Menu Location not found.
+    menu_item:
+      success:
+          create: Menu Item add successfully.
+          update: Menu Item updated successfully.
+          index: Menu Item listed successfully.
+          delete: Menu Item deleted successfully.
+          show: Menu Item fetched successfully.
+      error:
+          not_found: Menu Item not found.
     pagination:
       next_page: next page &raquo;
       previous_page: ! '&laquo; previous page'
@@ -1570,7 +1669,14 @@ en:
     use_new_cc_or_payment_method: Use a new card / payment method
     use_s3: Use Amazon S3 For Images
     used: Used
-    user: User
+    user_singular: User
+    user:
+      error:
+        user_exists: User exists with given email.
+        email_password_unmatch: Email and Password does not match. Please enter valid credentials.
+      success:
+        sign_up: User created successfully.
+        sign_in: User Sign in Successfully.
     user_rule:
       choose_users: Choose users
     users: Users
@@ -1601,21 +1707,3 @@ en:
     zone: Zone
     zones: Zones
     start_at: Start Date Time
-    live_stream:
-      live_stream_deleted: Live Stream has been deleted
-      live_stream_show: Live Stream fetch successfully
-      live_stream_menu: Live Streams
-      generating: Generating Playback Id
-      fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
-      update_success: Live Stream updated successfully.
-      added_success: Live Stream Added successfully.
-      list_success: Live Stream listed successfully.
-      product_ids: Select live stream products
-      live_stream_not_found: Live Stream not found.
-    user:
-      error:
-        user_exists: User exists with given email.
-        email_password_unmatch: Email and Password does not match. Please enter valid credentials.
-      success:
-        sign_up: User created successfully.
-        sign_in: User Sign in Successfully.

@@ -10,9 +10,10 @@ class ApidocsController < ActionController::Base
         key :name, 'Mayank Gandhi'
       end
     end
-    key :host, 'localhost:3000/' if Rails.env.development?
-    key :host, 'localhost:3000/' if Rails.env.staging?
-    key :host, 'localhost:3000/' if Rails.env.production?
+    key :host, 'https://dna-admin-dev.instinct.is/' if Rails.env.development?
+    key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
+    key :host, 'https://admin.instinct.is/' if Rails.env.production?
+
 
     key :basePath, '/api/v1'
     key :consumes, ['application/x-www-form-urlencoded'] #this means what responce we are going to send
@@ -24,6 +25,12 @@ class ApidocsController < ActionController::Base
     #SwaggerController, #controller details goes from here where from you are creating api
     Spree::Api::V1::LiveStreamController,
     Spree::Api::V1::UsersController,
+    Spree::Api::V1::PagesController,
+    Spree::Api::V1::ContactsController,
+    Spree::Api::V1::MessagesController,
+    Spree::Api::V1::ThreadsController,
+    Spree::Api::V1::MenuLocationsController,
+    Spree::Api::V1::MenuItemsController,
     SwaggerGlobalModel,
     self,
   ].freeze

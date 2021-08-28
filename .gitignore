@@ -82,3 +82,6 @@ yarn-debug.log*
 app/assets/images/no_soup_for_you.jpg
 secret.yaml
 *.tar
+*.yml.prod
+spree
+docker-compose.yml.local

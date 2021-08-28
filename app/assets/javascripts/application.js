@@ -13,4 +13,5 @@
 //= require rails-ujs
 //= require activestorage
 //= require turbolinks
+//= require spree/backend/spree_navigator.coffee
 //= require_tree .

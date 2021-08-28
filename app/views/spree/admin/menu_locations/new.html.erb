@@ -1,0 +1,27 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @menu_location } %>
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:menu_locations), spree.admin_messages_path %> /
+  <%= Spree.t(:new_menu_location) %>
+<% end %>
+<%= form_for [:admin, @menu_location], url: admin_menu_locations_path, html: { multipart: true }, method: :post do |f| %>
+  <fieldset data-hook="new_product">
+    <%= f.field_container :title, class: ['form-group'] do %>
+      <%= f.label :title, Spree.t(:title) %> <span class="required">*</span>
+      <%= f.text_field :title, class: 'form-control message', required: :required %>
+      <%= f.error_message_on :title %>
+    <% end %>
+
+    <%= f.field_container :location, class: ['form-group'] do %>
+      <%= f.label :location, Spree.t(:location) %> <span class="required">*</span>
+      <%= f.text_field :location, class: 'form-control sentiment', required: :required %>
+      <%= f.error_message_on :location %>
+    <% end %>
+  
+    <%= f.field_container :is_visible, class: ['form-group'] do %>
+      <%= f.check_box :is_visible %>
+      <%= Spree.t(:is_visible) %>
+    <% end %>
+    <%= render partial: 'spree/admin/menu_locations/new_resource_links' %>
+
+  </fieldset>
+<% end %>

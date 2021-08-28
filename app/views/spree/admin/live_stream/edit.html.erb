@@ -41,6 +41,11 @@
         <%= render partial: 'spree/admin/shared/cal_close' %>
       </div>
     </div>
+    <%= f.field_container :actor_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:actor_id) %> <span class="required">*</span>
+      <%= f.select :actor_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2' } %>
+      <%= f.error_message_on :actor_id %>
+    <% end %>
 
     <%= render partial: 'spree/admin/live_stream/edit_resource_links' %>
 

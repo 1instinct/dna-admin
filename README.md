@@ -1,15 +1,15 @@
 # DOCKER SETUP
 This repo is using Spree 4.2.4
 ## Build
+
 This should only have to be done once, or whenever the Gemfile is updated.
-```
-docker-compose build
+
+```docker-compose build
 ```
 
 ## Create Containers
 
-```
-docker-compose up
+```docker-compose up
 ```
 
 DNA Admin should now be available at localhost:8080,
@@ -19,39 +19,28 @@ but it probably needs to be set up first.
 
 In a new terminal run:
 
-```
-docker-compose exec web rails db:create db:schema:load db:migrate &&
+```docker-compose exec web rails db:create db:schema:load db:migrate &&
 docker-compose exec -e ADMIN_EMAIL=spree@example.com -e ADMIN_PASSWORD=spree123 web rails db:seed &&
 docker-compose exec web rails spree_sample:load &&
 docker-compose restart
 ```
 
-OPTIONAL: Create a new admin user.  This can be used to reset the
-admin user also:
-
-```
-docker-compose exec web rails spree_auth:admin:create
-```
-
-default is:
+### The Default User
 
 email: spree@example.com
-
 password: spree123
 
 ## Reset DB
 
 This will reset the existing database back to blank.
 
-```
-docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
+```docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
 ```
 
 You could also blow away all the DB files.  WARNING! You'll have to start
 the install over again if you do this.
 
-```
-sudo rm -rf tmp/db
+```sudo rm -rf tmp/db
 ```
 ## Rails Console
 `docker exec -it dna-admin_web_1 bin/rails console`
@@ -61,8 +50,11 @@ The system uses 3 spree extensions
 
 * `spree_reffiliate` (Thanks @Gaurav2728)
   [github](https://github.com/Gaurav2728/spree_reffiliate)
+<<<<<<< HEAD
 * `spree_loyalty_points` (Thanks @Gaurav2728)
   [github](https://github.com/Gaurav2728/spree_loyalty_points)
+=======
+>>>>>>> master
 * `spree_static_content`
   [github](https://github.com/spree-contrib/spree_static_content)
 * `spree_digital`
@@ -74,24 +66,34 @@ Each one is installed _after_ spree, with it's own migrations generated using a
 specific `bundle exec rails g` command, which can be found on the README of the github
 page for each project.  This only needs to be done once after spree is installed or upgraded.
 
+<<<<<<< HEAD
 ## CLI Scripts
 
 `./tools/docker-scripts.sh reload_db`
 
 ## Swagger UI
 
+=======
+>>>>>>> master
 ## Scripts
 
 1. Generate **Affiliate Codes** for Existing Users: `bundle exec rake reffiliate:generate`
 1. Create or reset a **New Admin User**: `docker-compose exec web rails spree_auth:admin:create`
+<<<<<<< HEAD
 1. Load Spree sample data & seed data: `rake db:seed && rails spree_sample:load`
+=======
+>>>>>>> master
 
 ## Deploy
 
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.
 
+<<<<<<< HEAD
 Git: <https://github.com/POL-Clothing/pol-admin>
+=======
+Git: https://github.com/POL-Clothing/pol-admin
+>>>>>>> master
 
 ### Testing Production Settings
 

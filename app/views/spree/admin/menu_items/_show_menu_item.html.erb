@@ -1,0 +1,29 @@
+
+<div id="menu_tree" class="tree jstree jstree-1 jstree-focused jstree-apple">
+  <ul>
+    <% @menu_items.each do |menuitem| %>
+
+
+      <li id ="<%= menuitem.id %>" name="<%= menuitem.name %>"  class="jstree-leaf">
+
+
+        <a href="#"><%= menuitem.name %></a>
+        <% if menuitem.childrens.present? %>
+          <% menuitem.childrens.each do |menuitemchild| %>
+            <ul>
+
+
+                <li id ="<%= menuitemchild.id %>" name="<%= menuitemchild.name %>"  class="jstree-leaf">
+
+
+                <a href="#"><%= menuitemchild.name %></a>
+
+                </li>
+              </ul>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+
+</div>

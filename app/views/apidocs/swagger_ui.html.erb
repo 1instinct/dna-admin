@@ -54,7 +54,7 @@
             // Begin Swagger UI call region
 
             const ui = SwaggerUIBundle({
-                url: "<%= Rails.env == 'staging' ? 'http://localhost:3000/apidocs.json' : Rails.env == 'production' ? 'http://localhost:3000/apidocs.json' : 'http://localhost:3000/apidocs.json' %>",
+                url: "<%= Rails.env == 'staging' ? 'https://dna-admin-staging.instinct.is/apidocs.json' : Rails.env == 'production' ? 'https://admin.instinct.is/apidocs.json' : 'https://dna-admin-dev.instinct.is/apidocs.json' %>",
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 presets: [

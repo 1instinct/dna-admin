@@ -1,0 +1,69 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:"admin.thread.list") %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t(:add_thread), spree.new_admin_thread_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">
+    <%= search_form_for @q, url: admin_threads_path do |f| %>
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%#= f.label :search_by_id, Spree.t(:title) %>
+            <%#= f.text_field :search_by_id, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+
+<% if @collection.present? %>
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <th scope="col"><%= sort_link(@q, :id, "ID", default_order: :asc) %></th>
+      <th>Archived</th>
+      <th>Stale</th>
+      <th>Created date</th>
+      <th data-hook="admin_stores_index_header_actions" class="actions" colspan="2">Actions</th>
+    <thead>
+    <tbody>
+      <% @collection.each do |thread| %>
+        <tr class="thread_<%= thread.id %>">
+          <td><%= link_to thread.id, admin_thread_path(thread.id) %></td>
+          <td><%= thread&.archived %></td>
+          <td><%= thread&.stale %></td>
+          <td><%= thread&.created_at %></td>
+          <td class="actions actions-2 text-right" data-hook="admin_thread_index_row_actions">
+            <% if thread.live_stream.present? %>
+              <%= link_to spree.conversation_admin_thread_path(id: thread.id) do %>
+                <%= image_tag('group.svg', height: 30, width: 30) %>
+              <% end %>
+            <% else %>
+            <%= link_to spree.conversation_admin_thread_path(id: thread.id) do %>
+              <%= image_tag('backend-chat.svg', height: 25, width: 25) %>
+            <% end %>
+            <% end %>
+            <%= link_to_edit_url spree.edit_admin_thread_path(id: thread.id), no_text: true if can?(:edit, thread) %>
+            <%= link_to_delete thread.id, no_text: true, url: admin_thread_path(id: thread.id) if can?(:destroy, thread.id) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<% else %>
+  <div class="alert alert-info no-objects-found">
+    <%= Spree.t(:no_resource_found, resource: plural_resource_name(Contact)) %>
+  </div>
+<% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>

@@ -6,11 +6,31 @@
   <%= button_link_to Spree.t(:add_live_stream), spree.new_admin_live_stream_path(@user), class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
 <% end %>
 
-<% if @live_streams.present? %>
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">    
+    <%= search_form_for @q, url: admin_live_stream_index_path do |f| %>
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_livestream, Spree.t(:title) %>
+            <%= f.text_field :search_livestream, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+
+
+<% if @collection.present? %>
 <div class="table-responsive">
   <table class="table">
     <thead>
-      <th>Title</th>
+      <th scope="col"><%= sort_link(@q, :title, "Title", default_order: :asc) %></th>
       <th>Description</th>
       <th>Stream URL</th>
       <th>Stream Key</th>
@@ -20,7 +40,7 @@
     <thead>
     <tbody>
       <%# @response[1]['data'].each do |stream| %>
-      <% @live_streams.each do |live_stream| %>
+      <% @collection.each do |live_stream| %>
         <tr class="live_stream_<%= live_stream.id %>">
           <td><%= link_to live_stream.title, admin_live_stream_path(live_stream.id) %></td>
           <td><%= live_stream.description %></td>
@@ -42,3 +62,5 @@
     <%= Spree.t(:no_resource_found, resource: plural_resource_name(LiveStream)) %>
   </div>
 <% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>

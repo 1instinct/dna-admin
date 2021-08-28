@@ -1,0 +1,86 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:"admin.message.list") %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t(:add_message), spree.new_admin_message_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">
+    <%= search_form_for @q, url: admin_messages_path do |f| %>
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_by_message, Spree.t(:title) %>
+            <%= f.text_field :search_by_message, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+
+<% if @collection.present? %>
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <th>Id</th>
+      <th scope="col"><%= sort_link(@q, :message, "Message", default_order: :asc) %></th>
+      <th>Sender Type</th>
+      <th>Sender email or name</th>
+      <th>Receiver Type</th>
+      <th>Receiver Id</th>
+      <th>Is Received</th>
+      <th>Is Read</th>
+      <th>Sentiment</th>
+      <th>Thread Id</th>
+      <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
+    <thead>
+    <tbody>
+      <% @collection.each do |message| %>
+        <tr class="contact_<%= message.id %>">
+          <td><%= link_to message.id, admin_message_path(message.id) %></td>
+          <td><%= message&.message %></td>
+          <% if message&.sender_type == "Spree::User" %>
+            <td>User</td>
+            <td><%= message&.sender&.email %></td>
+          <% elsif message&.sender_type == "Contact" %>
+            <td>Contact</td>
+            <td><%= message&.sender&.full_name %></td>
+          <% end %>
+          <% if message&.receiver_type == "Spree::User" %>
+            <td>User</td>
+            <td><%= message&.receiver&.email %></td>
+          <% elsif message&.receiver_type == "Contact" %>
+            <td>Contact</td>
+            <td><%= message&.receiver&.full_name %></td>
+          <% end %>
+          <td><%= message&.is_received %></td>
+          <td><%= message&.is_read %></td>
+          <td><%= message&.sentiment %></td>
+          <td><%= message&.thread_table_id %></td>
+          <td class="actions actions-2 text-right" data-hook="admin_message_index_row_actions">
+            <% users = fetch_users_from_message(message.id) %>
+            <%= link_to spree.conversations_admin_messages_path(users: users) do %>
+              <%= image_tag('backend-chat.svg', height: 25, width: 25) %>
+            <% end %>
+            <%= link_to_edit_url spree.edit_admin_message_path(id: message.id), no_text: true if can?(:edit, message) %>
+            <%= link_to_delete message.id, no_text: true, url: admin_message_path(id: message.id) if can?(:destroy, message.id) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<% else %>
+  <div class="alert alert-info no-objects-found">
+    <%= Spree.t(:no_resource_found, resource: plural_resource_name(Contact)) %>
+  </div>
+<% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>

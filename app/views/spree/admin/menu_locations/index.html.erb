@@ -1,0 +1,58 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:"admin.menu_location") %>
+<% end %>
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t(:add_menu_location), spree.new_admin_menu_location_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
+<% end %>
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">
+    <%= search_form_for @q, url: admin_menu_locations_path do |f| %>
+
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_by_title, Spree.t(:title) %>
+            <%= f.text_field :search_by_title, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+<% if @collection.present? %>
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <th>Id</th>
+      <th scope="col"><%= sort_link(@q, :title, "Title", default_order: :asc) %></th>
+      <th>Location</th>
+      <th>Is Visible</th>
+      <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
+    <thead>
+    <tbody>
+      <% @collection.each do |menu_location| %>
+        <tr class="contact_<%= menu_location.id %>">
+          <td><%= link_to menu_location.id, admin_menu_location_path(menu_location.id) %></td>
+          <td><%= menu_location&.title %></td>
+            <td><%= menu_location&.location %></td>
+
+          <td><%= menu_location&.is_visible %></td>
+
+          <td class="actions actions-2" data-hook="admin_menu_location_index_row_actions">
+            <%= link_to_edit_url spree.edit_admin_menu_location_path(id: menu_location.id), no_text: true if can?(:edit, menu_location) %>
+            <%= link_to_delete menu_location.id, no_text: true, url: admin_menu_location_path(id: menu_location.id) if can?(:destroy, menu_location.id) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<% else %>
+  <div class="alert alert-info no-objects-found">
+  </div>
+<% end %>
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>

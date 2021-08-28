@@ -1,0 +1,47 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @message } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:messages), spree.admin_messages_path %> /
+  <%= Spree.t(:edit_messages) %>
+<% end %>
+
+<%= form_for [:admin, @message], url: admin_message_path(id: @message.id), html: { multipart: true }, method: :patch do |f| %>
+  <fieldset data-hook="new_message">
+    <%= f.field_container :message, class: ['form-group'] do %>
+      <%= f.label :message, Spree.t(:message) %> <span class="required">*</span>
+      <%= f.text_field :message, class: 'form-control message', required: :required %>
+      <%= f.error_message_on :message %>
+    <% end %>
+    <%= f.hidden_field :sender_type, value: "Spree::User" %>
+    <%= f.hidden_field :receiver_type, value: "Spree::User" %>
+    <%= f.field_container :sender_id, class: ['form-group'] do %>
+      <%= f.label :sender_id, Spree.t(:sender_id) %>
+      <%= f.select :sender_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2' } %>
+      <%= f.error_message_on :sender_id %>
+    <% end %>
+
+    <%= f.field_container :receiver_id, class: ['form-group'] do %>
+      <%= f.label :receiver_id, Spree.t(:receiver_id) %>
+      <%= f.select :receiver_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2' } %>
+      <%= f.error_message_on :receiver_id %>
+    <% end %>
+
+    <%= f.field_container :sentiment, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sentiment) %> <span class="required">*</span>
+      <%= f.text_field :sentiment, class: 'form-control sentiment', required: :required %>
+      <%= f.error_message_on :sentiment %>
+    <% end %>
+
+    <%= f.field_container :is_received, class: ['form-group'] do %>
+      <%= f.check_box :is_received %>
+      <%= Spree.t(:is_received) %>
+    <% end %>
+
+    <%= f.field_container :is_read, class: ['form-group'] do %>
+      <%= f.check_box :is_read %>
+      <%= Spree.t(:is_read) %>
+    <% end %>
+
+    <%= render partial: 'spree/admin/messages/edit_resource_links' %>
+  </fieldset>
+<% end %>

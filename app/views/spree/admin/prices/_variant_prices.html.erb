@@ -14,6 +14,7 @@
           <th><%= Spree.t(:sku) %></th>
           <th><%= Spree.t(:currency) %></th>
           <th><%= Spree.t(:price) %></th>
+          <th><%= Spree.t(:wholesale_price) %></th>
           <th><%= Spree.t(:compare_at_price) %></th>
         </tr>
       </thead>
@@ -30,6 +31,9 @@
               <td><%= label_tag "vp[#{variant.id}][#{code}]", code %></td>
               <td>
                 <%= text_field_tag "vp[#{variant.id}][#{code}][price]", (price && price.price ? price.display_amount.money : ''), class: 'form-control' %>
+              </td>
+              <td>
+                <%= text_field_tag "vp[#{variant.id}][#{code}][wholesale_price]", (price && price.wholesale_price ? price.display_wholesale_price.money : ''), class: 'form-control' %>
               </td>
               <td>
                 <%= text_field_tag "vp[#{variant.id}][#{code}][compare_at_price]", (price && price.compare_at_price ? price.display_compare_at_amount.money : ''), class: 'form-control' %>

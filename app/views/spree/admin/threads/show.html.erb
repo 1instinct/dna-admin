@@ -1,0 +1,32 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @contact } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:contacts), spree.admin_contact_path %> /
+  <%= Spree.t(:contact_detail) %>
+<% end %>
+
+<%= form_for [:admin, @thread], url: admin_thread_path(id: @thread.id), html: { multipart: true }, method: :patch do |f| %>
+  <fieldset data-hook="new_thread">
+    <%= f.field_container :id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:id) %> <span class="required">*</span>
+      <%= f.text_field :id, class: 'form-control id', required: :required, readonly: :true %>
+      <%= f.error_message_on :id %>
+    <% end %>
+
+    <%= f.field_container :created_at, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:created_at) %> <span class="required">*</span>
+      <%= f.text_field :created_at, class: 'form-control created_at', required: :required, readonly: :true %>
+      <%= f.error_message_on :created_at %>
+    <% end %>
+
+    <%= f.field_container :archived, class: ['form-group'] do %>
+      <%= f.check_box :archived %>
+      <%= Spree.t(:archived) %>
+    <% end %>
+
+    <%= f.field_container :stale, class: ['form-group'] do %>
+      <%= f.check_box :stale %>
+      <%= Spree.t(:stale) %>
+    <% end %>
+  </fieldset>
+<% end %>
