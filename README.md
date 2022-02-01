@@ -80,6 +80,22 @@ page for each project.  This only needs to be done once after spree is installed
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.
 
+### Heroku
+
+1. Create a new pipeline & app
+2. Add Postgres: `heroku addons:create heroku-postgresql:hobby-dev`
+3. Grab ENV vars from another app: `heroku config -s -a dna-admin-staging > config.txt`
+4. Grab the DB creds from <heroku.com>, add them to `config.txt`
+5. Edit other vars locally
+6. Upload vars to app: `cat config.txt | tr '\n' ' ' | xargs heroku config:set -a dna-admin-staging`
+7. Set stack: `heroku stack:set heroku-18 -a dna-admin-staging`
+8. Set buildpack: `heroku buildpacks:add heroku/ruby`
+9. Setup DB: `heroku run rake db:schema:load db:migrate -a dna-admin-staging`
+10. Seed DB: `heroku run -a dna-admin-staging rake db:seed`
+11. Load Sample Data: `heroku run -a dna-admin-staging rake spree_sample:load`
+12. Asset Precompile: `heroku run -a dna-admin-staging rake assets:precompile`
+
+
 Git: <https://github.com/POL-Clothing/pol-admin>
 
 ### Testing Production Settings
