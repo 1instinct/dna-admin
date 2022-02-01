@@ -17,6 +17,7 @@
 
 
 # dotenv
+envvars.txt
 .env
 .env.development
 .env.test
