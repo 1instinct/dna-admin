@@ -352,7 +352,7 @@ GEM
       premailer (~> 1.7, >= 1.7.9)
     prettier (1.6.1)
     public_suffix (4.0.6)
-    puma (4.3.11)
+    puma (4.3.12)
       nio4r (~> 2.0)
     rabl (0.14.5)
       activesupport (>= 2.3.14)
