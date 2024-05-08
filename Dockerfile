@@ -1,5 +1,5 @@
 # https://docs.docker.com/compose/rails/#define-the-project
-FROM ruby:2.7.2
+FROM ruby:3.0.2
 # The qq is for silent output in the console
 RUN apt-get update -qq && apt-get install -y postgresql-client nodejs
 
