@@ -18,12 +18,14 @@ COPY Gemfile.lock ./
 
 # Note that dotenv is NOT used in production.  Environment
 # comes from the deployment.
-COPY .env.example .env.development
-# Installs the Gem File.
-RUN gem install bundler:2.0.2 && bundle install
+COPY .env.development .env.development
 
 # Install the Gems
-RUN gem install bundler:2.2.11 && bundle install
+RUN gem install bundler:2.2.11
+
+RUN bundle config set force_ruby_platform true
+
+RUN bundle install
 
 # We copy all the application files from the current directory to out
 # /dna directory

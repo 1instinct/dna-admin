@@ -20,6 +20,8 @@ if Rails.env.development? || Rails.env.test?
 		'DNA_API_KEY'
 	)
 
+	Dotenv.load(Rails.root.join('.env.development'))
+
 end
 
 AWS_ACCESS_KEY_ID = ENV['AWS_ACCESS_KEY_ID']

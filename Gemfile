@@ -40,11 +40,13 @@ gem 'bootsnap', '~> 1.8.1'
 
 gem "aws-sdk-s3", require: false
 
-gem 'spree', github: '1instinct/spree'
+gem "net-http"
+
+gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
-gem 'spree_digital', github: 'spree-contrib/spree_digital'
+gem 'spree_digital', github: 'spree-contrib/spree_digital', branch: 'fix/spree-4-1-plus'
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
 
@@ -63,7 +65,7 @@ group :development, :test do
   gem 'prettier'
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   # use to seed the records
-  gem "factory_bot_rails"
+  gem "factory_bot_rails", "~> 5.1"
   # Use to generate fake data
   gem 'faker'
 end
