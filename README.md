@@ -43,18 +43,21 @@ password: spree123
 
 This will reset the existing database back to blank.
 
-```
+```shell
 docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
 ```
 
 You could also blow away all the DB files.  WARNING! You'll have to start
 the install over again if you do this.
 
-```
+```shell
 sudo rm -rf tmp/db
 ```
+
 ## Rails Console
+
 `docker exec -it dna-admin_web_1 bin/rails console`
+
 ## Extensions
 
 The system uses 3 spree extensions
@@ -151,6 +154,13 @@ When there are lots of active changes occuring on this repo, make sure to regula
 
 Done!
 …now you will be up-to-date with latest code. Do this before you submit your PR, and you can be sure it will be a clean merge.
+<<<<<<< HEAD
+=======
+
+http://localhost:8080/apidocs/swagger_ui
+Make sure to change the port that the UI is expecting in the search bar
+
+>>>>>>> 0cf7023042aa61e7988709e4a49a3b4d12c55c05
 ## TODO
 
 Other things we may need to cover:
