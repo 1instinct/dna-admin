@@ -50,6 +50,8 @@ gem 'spree_digital', github: 'spree-contrib/spree_digital', branch: 'fix/spree-4
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
 
+gem 'spree_editor', github: 'spree-contrib/spree_editor'
+
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
