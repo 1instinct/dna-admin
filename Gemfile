@@ -51,6 +51,7 @@ gem "aws-sdk-s3", require: false
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 gem 'spree', github: '1instinct/spree'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
@@ -71,10 +72,19 @@ gem 'spree_gateway', '~> 3.4'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+gem 'spree', '~> 4.2.0.rc4'
+gem 'spree_auth_devise', '~> 4.3'
+gem 'spree_gateway', '~> 3.9'
+gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
+>>>>>>> 9eb368b (set Gemfile to use spree 4.2)
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
 <<<<<<< HEAD
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
+
+# doesn't support spree 4
+#gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
