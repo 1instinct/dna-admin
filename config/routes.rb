@@ -55,7 +55,7 @@ Spree::Core::Engine.add_routes do
       end
       resources :pages, only: [:index, :show], param: :slug
       resources :contacts
-      resources :messages
+      resources :messages, only: [:index]
       resources :threads
       resources :menu_locations
       resources :menu_items
@@ -68,5 +68,4 @@ Spree::Core::Engine.add_routes do
       end
     end
   end
-
 end
