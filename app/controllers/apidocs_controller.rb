@@ -32,9 +32,12 @@ class ApidocsController < ActionController::Base
     Spree::Api::V1::ThreadsController,
     Spree::Api::V1::MenuLocationsController,
     Spree::Api::V1::MenuItemsController,
+<<<<<<< HEAD
 =======
     Spree::Api::V1::MenuLocationsController,
 >>>>>>> e68314f (add menu location to swagger)
+=======
+>>>>>>> 4f30c44 (add menu item in swagger)
     SwaggerGlobalModel,
     self,
   ].freeze
