@@ -65,6 +65,7 @@ gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 <<<<<<< HEAD
 <<<<<<< HEAD
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
+<<<<<<< HEAD
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
 
@@ -86,6 +87,8 @@ gem 'spree_digital', github: 'spree-contrib/spree_digital'
 =======
 gem 'vinsol_spree_themes', github: 'vinsol-spree-contrib/spree_themes', branch: 'master'
 gem 'import_products', :git => 'git://github.com/joshmcarthur/spree-import-products.git'
+=======
+>>>>>>> b15e5aa (Dockerize dna admin)
 
 gem 'sprockets-helpers', '~> 1.2.1'
 >>>>>>> d640f63 (add in some new vendor code, tweak example envs, fux w db stuff)
