@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	before_action :set_session
 	def index
@@ -159,32 +160,50 @@ module Spree
     module Admin
       class MessagesController <  Spree::Admin::BaseController
         before_action :set_msgs, only: [:index]
+=======
+>>>>>>> 0b8dd08 (chat screens and internal request to dna api)
 
-        def index
+class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 
-          session[:return_to] = request.url
+	before_action :set_session
+
+	def index
+		@messages = Message.admin_conversations
+	end
+
+	def show
+		@message = Message.find(params[:id])
+		@messages = Message.admin_conversations
+		@chat_messages = Message.find_with_sender_id(@message.sender_id)
+		render :index
+	end
+
+	def create
+		data = {}
+		data[:body] = create_params['body']
+		data[:thread_id] = create_params['thread_id']
+
+		@message = Message.create_message_for_admin(data[:body], data[:thread_id], spree_current_user.id)
+
+	end
 
 
-          # respond_with(@msgs)
-          # respond_with(html: "<div>Hey</div>")
-        end
-  
-        def message_support
-          session[:return_to] = request.url
-        end
+	def message_support
+
+	end
 
 
-        # kludgey actions for messages by index
-        def thread_list_one
-          session[:return_to] = request.url
-        end
+private
 
-        def thread_list_two
-          session[:return_to] = request.url
-        end
+	def set_session
+		session[:return_to] = request.url
+	end
 
-        private
+	def create_params
+		params.permit( :body, :thread_id, :utf8, :authenticity_token, :commit )
+	end
 
+<<<<<<< HEAD
         def set_msgs
           @msgs = [
             {
@@ -214,3 +233,6 @@ module Spree
     end
   end
 >>>>>>> ccb4d4a (Adds all default Spree admin views and creates messages controller and views)
+=======
+end
+>>>>>>> 0b8dd08 (chat screens and internal request to dna api)

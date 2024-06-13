@@ -1,0 +1,14 @@
+<% if is_sender %>
+
+	<p class="message message-them">
+	    <span><%= message.body %></span>
+	</p>
+
+<% else %>
+
+	<p class="message message-me">
+	    <span><%= message.body %></span>
+	</p>
+
+<% end %>
+

@@ -1,19 +1,21 @@
+
+
 <tr data-link="/admin/messages/1" class="admin-convolist-tr">
     <td id="th-avatar">
         <div class="admin-msgs-avatar"></div>
     </td>
     <td id="th-name">
         <div class="admin-msgs-conversation-label">
-            <a href="/admin/messages/0">
-            <h3><%=username%></h3>
-            <p><%=msg%></p>
+            <a href="/admin/messages/<%= message.id %>">
+            <h3><%= message.username %></h3>
             </a>
+            <p><%= message.body.truncate(30, ' ...') %></p>
         </div>
     </td>
     <td id="th-time">
-        <p>Jul 13</p>
+        <p><%= screentime(message.updated_at) %></p>
     </td>
     <td id="th-status">
-        <i>🤦‍♂️</i>
+        <i><%= message.status %></i>
     </td>
 <tr>

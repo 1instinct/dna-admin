@@ -1,21 +1,33 @@
-<div class="admin-thread">
-    <%# header %> 
+<% if chat_msgs.nil? || chat_msgs.empty? %>
 
-
-    <div class="admin-messageslist">
-        <%= render "message", from: "them", text: "hello where's my order?" %>
-
-        <%= render "message", from: "me", text: "hi thanks for contacting our support agent" %>
-        <%= render "message", from: "me", text: 'please hold' %>
-
-        <%= render "message", from: "them", text: 'ok' %>
-        <%= render "message", from: "them", text: 'yo whenever youre ready man' %>
-        <%= render "message", from: "them", text: 'i justneed my cbds' %>
-
-        <%= render "message", from: "me", text: 'aight lets see...' %>
-        <%= render "message", from: "me", text: 'i found your order.' %>
-        <%= render "message", from: "me", text: 'it looks like its somewhere in the phillipines right now, but you should receive it soon.' %>
-
-        <%= render "message", from: "them", text: 'ok, thanks alot!  you guys are absolute rockstars' %>
+    <div class="admin-thread">
+        <div class="admin-messageslist">
+            <h3>Choose conversation to display .... </h3>
+        </div>
     </div>
-</div>
+
+<% else %>
+
+    <div class="admin-thread">
+        <%# header %>
+
+
+        <div class="admin-messageslist">
+
+            <% chat_msgs.each do |cmsg| %>
+
+                <%= render "thread_message", message: cmsg, is_sender: (cmsg.sender_id == @message.sender_id) %>
+
+            <% end %>
+
+
+        </div>
+    </div>
+
+    <%= render "thread_form", sender_message: chat_msgs.first, sender_id: @message.sender_id %>
+
+<% end %>
+
+
+
+
