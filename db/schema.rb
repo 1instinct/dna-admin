@@ -10,7 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(version: 2021_08_06_153324) do
+=======
+ActiveRecord::Schema.define(version: 2021_06_29_112950) do
+>>>>>>> a71a7ba (updated the schema after migrations)
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -132,6 +136,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.boolean "is_active"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+<<<<<<< HEAD
     t.bigint "thread_table_id"
     t.integer "actor_id"
     t.index ["thread_table_id"], name: "index_live_streams_on_thread_table_id"
@@ -174,6 +179,8 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
     t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
+=======
+>>>>>>> a71a7ba (updated the schema after migrations)
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -484,6 +491,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+<<<<<<< HEAD
   create_table "spree_loyalty_points_transactions", force: :cascade do |t|
     t.integer "loyalty_points"
     t.string "type"
@@ -500,6 +508,8 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["user_id"], name: "index_spree_loyalty_points_transactions_on_user_id"
   end
 
+=======
+>>>>>>> a71a7ba (updated the schema after migrations)
   create_table "spree_oauth_access_grants", force: :cascade do |t|
     t.integer "resource_owner_id", null: false
     t.bigint "application_id", null: false
