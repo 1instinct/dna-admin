@@ -13,7 +13,16 @@ module Spree
       def edit
         @live_stream = LiveStream.find(params[:id])
       end
-
+      def update
+        @live_stream = LiveStream.find(params[:id])
+        if @live_stream.update(live_stream_params)
+          flash[:notice] = 'Live Stream updated successfully.'
+          redirect_to admin_live_stream_index_path
+        else
+          flash[:error] = @live_stream.errors.join("")
+          redirect_to admin_live_stream_index_path
+        end
+      end
       def show
         @live_stream = LiveStream.find(params[:id])
         require 'json'
@@ -238,7 +247,7 @@ module Spree
           end
         end
         def generate_playback
-          @live_stream = LiveStream.find(params[:id])          
+          @live_stream = LiveStream.find(params[:id])
           require 'json'
           headers = {
             "Content-Type" => "application/json"
