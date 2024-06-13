@@ -8,6 +8,7 @@ set -ex
 # or another registry server.
 
 docker-compose build
+<<<<<<< HEAD
 
 # wait for web to build assets
 # FIXME: this doesn't work
@@ -21,3 +22,11 @@ microk8s ctr image import dna-admin.tar
 
 microk8s kubectl delete deployment.apps/dna-admin || :
 microk8s kubectl apply -f dna-k8.yaml
+=======
+docker tag dna-admin_web dna-admin:0.1
+docker save dna-admin > dna-admin.tar
+microk8s ctr image import dna-admin.tar
+
+kubectl delete deployment.apps/dna-admin || :
+kubectl apply -f dna-k8.yaml
+>>>>>>> 9750a31 (fixed bucket name env, added k8 deploy script)

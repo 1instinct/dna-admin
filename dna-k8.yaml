@@ -25,12 +25,18 @@ spec:
         - name: RAILS_ENV
           value: "production"
         - name: AWS_REGION_NAME
+<<<<<<< HEAD
           value: "us-west-1"
         - name: AWS_BUCKET_NAME
           value: "instinct-dna-dd"
         # this won't be needed if using nginx
         - name: RAILS_SERVE_STATIC_FILES
           value: "1"
+=======
+          value: us-west-1
+        - name: AWS_BUCKET_NAME
+          value: instinct-dna-dd
+>>>>>>> 9750a31 (fixed bucket name env, added k8 deploy script)
         envFrom:
         - secretRef:
             name: aws-secrets
