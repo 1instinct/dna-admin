@@ -1,0 +1,3 @@
+<ul data-hook="admin_configurations_sidebar_menu" class="border-top bg-white collapse nav nav-pills nav-stacked" id="sidebar-live-stream">
+  <%= link_to(Spree.t(:live_stream_index), spree.admin_live_stream_index_path) if can? :manage, LiveStream %>  
+</ul>
