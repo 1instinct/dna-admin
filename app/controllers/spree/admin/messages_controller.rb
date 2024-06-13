@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	before_action :set_session
 	def index
@@ -163,45 +164,72 @@ module Spree
 =======
 >>>>>>> 0b8dd08 (chat screens and internal request to dna api)
 
+=======
+>>>>>>> 9070dac (Add message changes)
 class Spree::Admin::MessagesController <  Spree::Admin::BaseController
-
 	before_action :set_session
 
 	def index
-		@messages = Message.admin_conversations
+		@messages = Message.all
+	end
+
+	def new
+		@message = Message.new
+	end
+
+	def edit
+		@message = Message.find(params[:id])
+	end
+
+	def update
+		@message = Message.find(params[:id])
+		respond_to do |format|
+			if @message.update(message_params)
+				flash[:success] = Spree.t('message.success.update')
+				format.html { redirect_to admin_message_path }
+			else
+				flash[:error] = @message.errors.full_messages.join(', ')
+				format.html { render :edit }
+			end
+		end
 	end
 
 	def show
 		@message = Message.find(params[:id])
-		@messages = Message.admin_conversations
-		@chat_messages = Message.find_with_sender_id(@message.sender_id)
-		render :index
 	end
 
 	def create
-		data = {}
-		data[:body] = create_params['body']
-		data[:thread_id] = create_params['thread_id']
-
-		@message = Message.create_message_for_admin(data[:body], data[:thread_id], spree_current_user.id)
-
+		@message = Message.new(message_params)
+		if @message.save
+			flash[:success] = Spree.t('message.added_success')
+			redirect_to admin_messages_path
+		else
+			flash[:error] = @message.errors.full_messages.join(', ')
+			format.html { render :new }
+		end
 	end
 
-
-	def message_support
-
+	def destroy
+		@message = Message.find(params[:id])
+		if @message.destroy
+			flash[:success] = Spree.t('message.message_deleted')
+			respond_with do |format|
+				format.html { redirect_to collection_url }
+				format.js  { render_js_for_destroy }
+			end
+		else
+			flash[:error] = @response[1]['error']['messages'].join("")
+			redirect_to admin_message_path
+		end
 	end
-
-
-private
-
+	private
 	def set_session
 		session[:return_to] = request.url
 	end
-
-	def create_params
-		params.permit( :body, :thread_id, :utf8, :authenticity_token, :commit )
+	def message_params
+		params.require(:message).permit(:creator_id, :recipients, :is_received, :is_read, :sentiment)
 	end
+<<<<<<< HEAD
 
 <<<<<<< HEAD
         def set_msgs
@@ -236,3 +264,47 @@ private
 =======
 end
 >>>>>>> 0b8dd08 (chat screens and internal request to dna api)
+=======
+end
+# class Spree::Admin::MessagesController <  Spree::Admin::BaseController
+#
+# 	before_action :set_session
+#
+# 	def index
+# 		@messages = Message.admin_conversations
+# 	end
+#
+# 	def show
+# 		@message = Message.find(params[:id])
+# 		@messages = Message.admin_conversations
+# 		@chat_messages = Message.find_with_sender_id(@message.sender_id)
+# 		render :index
+# 	end
+#
+# 	def create
+# 		data = {}
+# 		data[:body] = create_params['body']
+# 		data[:thread_id] = create_params['thread_id']
+#
+# 		@message = Message.create_message_for_admin(data[:body], data[:thread_id], spree_current_user.id)
+#
+# 	end
+#
+#
+# 	def message_support
+#
+# 	end
+#
+#
+# private
+#
+# 	def set_session
+# 		session[:return_to] = request.url
+# 	end
+#
+# 	def create_params
+# 		params.permit( :body, :thread_id, :utf8, :authenticity_token, :commit )
+# 	end
+#
+# end
+>>>>>>> 9070dac (Add message changes)
