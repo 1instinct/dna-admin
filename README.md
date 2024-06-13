@@ -338,10 +338,6 @@ Done!
 http://localhost:8080/apidocs/swagger_ui
 Make sure to change the port that the UI is expecting in the search bar
 
-## TODO
-
-Other things we may need to cover:
-
 ### Testing Production Settings
 
 To test the production settings locally (used to test things like the S3 buckets
