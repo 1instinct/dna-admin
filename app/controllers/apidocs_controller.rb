@@ -30,6 +30,7 @@ class ApidocsController < ActionController::Base
 <<<<<<< HEAD
     Spree::Api::V1::ContactsController,
     Spree::Api::V1::MessagesController,
+<<<<<<< HEAD
     Spree::Api::V1::ThreadsController,
     Spree::Api::V1::MenuLocationsController,
     Spree::Api::V1::MenuItemsController,
@@ -42,6 +43,8 @@ class ApidocsController < ActionController::Base
 =======
     Spree::Api::V1::ContactsController,
 >>>>>>> 165f3bf (Add contact routes)
+=======
+>>>>>>> 6943bdf (Add messages and contact module changes)
     SwaggerGlobalModel,
     self,
   ].freeze
