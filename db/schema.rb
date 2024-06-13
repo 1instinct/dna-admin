@@ -13,6 +13,7 @@
 ActiveRecord::Schema.define(version: 2021_08_06_153324) do
 
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
