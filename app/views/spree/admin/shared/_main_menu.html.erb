@@ -72,13 +72,13 @@
 
   <% if can? :admin, Contact %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarContact">
-      <%= tab :contacts, icon: 'list.svg', url: admin_contacts_path %>
+      <%= tab :contacts, icon: 'contact.svg', url: admin_contacts_path %>
     </ul>
   <% end %>
 
   <% if can? :admin, Message %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
-      <%= tab :messages, icon: 'list.svg', url: admin_messages_path %>
+      <%= tab :messages, icon: 'message.svg', url: admin_messages_path %>
     </ul>
   <% end %>
 
