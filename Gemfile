@@ -63,6 +63,7 @@ gem 'spree_gateway', '~> 3.4'
 >>>>>>> 48588a8 (downgrade spree_auth_devise)
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 <<<<<<< HEAD
+<<<<<<< HEAD
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
@@ -82,6 +83,12 @@ gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_c
 =======
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
 >>>>>>> f36d818 (handle CORs (add pkg), add digital downloadable products, refactor app overrides, update schema version, add migrations)
+=======
+gem 'vinsol_spree_themes', github: 'vinsol-spree-contrib/spree_themes', branch: 'master'
+gem 'import_products', :git => 'git://github.com/joshmcarthur/spree-import-products.git'
+
+gem 'sprockets-helpers', '~> 1.2.1'
+>>>>>>> d640f63 (add in some new vendor code, tweak example envs, fux w db stuff)
 
 gem 'rest-client'
 

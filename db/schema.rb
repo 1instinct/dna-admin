@@ -1405,6 +1405,29 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["taxonomy_id"], name: "index_taxons_on_taxonomy_id"
   end
 
+  create_table "spree_themes", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.string "state"
+    t.string "template_file_file_name"
+    t.string "template_file_content_type"
+    t.bigint "template_file_file_size"
+    t.datetime "template_file_updated_at"
+  end
+
+  create_table "spree_themes_templates", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.text "body"
+    t.string "path"
+    t.string "format"
+    t.string "locale"
+    t.string "handler"
+    t.boolean "partial", default: false
+    t.integer "theme_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["theme_id"], name: "index_spree_themes_templates_on_theme_id"
+  end
+
   create_table "spree_trackers", id: :serial, force: :cascade do |t|
     t.string "environment"
     t.string "analytics_id"
