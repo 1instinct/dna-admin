@@ -1,4 +1,4 @@
-# Material Instinct LLC - DNA Boilerplate for Admin UI
+DOCKER SETUP
 
 # Local Docker Development
 This repo is using Spree 4.2.4
@@ -183,7 +183,7 @@ on github is hooked in to the deployment.
 11. Load Sample Data: `heroku run -a dna-admin-staging rake spree_sample:load`
 12. Asset Precompile: `heroku run -a dna-admin-staging rake assets:precompile`
 
-Requirements: ruby 2.6.2, rails 5.2.2, Postgres
+in a new terminal run:
 
 ## Run Without Docker
 
@@ -204,15 +204,17 @@ Requirements: ruby 2.6.2, rails 5.2.2, Postgres
 1. Run `rake spree_sample:load`
 1. Run `rails s`
 
-If you need to reset your local DB:
+reset db
+`docker-compose run web rake db:reset railties:install:migrations db:migrate db:seed spree_sample:load`
 
-1. Run `rake db:reset`
-1. Run `rake railties:install:migrations`
-1. Run `rake db:migrate`
-1. Run `rake db:seed`
-1. Run `rake spree_sample:load`
+create admin user if missing or fogot
+`docker-compose run web rake spree_auth:admin:create`
+default is:
+spree@example.com
+spree123
 
----
+all regular ruby commands work preceeded with:
+`docker-compose run web [you command here]`
 
 Other things we may need to cover:
 
