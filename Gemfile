@@ -43,6 +43,7 @@ gem "aws-sdk-s3", require: false
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 gem 'spree', github: '1instinct/spree'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
@@ -54,6 +55,9 @@ gem 'spree', '~> 3.7.0'
 =======
 gem 'spree', '~> 3.7.3'
 >>>>>>> dbc674d (bump spree version again, this time to 3.7.3 explicitly)
+=======
+gem 'spree', '~> 3.7'
+>>>>>>> db57f19 (rename store_controller >> store_controller_decorator)
 gem 'spree_auth_devise', '~> 3.5'
 gem 'spree_gateway', '~> 3.4'
 >>>>>>> 48588a8 (downgrade spree_auth_devise)

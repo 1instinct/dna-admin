@@ -894,6 +894,7 @@ DEPENDENCIES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   spree!
   spree_auth_devise (~> 4.3)
   spree_digital!
@@ -908,6 +909,9 @@ DEPENDENCIES
 =======
   spree (~> 3.7.3)
 >>>>>>> dbc674d (bump spree version again, this time to 3.7.3 explicitly)
+=======
+  spree (~> 3.7)
+>>>>>>> db57f19 (rename store_controller >> store_controller_decorator)
   spree_auth_devise (~> 3.5)
   spree_gateway (~> 3.4)
 >>>>>>> aedbdaf (add TWILIO to env.example, add static_content extension, tweak README, redirect root to login, redirect after login to adminy)
