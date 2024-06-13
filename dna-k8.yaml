@@ -21,6 +21,7 @@ spec:
         imagePullPolicy: Never
         env:
         - name: DATABASE_URL
+<<<<<<< HEAD
           value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
         - name: RAILS_ENV
           value: "production"
@@ -31,6 +32,15 @@ spec:
         # this won't be needed if using nginx
         - name: RAILS_SERVE_STATIC_FILES
           value: "1"
+=======
+          value: postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production
+        - name: RAILS_ENV
+          value: production
+        - name: AWS_REGION_NAME
+          value: us-west-1
+        - name: AWS_BUCKET
+          value: instinct-dna-dd
+>>>>>>> f13b841 (added k8 deployment script)
         envFrom:
         - secretRef:
             name: aws-secrets

@@ -79,5 +79,8 @@ yarn-debug.log*
 app/assets/images/no_soup_for_you.jpg
 secret.yaml
 *.tar
+<<<<<<< HEAD
 *.yml.prod
 docker-compose.yml.local
+=======
+>>>>>>> f13b841 (added k8 deployment script)
