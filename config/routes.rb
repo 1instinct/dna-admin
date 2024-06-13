@@ -32,13 +32,8 @@ Spree::Core::Engine.add_routes do
         get :generate_playback
       end
     end
-    # resources :live_stream, only: [:index] do
-    #   collection do
-    #     get :create_stream
-    #     delete :destroy
-    #   end
-    # end
   end
+<<<<<<< HEAD
 
     resources :live_stream do
       collection do
@@ -79,3 +74,11 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+=======
+  namespace :api, constraints: { format: 'json' } do
+    namespace :v1 do
+      resources :live_stream
+    end
+  end
+end
+>>>>>>> 8e59e3e (Add routes for the API)
