@@ -68,10 +68,17 @@ Each one is installed _after_ spree, with it's own migrations generated using a
 specific `bundle exec rails g` command, which can be found on the README of the github
 page for each project.  This only needs to be done once after spree is installed or upgraded.
 
+## CLI Scripts
+
+`./tools/docker-scripts.sh reload_db`
+
+## Swagger UI
+
 ## Scripts
 
 1. Generate **Affiliate Codes** for Existing Users: `bundle exec rake reffiliate:generate`
 1. Create or reset a **New Admin User**: `docker-compose exec web rails spree_auth:admin:create`
+1. Load Spree sample data & seed data: `rake db:seed && rails spree_sample:load`
 
 ## Deploy
 
