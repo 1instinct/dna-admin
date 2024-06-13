@@ -1,14 +1,6 @@
 <div class="admin-thread">
     <%# header %> 
-    <div class="admin-thread-header">
-        <h3><%= user %></h3>
 
-        <div class="admin-thread-controls">
-            <button>Close Ticket</button>
-            <button>Other function</button>
-        </div>
-    
-    </div>
 
     <div class="admin-messageslist">
         <%= render "message", from: "them", text: "hello where's my order?" %>
@@ -25,10 +17,5 @@
         <%= render "message", from: "me", text: 'it looks like its somewhere in the phillipines right now, but you should receive it soon.' %>
 
         <%= render "message", from: "them", text: 'ok, thanks alot!  you guys are absolute rockstars' %>
-    </div>
-
-    <div class="admin-thread-inputpanel">
-        <input type="text">
-        <button>Submit</button>
     </div>
 </div>
