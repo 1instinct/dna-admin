@@ -13,6 +13,43 @@ module Spree
       def edit
         @live_stream = LiveStream.find(params[:id])
       end
+
+      def show
+        @live_stream = LiveStream.find(params[:id])
+        require 'json'
+        headers = {
+          "Content-Type" => "application/json"
+        }
+        url = "https://api.mux.com/video/v1/live-streams/#{@live_stream.stream_id}"
+        @response = RestClient::Request.new({
+          method: :get,
+          url: url,
+          user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
+          password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+          headers: headers
+          }).execute do |response, request, result|
+            case response.code
+            when 400
+              [ :error, JSON.parse(response.to_str) ]
+            when 200
+              [ :success, JSON.parse(response.to_str) ]
+            else
+              fail "Invalid response #{response.to_str} received."
+            end
+          end
+          if @response[0] == :success
+            status = @response[1]['data']['status']
+            playback_ids = @response[1]['data']['playback_ids'].pluck('id') if @response[1]['data']['playback_ids'].present?
+            puts "*****************************#{playback_ids}"
+
+            @live_stream.update(status: status, playback_ids: playback_ids)
+
+            flash[:success] = Spree.t('live_stream.live_stream_show')
+          else
+            flash[:error] = @response[1]['error']['messages'].join("")
+            redirect_to admin_live_stream_index_path
+          end
+      end
       def update
         @live_stream = LiveStream.find(params[:id])
         respond_to do |format|
@@ -53,6 +90,19 @@ module Spree
             playback_ids = @response[1]['data']['playback_ids'].pluck('id') if @response[1]['data']['playback_ids'].present?
             @live_stream.update(status: status, playback_ids: playback_ids)
             flash[:success] = Spree.t('live_stream.live_stream_show')
+            @live_stream = LiveStream.new(live_stream_params)
+            @live_stream.stream_key = @response[1]['data']['stream_key']
+            @live_stream.stream_url = "rtmps://global-live.mux.com:443/app"
+            @live_stream.stream_id = @response[1]['data']['id']
+            @live_stream.playback_ids = @response[1]['data']['playback_ids'].pluck('id') if @response[1]['data']['playback_ids'].present?
+            @live_stream.status = @response[1]['data']['status']
+            if @live_stream.save
+              flash[:notice] = 'Live Stream Added successfully.'
+              redirect_to admin_live_stream_index_path
+            else
+              flash[:error] = @response[1]['error']['messages'].join("")
+              redirect_to admin_live_stream_index_path
+            end
           else
             flash[:error] = Spree.t('live_stream.fail_to_execute_request', live_stream_real_time_error: @response[1]['error']['messages'].join(""))
             redirect_to admin_live_stream_index_path

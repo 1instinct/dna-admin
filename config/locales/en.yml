@@ -252,6 +252,9 @@ en:
       spree/promotion_category:
         one: Promotion Category
         other: Promotion Categories
+      spree/live_stream:
+        one: LiveStream
+        other: LiveStreams
       spree/property:
         one: Property
         other: Properties
@@ -1707,3 +1710,7 @@ en:
     zone: Zone
     zones: Zones
     start_at: Start Date Time
+    live_stream:
+      live_stream_deleted: Live Stream has been deleted
+      live_stream_show: Live Stream fetch successfully
+      live_stream_menu: Live Streams
