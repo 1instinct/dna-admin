@@ -391,6 +391,41 @@ Done!
 http://localhost:8080/apidocs/swagger_ui
 Make sure to change the port that the UI is expecting in the search bar
 
+### Testing Production Settings
+
+To test the production settings locally (used to test things like the S3 buckets
+for active storage), you need to set environment variables directly in
+the `docker-compose.yml` file.  The production environment is configured
+to NOT use `.env` files.
+
+To do this, apply the following patch to `docker-compose.yml` (after filling
+in real values for the keys and bucket name):
+
+```
+--- docker-compose.yml.orig     2021-06-02 10:50:59.011383071 -0400
++++ docker-compose.yml  2021-06-02 10:51:03.267414021 -0400
+@@ -16,4 +16,10 @@
+     depends_on:
+       - db
+     environment:
+-      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
++      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_production
++      RAILS_ENV: production
++      AWS_REGION_NAME: us-west-1
++      AWS_BUCKET_NAME:
++      AWS_ACCESS_KEY_ID:
++      AWS_SECRET_ACCESS_KEY:
++      RAILS_SERVE_STATIC_FILES: 1
+```
+
+After building and starting the container, you will need to build the assets
+in the local container with:
+
+```
+docker-compose exec web rails assets:precompile
+docker-compose restart
+```
+
 ## TODO
 
 Other things we may need to cover:
