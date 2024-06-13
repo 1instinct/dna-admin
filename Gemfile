@@ -43,6 +43,7 @@ gem 'bootsnap', '~> 1.8.1'
 gem "aws-sdk-s3", require: false
 
 gem 'spree', github: '1instinct/spree'
+<<<<<<< HEAD
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 
@@ -51,6 +52,8 @@ gem 'spree_gateway', '~> 3.4'
 
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 
+=======
+>>>>>>> 470d083 (remove unnecessary branch ref to 1instinct/spree)
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
