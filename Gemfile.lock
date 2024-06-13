@@ -1,5 +1,6 @@
 GIT
 <<<<<<< HEAD
+<<<<<<< HEAD
   remote: https://github.com/1instinct/spree.git
   revision: 6bda546328a300aff04591d89d40c7b3f4b02473
   branch: instinct-dna
@@ -86,6 +87,12 @@ GIT
   revision: a4f6651164273ba4cd20b1642fafa52751804bc0
   specs:
     spree_digital (4.1.0)
+=======
+  remote: https://github.com/spree-contrib/spree_digital.git
+  revision: 72d05307d183d17214aa1173e026caff3e48abb2
+  specs:
+    spree_digital (4.0.0)
+>>>>>>> f36d818 (handle CORs (add pkg), add digital downloadable products, refactor app overrides, update schema version, add migrations)
       deface (~> 1.0)
       spree_api (>= 3.1.0, < 5.0)
       spree_backend (>= 3.1.0, < 5.0)
@@ -94,6 +101,7 @@ GIT
       spree_frontend (>= 3.1.0, < 5.0)
 
 GIT
+<<<<<<< HEAD
   remote: https://github.com/spree-contrib/spree_static_content.git
   revision: d2205a3a48f85d0f4d65fcc38dccb887f920bd74
   specs:
@@ -101,6 +109,8 @@ GIT
       deface (~> 1.5)
       spree_core (>= 3.7.0, < 5.0)
 =======
+=======
+>>>>>>> f36d818 (handle CORs (add pkg), add digital downloadable products, refactor app overrides, update schema version, add migrations)
   remote: https://github.com/spree-contrib/spree_static_content.git
   revision: 017b411b6d16964f84de519c9fa3e9f0b4a219b6
   specs:
@@ -570,6 +580,7 @@ GEM
     rabl (0.13.1)
 >>>>>>> be9f581 (bundle update)
       activesupport (>= 2.3.14)
+<<<<<<< HEAD
     racc (1.7.3)
     rack (2.2.9)
     rack-cors (2.0.2)
@@ -590,6 +601,24 @@ GEM
       activesupport (= 6.1.7.7)
       bundler (>= 1.15.0)
       railties (= 6.1.7.7)
+=======
+    rack (2.0.7)
+    rack-cors (1.0.3)
+    rack-test (1.1.0)
+      rack (>= 1.0, < 3)
+    rails (5.2.3)
+      actioncable (= 5.2.3)
+      actionmailer (= 5.2.3)
+      actionpack (= 5.2.3)
+      actionview (= 5.2.3)
+      activejob (= 5.2.3)
+      activemodel (= 5.2.3)
+      activerecord (= 5.2.3)
+      activestorage (= 5.2.3)
+      activesupport (= 5.2.3)
+      bundler (>= 1.3.0)
+      railties (= 5.2.3)
+>>>>>>> f36d818 (handle CORs (add pkg), add digital downloadable products, refactor app overrides, update schema version, add migrations)
       sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.2.0)
       activesupport (>= 5.0.0)
@@ -895,6 +924,7 @@ DEPENDENCIES
   rails (~> 6.1.3)
 =======
   puma (~> 3.11)
+  rack-cors
   rails (~> 5.2.2)
 >>>>>>> 0b8dd08 (chat screens and internal request to dna api)
   rest-client
@@ -922,6 +952,7 @@ DEPENDENCIES
   spree (~> 3.7)
 >>>>>>> db57f19 (rename store_controller >> store_controller_decorator)
   spree_auth_devise (~> 3.5)
+  spree_digital!
   spree_gateway (~> 3.4)
 <<<<<<< HEAD
 >>>>>>> aedbdaf (add TWILIO to env.example, add static_content extension, tweak README, redirect root to login, redirect after login to adminy)

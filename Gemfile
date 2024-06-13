@@ -77,7 +77,11 @@ gem 'rest-client'
 gem 'swagger-blocks'
 =======
 gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
+<<<<<<< HEAD
 >>>>>>> 3f5a283 (add Messages to schema (again?), add vinsol spree-promo-users-codes)
+=======
+gem 'spree_digital', github: 'spree-contrib/spree_digital'
+>>>>>>> f36d818 (handle CORs (add pkg), add digital downloadable products, refactor app overrides, update schema version, add migrations)
 
 gem 'rest-client'
 
