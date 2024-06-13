@@ -1,4 +1,5 @@
 GIT
+<<<<<<< HEAD
   remote: https://github.com/ddombrowsky/spree.git
   revision: 88fded86a662147a3c2c974f2978ca83bd3bc75d
   branch: instinct-dna
@@ -67,6 +68,8 @@ GIT
       spree_core (= 4.2.5)
 
 GIT
+=======
+>>>>>>> d39136e (update Gemfile.lock)
   remote: https://github.com/spree-contrib/spree_digital.git
   revision: 0163cd1968eb3e828dba341683ca95d78f467d15
   specs:
@@ -90,6 +93,7 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     actioncable (6.1.3.1)
@@ -123,6 +127,11 @@ GEM
       actionpack (= 6.1.4)
       activesupport (= 6.1.4)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    actioncable (6.1.4)
+      actionpack (= 6.1.4)
+      activesupport (= 6.1.4)
+>>>>>>> d39136e (update Gemfile.lock)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
     actionmailbox (6.1.4)
@@ -140,6 +149,7 @@ GEM
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
     actionpack (6.1.3.2)
       actionview (= 6.1.3.2)
       activesupport (= 6.1.3.2)
@@ -149,10 +159,16 @@ GEM
       actionview (= 6.1.4)
       activesupport (= 6.1.4)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    actionpack (6.1.4)
+      actionview (= 6.1.4)
+      activesupport (= 6.1.4)
+>>>>>>> d39136e (update Gemfile.lock)
       rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     actiontext (6.1.3.1)
@@ -174,6 +190,8 @@ GEM
       activesupport (= 6.1.3.2)
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
 =======
+=======
+>>>>>>> d39136e (update Gemfile.lock)
     actiontext (6.1.4)
       actionpack (= 6.1.4)
       activerecord (= 6.1.4)
@@ -182,13 +200,17 @@ GEM
       nokogiri (>= 1.8.5)
     actionview (6.1.4)
       activesupport (= 6.1.4)
+<<<<<<< HEAD
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+>>>>>>> d39136e (update Gemfile.lock)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
     active_storage_validations (0.9.5)
       rails (>= 5.2.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     activejob (6.1.3.1)
@@ -201,12 +223,17 @@ GEM
     activejob (6.1.4)
       activesupport (= 6.1.4)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    activejob (6.1.4)
+      activesupport (= 6.1.4)
+>>>>>>> d39136e (update Gemfile.lock)
       globalid (>= 0.3.6)
     activemerchant (1.121.0)
       activesupport (>= 4.2)
       builder (>= 2.1.2, < 4.0.0)
       i18n (>= 0.6.9)
       nokogiri (~> 1.4)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     activemodel (6.1.3.1)
@@ -238,6 +265,8 @@ GEM
     activesupport (6.1.3.2)
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
 =======
+=======
+>>>>>>> d39136e (update Gemfile.lock)
     activemodel (6.1.4)
       activesupport (= 6.1.4)
     activerecord (6.1.4)
@@ -251,7 +280,10 @@ GEM
       marcel (~> 1.0.0)
       mini_mime (>= 1.1.0)
     activesupport (6.1.4)
+<<<<<<< HEAD
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+>>>>>>> d39136e (update Gemfile.lock)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -270,6 +302,7 @@ GEM
     aws-eventstream (1.1.1)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     aws-partitions (1.441.0)
     aws-sdk-core (3.113.1)
 =======
@@ -280,6 +313,10 @@ GEM
     aws-partitions (1.478.0)
     aws-sdk-core (3.117.0)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    aws-partitions (1.478.0)
+    aws-sdk-core (3.117.0)
+>>>>>>> d39136e (update Gemfile.lock)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
@@ -289,6 +326,7 @@ GEM
       aws-sigv4 (~> 1.1)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     aws-sdk-s3 (1.93.0)
 =======
     aws-sdk-s3 (1.95.1)
@@ -296,6 +334,9 @@ GEM
 =======
     aws-sdk-s3 (1.96.1)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    aws-sdk-s3 (1.96.1)
+>>>>>>> d39136e (update Gemfile.lock)
       aws-sdk-core (~> 3, >= 3.112.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.1)
@@ -304,10 +345,14 @@ GEM
     bcrypt (3.1.16)
     bindex (0.8.1)
 <<<<<<< HEAD
+<<<<<<< HEAD
     bootsnap (1.7.3)
 =======
     bootsnap (1.7.5)
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
+=======
+    bootsnap (1.7.5)
+>>>>>>> d39136e (update Gemfile.lock)
       msgpack (~> 1.0)
     bootstrap (4.6.0)
       autoprefixer-rails (>= 9.1.0)
@@ -371,6 +416,7 @@ GEM
     ffaker (2.18.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ffi (1.15.0)
 =======
     ffi (1.15.1)
@@ -378,6 +424,9 @@ GEM
 =======
     ffi (1.15.3)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    ffi (1.15.3)
+>>>>>>> d39136e (update Gemfile.lock)
     flatpickr (4.6.6.0)
     friendly_id (5.4.2)
       activerecord (>= 4.0.0)
@@ -447,6 +496,7 @@ GEM
     nio4r (2.5.7)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     nokogiri (1.11.2-x86_64-linux)
 =======
     nokogiri (1.11.6-x86_64-linux)
@@ -454,6 +504,9 @@ GEM
 =======
     nokogiri (1.11.7-x86_64-linux)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    nokogiri (1.11.7-x86_64-darwin)
+>>>>>>> d39136e (update Gemfile.lock)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     paranoia (2.4.3)
@@ -479,6 +532,7 @@ GEM
       rack (>= 2.0.0)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     rails (6.1.3.1)
@@ -512,6 +566,8 @@ GEM
       railties (= 6.1.3.2)
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
 =======
+=======
+>>>>>>> d39136e (update Gemfile.lock)
     rails (6.1.4)
       actioncable (= 6.1.4)
       actionmailbox (= 6.1.4)
@@ -526,13 +582,17 @@ GEM
       activesupport (= 6.1.4)
       bundler (>= 1.15.0)
       railties (= 6.1.4)
+<<<<<<< HEAD
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+>>>>>>> d39136e (update Gemfile.lock)
       sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.3.0)
       loofah (~> 2.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     railties (6.1.3.1)
@@ -548,6 +608,11 @@ GEM
       actionpack (= 6.1.4)
       activesupport (= 6.1.4)
 >>>>>>> 1fe8f24 (regen Gemfile.lock)
+=======
+    railties (6.1.4)
+      actionpack (= 6.1.4)
+      activesupport (= 6.1.4)
+>>>>>>> d39136e (update Gemfile.lock)
       method_source
       rake (>= 0.13)
       thor (~> 1.0)
@@ -571,10 +636,14 @@ GEM
       netrc (~> 0.8)
     rexml (3.2.5)
 <<<<<<< HEAD
+<<<<<<< HEAD
     ruby-vips (2.1.0)
 =======
     ruby-vips (2.1.2)
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
+=======
+    ruby-vips (2.1.2)
+>>>>>>> d39136e (update Gemfile.lock)
       ffi (~> 1.12)
     ruby_dep (1.5.0)
     rubyzip (2.3.2)
@@ -601,6 +670,7 @@ GEM
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     spree (4.2.1)
@@ -631,11 +701,26 @@ GEM
 >>>>>>> c1743d0 (regenerated Gemfile.lock)
 =======
 >>>>>>> bbbebba (FIXME: hacking things to try and get the heroku deploy to work)
+=======
+    spree (4.2.5)
+      spree_api (= 4.2.5)
+      spree_backend (= 4.2.5)
+      spree_cmd (= 4.2.5)
+      spree_core (= 4.2.5)
+      spree_frontend (= 4.2.5)
+      spree_sample (= 4.2.5)
+    spree_api (4.2.5)
+      doorkeeper (~> 5.2, >= 5.2.1)
+      jsonapi-serializer (~> 2.1)
+      rabl (~> 0.14, >= 0.14.2)
+      spree_core (= 4.2.5)
+>>>>>>> d39136e (update Gemfile.lock)
     spree_auth_devise (4.3.4)
       devise (~> 4.7)
       devise-encryptable (= 0.2.0)
       spree_core (>= 4.1, < 5.0)
       spree_extension
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     spree_backend (4.2.1)
@@ -680,6 +765,38 @@ GEM
       premailer-rails
       rails (>= 6.0, < 6.2)
       ransack (>= 2.3, < 2.5)
+=======
+    spree_backend (4.2.5)
+      bootstrap (~> 4.0)
+      flatpickr (~> 4.6)
+      glyphicons (~> 1.0)
+      inline_svg (~> 1.5)
+      jquery-rails (~> 4.3)
+      jquery-ui-rails (~> 6.0)
+      select2-rails (~> 4.0)
+      spree_api (= 4.2.5)
+      spree_core (= 4.2.5)
+    spree_cmd (4.2.5)
+      thor (~> 1.0)
+    spree_core (4.2.5)
+      active_storage_validations (~> 0.9)
+      activemerchant (~> 1.67)
+      acts_as_list (>= 0.8)
+      awesome_nested_set (~> 3.3, >= 3.3.1)
+      cancancan (~> 3.2)
+      carmen (>= 1.0)
+      friendly_id (~> 5.2, >= 5.2.1)
+      highline (~> 2.0)
+      image_processing (~> 1.2)
+      kaminari (~> 1.2)
+      mini_magick (~> 4.9, >= 4.9.4)
+      monetize (~> 1.9)
+      money (~> 6.13)
+      paranoia (~> 2.4)
+      premailer-rails
+      rails (>= 5.2, < 6.2)
+      ransack (~> 2.3)
+>>>>>>> d39136e (update Gemfile.lock)
       responders
       rexml
       sprockets (~> 3.7)
@@ -687,6 +804,7 @@ GEM
       state_machines-activemodel (~> 0.7)
       state_machines-activerecord (~> 0.6)
       stringex
+<<<<<<< HEAD
       twitter_cldr (>= 4.3, < 7.0)
     spree_extension (0.0.9)
       activerecord (>= 4.2)
@@ -727,6 +845,27 @@ GEM
       spree_core (>= 3.7.0, < 5.0)
       spree_extension
 >>>>>>> bbbebba (FIXME: hacking things to try and get the heroku deploy to work)
+=======
+      twitter_cldr (>= 4.3)
+    spree_extension (0.0.9)
+      activerecord (>= 4.2)
+      spree_core
+    spree_frontend (4.2.5)
+      bootstrap (~> 4.0)
+      canonical-rails (~> 0.2, >= 0.2.10)
+      glyphicons (~> 1.0)
+      inline_svg (~> 1.5)
+      jquery-rails (~> 4.3)
+      spree_api (= 4.2.5)
+      spree_core (= 4.2.5)
+      turbolinks (~> 5.2)
+    spree_gateway (3.9.3)
+      spree_core (>= 3.7.0, < 5.0)
+      spree_extension
+    spree_sample (4.2.5)
+      ffaker (~> 2.9)
+      spree_core (= 4.2.5)
+>>>>>>> d39136e (update Gemfile.lock)
     spring (2.1.1)
     spring-watcher-listen (2.0.1)
       listen (>= 2.7, < 4.0)
@@ -748,6 +887,10 @@ GEM
       activerecord (>= 5.1)
       state_machines-activemodel (>= 0.8.0)
     stringex (2.8.5)
+<<<<<<< HEAD
+=======
+    swagger-blocks (3.0.0)
+>>>>>>> d39136e (update Gemfile.lock)
     thor (1.1.0)
     tilt (2.0.10)
     turbolinks (5.2.1)
@@ -779,7 +922,11 @@ GEM
     zeitwerk (2.4.2)
 
 PLATFORMS
+<<<<<<< HEAD
   x86_64-linux
+=======
+  x86_64-darwin-19
+>>>>>>> d39136e (update Gemfile.lock)
 
 DEPENDENCIES
   aws-sdk-s3
@@ -799,7 +946,11 @@ DEPENDENCIES
   rest-client
   sass-rails (~> 5.0)
   selenium-webdriver
+<<<<<<< HEAD
   spree!
+=======
+  spree (~> 4.2.0.rc4)
+>>>>>>> d39136e (update Gemfile.lock)
   spree_auth_devise (~> 4.3)
   spree_digital!
   spree_gateway (~> 3.9)
@@ -807,6 +958,10 @@ DEPENDENCIES
   spring
   spring-watcher-listen (~> 2.0.0)
   sprockets-helpers (~> 1.2.1)
+<<<<<<< HEAD
+=======
+  swagger-blocks
+>>>>>>> d39136e (update Gemfile.lock)
   turbolinks (~> 5)
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
