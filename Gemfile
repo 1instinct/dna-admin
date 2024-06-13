@@ -54,6 +54,7 @@ gem "aws-sdk-s3", require: false
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 gem 'spree', github: '1instinct/spree'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
@@ -82,6 +83,9 @@ gem 'spree', path: './external/spree'
 =======
 gem 'spree', github: 'ddombrowsky/spree', branch: 'instinct-dna'
 >>>>>>> 29529b7 (added ddombrowsky/spree fork of spree)
+=======
+gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
+>>>>>>> faf293b (Updated spree fork to 1instinct)
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
