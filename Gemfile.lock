@@ -508,6 +508,8 @@ GEM
     nokogiri (1.11.7-x86_64-darwin)
 >>>>>>> d39136e (update Gemfile.lock)
       racc (~> 1.4)
+    nokogiri (1.11.7-x86_64-linux)
+      racc (~> 1.4)
     orm_adapter (0.5.0)
     paranoia (2.4.3)
       activerecord (>= 4.0, < 6.2)
@@ -926,7 +928,11 @@ PLATFORMS
   x86_64-linux
 =======
   x86_64-darwin-19
+<<<<<<< HEAD
 >>>>>>> d39136e (update Gemfile.lock)
+=======
+  x86_64-linux
+>>>>>>> b6359f6 (update Gemfile.lock)
 
 DEPENDENCIES
   aws-sdk-s3
