@@ -25,7 +25,6 @@ Spree::Core::Engine.add_routes do
       resources :message_support, only: [:index]
     end
 
-
     get "/messages/support" => "messages#message_support"
     get "/menu_items/show_menu_item" => "menu_items#show_menu_item"
 
