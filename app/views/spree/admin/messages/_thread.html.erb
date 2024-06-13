@@ -1,7 +1,34 @@
-<div>
-    <h3>I'm a thread</h3>
-    <%= render 'message'%>
-    <%= render 'message'%>
-    <%= render 'message'%>
-    <%= render 'message'%>
+<div class="admin-thread">
+    <%# header %> 
+    <div class="admin-thread-header">
+        <h3><%= user %></h3>
+
+        <div class="admin-thread-controls">
+            <button>Close Ticket</button>
+            <button>Other function</button>
+        </div>
+    
+    </div>
+
+    <div class="admin-messageslist">
+        <%= render "message", from: "them", text: "hello where's my order?" %>
+
+        <%= render "message", from: "me", text: "hi thanks for contacting our support agent" %>
+        <%= render "message", from: "me", text: 'please hold' %>
+
+        <%= render "message", from: "them", text: 'ok' %>
+        <%= render "message", from: "them", text: 'yo whenever youre ready man' %>
+        <%= render "message", from: "them", text: 'i justneed my cbds' %>
+
+        <%= render "message", from: "me", text: 'aight lets see...' %>
+        <%= render "message", from: "me", text: 'i found your order.' %>
+        <%= render "message", from: "me", text: 'it looks like its somewhere in the phillipines right now, but you should receive it soon.' %>
+
+        <%= render "message", from: "them", text: 'ok, thanks alot!  you guys are absolute rockstars' %>
+    </div>
+
+    <div class="admin-thread-inputpanel">
+        <input type="text">
+        <button>Submit</button>
+    </div>
 </div>
