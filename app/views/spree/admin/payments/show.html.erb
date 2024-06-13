@@ -1,11 +1,8 @@
 <%= render partial: 'spree/admin/shared/order_tabs', locals: { current: :payments } %>
 
 <% content_for :page_title do %>
-  /
   <%= I18n.t(:one, scope: "activerecord.models.spree/payment") %>
-  /
   <%= payment_method_name(@payment) %>
-  /
   <span class="state <%= @payment.state %>">
     <%= Spree.t(@payment.state, scope: :payment_states, default: @payment.state.capitalize) %>
   </span>

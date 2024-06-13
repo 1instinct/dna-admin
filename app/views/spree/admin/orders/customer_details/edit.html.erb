@@ -1,7 +1,7 @@
 <%= render 'spree/admin/shared/order_tabs', current: :customer_details %>
 
 <% content_for :page_title do %>
-  / <%= Spree.t(:customer_details) %>
+  <%= Spree.t(:customer_details) %>
 <% end %>
 
 <% if can? :edit, @order.user %>
