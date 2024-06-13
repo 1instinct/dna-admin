@@ -109,8 +109,8 @@ module Spree
           end
         end
 
-        def create
-          @live_stream = LiveStream.new(live_stream_params)
+        def destroy
+          @live_stream = LiveStream.find(params[:id])
           require 'json'
           headers = {
             "Content-Type" => "application/json"
@@ -237,3 +237,49 @@ module Spree
             end
           end
         end
+        def generate_playback
+          @live_stream = LiveStream.find(params[:id])          
+          require 'json'
+          headers = {
+            "Content-Type" => "application/json"
+          }
+          url = "https://api.mux.com/video/v1/live-streams/#{@live_stream.stream_id}/playback-ids"
+          @response = RestClient::Request.new({
+            method: :post,
+            url: url,
+            user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
+            password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+            payload: '{ "policy": "public" }',
+            headers: headers
+            }).execute do |response, request, result|
+              case response.code
+              when 400
+                [ :error, JSON.parse(response.to_str) ]
+              when 200
+                [ :success, JSON.parse(response.to_str) ]
+              when 201
+                [ :success, JSON.parse(response.to_str) ]
+              else
+                fail "Invalid response #{response.to_str} received."
+              end
+            end
+            if @response[0] == :success
+              flash[:success] = Spree.t('live_stream.playback_added')
+              respond_with do |format|
+                format.html { redirect_to admin_live_stream_path(id: @live_stream.id) }
+              end
+            else
+              flash[:error] = @response[1]['error']['messages'].join("")
+              redirect_to admin_live_stream_path
+            end
+        end
+        private
+        def set_session
+          session[:return_to] = request.url
+        end
+        def live_stream_params
+          params.require(:live_stream).permit(:title, :description, :stream_url, :stream_key, :stream_id, :playback_ids, :status, :start_date, :is_active)
+        end
+      end
+    end
+  end

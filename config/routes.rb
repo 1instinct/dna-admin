@@ -27,6 +27,18 @@ Spree::Core::Engine.add_routes do
 
     get "/messages/support" => "messages#message_support"
     get "/menu_items/show_menu_item" => "menu_items#show_menu_item"
+    resources :live_stream do
+      collection do
+        get :generate_playback
+      end
+    end
+    # resources :live_stream, only: [:index] do
+    #   collection do
+    #     get :create_stream
+    #     delete :destroy
+    #   end
+    # end
+  end
 
     resources :live_stream do
       collection do
