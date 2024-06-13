@@ -61,9 +61,6 @@ gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
-# doesn't support spree 4
-#gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
-
 gem 'sprockets-helpers', '~> 1.2.1'
 
 gem 'rest-client'
