@@ -1,5 +1,6 @@
 # DOCKER SETUP
 
+<<<<<<< HEAD
 # Local Docker Development
 This repo is using Spree 4.2.4
 
@@ -182,9 +183,17 @@ on github is hooked in to the deployment.
 10. Seed DB: `heroku run -a dna-admin-staging rake db:seed`
 11. Load Sample Data: `heroku run -a dna-admin-staging rake spree_sample:load`
 12. Asset Precompile: `heroku run -a dna-admin-staging rake assets:precompile`
+=======
+## Build
+This should only have to be done once, or whenever the Gemfile is updated.
+```
+docker-compose build
+```
+>>>>>>> 33ae9ba (fixed order of admin user creation)
 
-in a new terminal run:
+## Create Containers
 
+<<<<<<< HEAD
 ## Run Without Docker
 
 1. Clone this repo
@@ -203,16 +212,32 @@ in a new terminal run:
 1. Run `rake db:seed`
 1. Run `rake spree_sample:load`
 1. Run `rails s`
+=======
+```
+docker-compose up
+```
+>>>>>>> 33ae9ba (fixed order of admin user creation)
 
-reset db
+DNA Admin should now be available at localhost:8080,
+but it probably needs to be set up first.
 
-`docker-compose run web rake db:reset railties:install:migrations db:migrate db:seed spree_sample:load`
+## Set up system
 
-DNA Admin should now be available at localhost:8080
+In a new terminal run:
 
-create admin user if missing or fogot
+```
+docker-compose exec web rails db:create db:migrate db:schema:load &&
+docker-compose exec web rails db:seed &&
+docker-compose exec web rails spree_sample:load &&
+docker-compose restart
+```
 
-`docker-compose run web rake spree_auth:admin:create`
+OPTIONAL: Create a new admin user.  This can be used to reset the
+admin user also:
+
+```
+docker-compose exec web rails spree_auth:admin:create
+```
 
 default is:
 
@@ -220,9 +245,22 @@ email: spree@example.com
 
 password: spree123
 
-all regular ruby commands work preceeded with:
+## Reset DB
 
-`docker-compose run web [you command here]`
+This will reset the existing database back to blank.
+
+```
+docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
+```
+
+You could also blow away all the DB files.  WARNING! You'll have to start 
+the install over again if you do this.
+
+```
+sudo rm -rf tmp/db
+```
+
+## TODO
 
 Other things we may need to cover:
 
@@ -261,6 +299,7 @@ docker-compose restart
 
 ## Keeping Your Code Updated
 
+<<<<<<< HEAD
 When there are lots of active changes occuring on this repo, make sure to regularly:
 
 1. Commit (or stash) your local changes on your branch
@@ -298,3 +337,6 @@ Other things we may need to cover:
 1. Services (job queues, cache servers, search engines, etc.)
 
 1. Deployment instructions
+=======
+- Deployment instructions
+>>>>>>> 33ae9ba (fixed order of admin user creation)
