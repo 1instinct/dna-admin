@@ -598,9 +598,15 @@ GEM
       camertron-eprun
       cldr-plurals-runtime-rb (~> 1.1)
       tzinfo
+<<<<<<< HEAD
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     uglifier (4.2.0)
+=======
+    tzinfo (1.2.5)
+      thread_safe (~> 0.1)
+    uglifier (4.1.20)
+>>>>>>> 97b861c (removing tz info gem)
       execjs (>= 0.3.0, < 3)
 <<<<<<< HEAD
     warden (1.2.9)
@@ -684,4 +690,8 @@ RUBY VERSION
    ruby 2.7.2p137
 
 BUNDLED WITH
+<<<<<<< HEAD
    2.2.11
+=======
+   2.0.2
+>>>>>>> 97b861c (removing tz info gem)
