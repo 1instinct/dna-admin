@@ -52,6 +52,7 @@ gem "aws-sdk-s3", require: false
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 gem 'spree', github: '1instinct/spree'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
@@ -74,6 +75,9 @@ gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 <<<<<<< HEAD
 =======
 gem 'spree', '~> 4.2.0.rc4'
+=======
+gem 'spree', path: './external/spree'
+>>>>>>> bbbebba (FIXME: hacking things to try and get the heroku deploy to work)
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
