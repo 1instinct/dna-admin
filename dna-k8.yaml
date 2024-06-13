@@ -18,7 +18,10 @@ spec:
       containers:
       - name: dna-admin
         image: dna-admin:0.1
-        imagePullPolicy: Never
+        # image: localhost:32000/dna-admin_web:registry
+        # imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
         env:
         - name: DATABASE_URL
           value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
@@ -27,7 +30,7 @@ spec:
         - name: AWS_REGION_NAME
           value: "us-west-1"
         - name: AWS_BUCKET_NAME
-          value: "instinct-dna-dd"
+          value: "instinct-dna"
         # this won't be needed if using nginx
         - name: RAILS_SERVE_STATIC_FILES
           value: "1"
@@ -54,7 +57,7 @@ spec:
     spec:
       containers:
       - name: dna-db
-        image: postgres
+        image: postgres:13
         ports:
         - containerPort: 5432
         env:
@@ -79,8 +82,9 @@ spec:
   selector:
     app: dna
   ports:
-  - port: 3000
-    nodePort: 30006
+    - protocol: TCP
+      port: 80
+      targetPort: 3000 
 ---
 apiVersion: v1
 kind: Service
