@@ -38,4 +38,13 @@
 
 
 <script>
+
+  window.onload = function() {
+      var selItem = sessionStorage.getItem("MenuItem");
+      $('#menu_item_menu_location_id').val(selItem);
+      }
+      $('#menu_item_menu_location_id').change(function() {
+          var selVal = $(this).val();
+          sessionStorage.setItem("MenuItem", selVal);
+      });
 </script>
