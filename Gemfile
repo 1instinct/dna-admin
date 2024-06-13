@@ -94,6 +94,7 @@ gem 'sprockets-helpers', '~> 1.2.1'
 gem 'rest-client'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
+<<<<<<< HEAD
 =======
 gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 <<<<<<< HEAD
@@ -111,6 +112,8 @@ gem 'sprockets-helpers', '~> 1.2.1'
 >>>>>>> d640f63 (add in some new vendor code, tweak example envs, fux w db stuff)
 
 gem 'rest-client'
+=======
+>>>>>>> 49fceaf (Add swagger gem for the APi's)
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
