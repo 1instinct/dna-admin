@@ -6,6 +6,10 @@ module Spree
       def index
          @menu_items = MenuItem.top_level
          @menu_location = MenuLocation.all
+
+         if params[:menu_location_id].present?
+           @menu_items = MenuLocation.find_by(id: params[:menu_location_id].to_i).menu_items
+         end
           respond_to do |format|
             format.html
             format.json { render :children, status: :ok }
@@ -59,9 +63,6 @@ module Spree
         end
       end
 
-      def show_menu_item
-        @menu_items = MenuLocation.find_by(id: params[:menu_location_id].to_i).menu_items
-      end
 
       protected
 

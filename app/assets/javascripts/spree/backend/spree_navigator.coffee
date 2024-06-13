@@ -93,9 +93,11 @@ handle_menu_delete = (e, data) ->
 
 
 root.setup_menu_tree = () ->
+  menu_location_id = $('#Menu_Items')[0].value
   root.base_url = Spree.url(Spree.routes.admin_menu_items_path)
   $.ajax
     url:      Spree.url(base_url.path()).toString(),
+    data: {menu_location_id: menu_location_id},
     dataType: "json",
     success:  (menu_item) ->
       last_menu_rollback = null
@@ -109,7 +111,7 @@ root.setup_menu_tree = () ->
           theme: "apple"
           url: Spree.url(Spree.routes.jstree_theme_path)
         strings:
-          new_node: new_menu
+          new_node: "New Menu Item"
           loading: Spree.translations.loading + "..."
         crrm:
           move:
