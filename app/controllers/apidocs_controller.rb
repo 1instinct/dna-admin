@@ -10,7 +10,7 @@ class ApidocsController < ActionController::Base
         key :name, ENV['SITE_ADMIN_NAME']
       end
     end
-    key :host, 'http://localhost:8080/apidocs.json' if Rails.env.development?
+    key :host, 'https://dna-admin-dev.instinct.is/' if Rails.env.development?
     key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
     key :host, 'https://admin.instinct.is/' if Rails.env.production?
 
