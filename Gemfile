@@ -62,6 +62,7 @@ gem 'spree_auth_devise', '~> 3.5'
 gem 'spree_gateway', '~> 3.4'
 >>>>>>> 48588a8 (downgrade spree_auth_devise)
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
+<<<<<<< HEAD
 gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
 gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
@@ -74,6 +75,9 @@ gem 'sprockets-helpers', '~> 1.2.1'
 gem 'rest-client'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
+=======
+gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
+>>>>>>> 3f5a283 (add Messages to schema (again?), add vinsol spree-promo-users-codes)
 
 gem 'rest-client'
 

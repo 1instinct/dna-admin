@@ -9,9 +9,11 @@
  *= require_tree .
  *= require spree/backend/spree_navigator
   *= require spree/backend/spree_loyalty_points
+ *= require spree/backend/spree_promo_users_codes
 */
 
-/* admin messages css */
+/* admin messages css  *= require spree/backend/spree_promo_users_codes
+*/
 .admin-msgs-gridcontainer {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -27,7 +29,8 @@
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    /* align-items: center; */
+    /* align-items: center;  *= require spree/backend/spree_promo_users_codes
+*/
 }
 
 .admin-msgs-searchinput {
@@ -53,25 +56,29 @@
     height: 50px;
     border-radius: 50%;
     background: pink;
-    /* margin-top: 10%; */
+    /* margin-top: 10%;  *= require spree/backend/spree_promo_users_codes
+*/
 }
 
 .admin-msgs-conversation-label {
     margin-left: 10%;
 }
 
-/* convolist */
+/* convolist  *= require spree/backend/spree_promo_users_codes
+*/
 .admin-convolist-tbody {
     display: block;
     overflow-y: scroll;
     max-height: 60vh;
     background: linear-gradient(#FAFAFA, white)
-    /* border: 1px solid black; */
+        /* border: 1px solid black;  *= require spree/backend/spree_promo_users_codes
+*/
 }
 
 /* .admin-convolist-wrapper {
     overflow-y: scroll;
-} */
+}  *= require spree/backend/spree_promo_users_codes
+*/
 
 #th-avatar {
     width: 15vw;
@@ -99,8 +106,10 @@
     width: 100%;
 }
 
-/* thread-list */
-/* threads */
+/* thread-list  *= require spree/backend/spree_promo_users_codes
+*/
+/* threads  *= require spree/backend/spree_promo_users_codes
+*/
 .admin-thread-header {
     display: flex;
     justify-content: space-around;
@@ -126,10 +135,12 @@
     overflow-y: scroll;
     overflow-x: hidden;
     height: 60vh;
-    /* margin: 8% 0 0 0; */
+    /* margin: 8% 0 0 0;  *= require spree/backend/spree_promo_users_codes
+*/
 }
 
-/* messages */
+/* messages  *= require spree/backend/spree_promo_users_codes
+*/
 
 p.message {
     margin: 10px !important;
@@ -137,25 +148,26 @@ p.message {
     width: auto;
     word-wrap: break-word;
     line-height: 24px;
-    position:relative;
-    padding:10px 20px;
-    border-radius:25px;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.05)
+    position: relative;
+    padding: 10px 20px;
+    border-radius: 25px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05)
 }
 
 p.message.message-me {
-    background:#87a7ac;
+    background: #87a7ac;
 }
 
 p.message.message-them {
-    background:#E5E5EA;
+    background: #E5E5EA;
 }
 
-p.message span:before, p.message span:after {
-    content:"";
-    position:absolute;
-    bottom:-2px;
-    height:20px;
+p.message span:before,
+p.message span:after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    height: 20px;
 }
 
 p.message span text {
@@ -173,37 +185,38 @@ p.message span text {
 }
 
 .message-me span:before {
-    right:-7px;
-    border-right:20px solid #87a7ac;
+    right: -7px;
+    border-right: 20px solid #87a7ac;
     border-bottom-left-radius: 16px 14px;
-    transform:translate(0, -2px);
+    transform: translate(0, -2px);
 
 }
+
 .message-me span:after {
-    right:-56px;
-    width:26px;
-    background:white;
+    right: -56px;
+    width: 26px;
+    background: white;
     border-bottom-left-radius: 10px;
-    transform:translate(-30px, -2px);
+    transform: translate(-30px, -2px);
 }
 
 .message-them span {
-	color:black;
+    color: black;
 }
 
 .message-them span:before {
-    left:-7px;
-    border-left:20px solid #E5E5EA;
+    left: -7px;
+    border-left: 20px solid #E5E5EA;
     border-bottom-right-radius: 16px 14px;
-    transform:translate(0, -2px);
+    transform: translate(0, -2px);
 }
 
 .message-them span:after {
-    left:4px;
-    width:26px;
-    background:white;
+    left: 4px;
+    width: 26px;
+    background: white;
     border-bottom-right-radius: 10px;
-    transform:translate(-30px, -2px);
+    transform: translate(-30px, -2px);
 }
 
 
@@ -211,7 +224,8 @@ p.message span text {
 /* .admin-thread-userinput-wrapper {
     border-radius: 5px;
     border: 1px solid grey;
-} */
+}  *= require spree/backend/spree_promo_users_codes
+*/
 
 .admin-thread-userinput {
     margin-top: 35px;
@@ -234,5 +248,6 @@ p.message span text {
 .admin-thread-userinput:focus {
     outline-width: 0;
     /* display: grid;
-    grid-template-columns: .8fr .2fr */
+    grid-template-columns: .8fr .2fr  *= require spree/backend/spree_promo_users_codes
+*/
 }

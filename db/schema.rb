@@ -584,6 +584,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
   create_table "spree_order_promotions", id: :serial, force: :cascade do |t|
     t.integer "order_id"
     t.integer "promotion_id"
+    t.string "code"
     t.index ["order_id"], name: "index_spree_order_promotions_on_order_id"
     t.index ["promotion_id", "order_id"], name: "index_spree_order_promotions_on_promotion_id_and_order_id"
     t.index ["promotion_id"], name: "index_spree_order_promotions_on_promotion_id"
@@ -838,6 +839,16 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.string "code"
   end
 
+  create_table "spree_promotion_codes", id: :serial, force: :cascade do |t|
+    t.integer "promotion_id"
+    t.string "code"
+    t.integer "user_id"
+    t.boolean "used", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["promotion_id"], name: "index_spree_promotion_codes_on_promotion_id"
+  end
+
   create_table "spree_promotion_rule_taxons", id: :serial, force: :cascade do |t|
     t.integer "taxon_id"
     t.integer "promotion_rule_id"
@@ -880,6 +891,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "promotion_category_id"
+    t.boolean "multi_coupon", default: false, null: false
     t.index ["advertise"], name: "index_spree_promotions_on_advertise"
     t.index ["code"], name: "index_spree_promotions_on_code", unique: true
     t.index ["expires_at"], name: "index_spree_promotions_on_expires_at"

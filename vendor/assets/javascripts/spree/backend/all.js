@@ -9,3 +9,4 @@
 //= require_tree .
 //= require spree/backend/spree_navigator
 //= require spree/backend/spree_loyalty_points
+//= require spree/backend/spree_promo_users_codes

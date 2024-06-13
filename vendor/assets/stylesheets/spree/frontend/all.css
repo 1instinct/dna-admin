@@ -10,4 +10,7 @@
  *= require spree/frontend/spree_navigator
 
  *= require spree/frontend/spree_loyalty_points
+
+ *= require spree/frontend/spree_static_content
+ *= require spree/frontend/spree_promo_users_codes
 */
