@@ -892,6 +892,7 @@ DEPENDENCIES
   sass-rails (~> 5.0)
   selenium-webdriver
 <<<<<<< HEAD
+<<<<<<< HEAD
   spree!
   spree_auth_devise (~> 4.3)
   spree_digital!
@@ -900,6 +901,9 @@ DEPENDENCIES
   spree_reffiliate!
 =======
   spree (~> 3.7)
+=======
+  spree (~> 3.7.0)
+>>>>>>> 739777e (bump spree version to try to solve https://github.com/spree/spree/issues/8616)
   spree_auth_devise (~> 3.5)
   spree_gateway (~> 3.4)
 >>>>>>> aedbdaf (add TWILIO to env.example, add static_content extension, tweak README, redirect root to login, redirect after login to adminy)
