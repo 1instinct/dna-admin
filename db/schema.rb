@@ -275,6 +275,27 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["viewable_type", "type"], name: "index_assets_on_viewable_type_and_type"
   end
 
+  create_table "spree_blog_entries", id: :serial, force: :cascade do |t|
+    t.string "title"
+    t.text "body"
+    t.string "permalink"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean "visible", default: false
+    t.datetime "published_at"
+    t.text "summary"
+    t.integer "author_id"
+    t.string "meta_title"
+    t.string "meta_description"
+    t.string "meta_keywords"
+    t.index ["author_id"], name: "index_spree_blog_entries_on_author_id"
+    t.index ["created_at"], name: "index_spree_blog_entries_on_created_at"
+    t.index ["permalink"], name: "index_spree_blog_entries_on_permalink"
+    t.index ["published_at"], name: "index_spree_blog_entries_on_published_at"
+    t.index ["title"], name: "index_spree_blog_entries_on_title"
+    t.index ["visible"], name: "index_spree_blog_entries_on_visible"
+  end
+
   create_table "spree_calculators", id: :serial, force: :cascade do |t|
     t.string "type"
     t.string "calculable_type"
