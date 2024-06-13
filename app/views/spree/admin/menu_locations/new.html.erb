@@ -10,15 +10,13 @@
       <%= f.text_field :title, class: 'form-control message', required: :required %>
       <%= f.error_message_on :title %>
     <% end %>
-    <%#= f.hidden_field :sender_type, value: "Spree::User" %>
 
     <%= f.field_container :location, class: ['form-group'] do %>
       <%= f.label :location, Spree.t(:location) %> <span class="required">*</span>
       <%= f.text_field :location, class: 'form-control sentiment', required: :required %>
       <%= f.error_message_on :location %>
     <% end %>
-    <%#= f.field_container :is_received, class: ['form-group'] do %>
-
+  
     <%= f.field_container :is_visible, class: ['form-group'] do %>
       <%= f.check_box :is_visible %>
       <%= Spree.t(:is_visible) %>
