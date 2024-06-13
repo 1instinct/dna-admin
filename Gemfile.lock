@@ -943,6 +943,7 @@ GEM
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     swagger-blocks (3.0.0)
 >>>>>>> d39136e (update Gemfile.lock)
@@ -952,6 +953,9 @@ GEM
 =======
     swagger-blocks (3.0.0)
 >>>>>>> aa58da6 (gemfile lock for dev)
+=======
+    swagger-blocks (3.0.0)
+>>>>>>> 299e736 (gemfile lock)
     thor (1.1.0)
     tilt (2.0.10)
     turbolinks (5.2.1)
@@ -1035,6 +1039,7 @@ DEPENDENCIES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   swagger-blocks
 >>>>>>> d39136e (update Gemfile.lock)
@@ -1044,6 +1049,9 @@ DEPENDENCIES
 =======
   swagger-blocks
 >>>>>>> aa58da6 (gemfile lock for dev)
+=======
+  swagger-blocks
+>>>>>>> 299e736 (gemfile lock)
   turbolinks (~> 5)
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
