@@ -26,13 +26,7 @@ Spree::Core::Engine.add_routes do
     end
 
     get "/messages/support" => "messages#message_support"
-    get "/menu_items/show_menu_item" => "menu_items#show_menu_item"
-    resources :live_stream do
-      collection do
-        get :generate_playback
-      end
-    end
-  end
+    get "pages/about_us" => "pages#about_us"
 
     resources :live_stream do
       collection do
@@ -63,6 +57,13 @@ Spree::Core::Engine.add_routes do
       resources :threads
       resources :menu_locations
       resources :menu_items
+    end
+  end
+  namespace :admin do
+    resources :menu_items, except: :show do
+      member do
+        get :children
+      end
     end
   end
   namespace :admin do

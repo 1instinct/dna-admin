@@ -71,33 +71,24 @@ handle_menu_delete = (e, data) ->
   delete_url         = base_url.clone()
   delete_url.setPath delete_url.path() + '/' + node.prop("id")
 
-  $.confirm
-    title: 'Confirm!'
-    content: Spree.translations.are_you_sure_delete
-    buttons:
-      confirm: ->
-        $.ajax
-              type:     "POST"
-              dataType: "json"
-              url:      delete_url.toString()
-              data:
-                _method: "delete"
-              error:    handle_menu_ajax_error
-        return
-      cancel: ->
-        $.jstree.rollback last_menu_rollback
-        last_menu_rollback = null
-        return
-
-
+  jConfirm Spree.translations.are_you_sure_delete, Spree.translations.confirm_delete, (r) ->
+    if r
+      $.ajax
+        type:     "POST"
+        dataType: "json"
+        url:      delete_url.toString()
+        data:
+          _method: "delete"
+        error:    handle_menu_ajax_error
+    else
+      $.jstree.rollback(last_menu_rollback)
+      last_menu_rollback = null
 
 
 root.setup_menu_tree = () ->
-  menu_location_id = $('#Menu_Items')[0].value
   root.base_url = Spree.url(Spree.routes.admin_menu_items_path)
   $.ajax
     url:      Spree.url(base_url.path()).toString(),
-    data: {menu_location_id: menu_location_id},
     dataType: "json",
     success:  (menu_item) ->
       last_menu_rollback = null
@@ -111,7 +102,7 @@ root.setup_menu_tree = () ->
           theme: "apple"
           url: Spree.url(Spree.routes.jstree_theme_path)
         strings:
-          new_node: "New Menu Item"
+          new_node: new_menu
           loading: Spree.translations.loading + "..."
         crrm:
           move:
@@ -135,7 +126,7 @@ root.setup_menu_tree = () ->
         .bind("create.jstree", handle_menu_create)
         .bind("rename.jstree", handle_menu_rename)
         .bind "loaded.jstree", ->
-          $(this).jstree("open_all")
+          $(this).jstree("core").toggle_node($('.jstree-icon').first())
 
 
 root.menu_tree_menu = (obj, context) ->
