@@ -935,12 +935,16 @@ GEM
     stringex (2.8.5)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     swagger-blocks (3.0.0)
 >>>>>>> d39136e (update Gemfile.lock)
 =======
     swagger-blocks (3.0.0)
 >>>>>>> 53e831b (commit gemfile.lock)
+=======
+    swagger-blocks (3.0.0)
+>>>>>>> aa58da6 (gemfile lock for dev)
     thor (1.1.0)
     tilt (2.0.10)
     turbolinks (5.2.1)
@@ -1021,12 +1025,16 @@ DEPENDENCIES
   sprockets-helpers (~> 1.2.1)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   swagger-blocks
 >>>>>>> d39136e (update Gemfile.lock)
 =======
   swagger-blocks
 >>>>>>> 53e831b (commit gemfile.lock)
+=======
+  swagger-blocks
+>>>>>>> aa58da6 (gemfile lock for dev)
   turbolinks (~> 5)
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
