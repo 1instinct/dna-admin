@@ -1,6 +1,5 @@
 # DOCKER SETUP
 
-<<<<<<< HEAD
 # Local Docker Development
 This repo is using Spree 4.2.4
 
@@ -183,17 +182,9 @@ on github is hooked in to the deployment.
 10. Seed DB: `heroku run -a dna-admin-staging rake db:seed`
 11. Load Sample Data: `heroku run -a dna-admin-staging rake spree_sample:load`
 12. Asset Precompile: `heroku run -a dna-admin-staging rake assets:precompile`
-=======
-## Build
-This should only have to be done once, or whenever the Gemfile is updated.
-```
-docker-compose build
-```
->>>>>>> 33ae9ba (fixed order of admin user creation)
 
 ## Create Containers
 
-<<<<<<< HEAD
 ## Run Without Docker
 
 1. Clone this repo
@@ -212,11 +203,6 @@ docker-compose build
 1. Run `rake db:seed`
 1. Run `rake spree_sample:load`
 1. Run `rails s`
-=======
-```
-docker-compose up
-```
->>>>>>> 33ae9ba (fixed order of admin user creation)
 
 DNA Admin should now be available at localhost:8080,
 but it probably needs to be set up first.
@@ -299,7 +285,6 @@ docker-compose restart
 
 ## Keeping Your Code Updated
 
-<<<<<<< HEAD
 When there are lots of active changes occuring on this repo, make sure to regularly:
 
 1. Commit (or stash) your local changes on your branch
@@ -337,6 +322,3 @@ Other things we may need to cover:
 1. Services (job queues, cache servers, search engines, etc.)
 
 1. Deployment instructions
-=======
-- Deployment instructions
->>>>>>> 33ae9ba (fixed order of admin user creation)
