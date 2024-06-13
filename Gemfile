@@ -27,9 +27,12 @@ gem 'jbuilder', '~> 2.5'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 gem 'rack-cors'
 >>>>>>> 5fdf3ea (Add cors initializer)
+=======
+>>>>>>> 5800bef (regenerated lockfiles with bundler 2.0.2)
 # Use ActiveStorage variant
 # gem 'mini_magick', '~> 4.8'
 
