@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '2.7.2'
+ruby '3.0.2'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 6.1.3'
@@ -26,7 +26,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-gem 'rack-cors'
+gem 'rack-cors', '>= 1.1.1'
 
 # Use ActiveStorage variant
 # gem 'mini_magick', '~> 4.8'
@@ -34,32 +34,17 @@ gem 'rack-cors'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
-# Handle CORs request errors
-gem 'rack-cors', :require => 'rack/cors'
-
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '~> 1.8.1'
 
 gem "aws-sdk-s3", require: false
 
 gem 'spree', github: '1instinct/spree'
-<<<<<<< HEAD
-gem 'spree_auth_devise', '~> 4.3'
-gem 'spree_gateway', '~> 3.9'
-
-gem 'spree_auth_devise', '~> 3.5'
-gem 'spree_gateway', '~> 3.4'
-
-gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
-
-=======
->>>>>>> 470d083 (remove unnecessary branch ref to 1instinct/spree)
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
-gem 'spree_digital', github: 'spree-contrib/spree_digital'
-gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
-gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
+gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
+gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
 
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
@@ -69,7 +54,6 @@ gem 'sprockets-helpers', '~> 1.2.1'
 gem 'rest-client'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
-gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -85,9 +69,9 @@ end
 group :development do
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
   gem 'web-console', '>= 3.3.0'
-  gem 'listen', '>= 3.0.5', '< 3.2'
+  gem 'listen', '~> 3.5.0'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
+  gem 'spring', '~> 2.1'
   gem 'spring-watcher-listen', '~> 2.0.0'
 end
 
