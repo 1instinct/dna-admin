@@ -26,25 +26,12 @@ class ApidocsController < ActionController::Base
     Spree::Api::V1::LiveStreamController,
     Spree::Api::V1::UsersController,
     Spree::Api::V1::PagesController,
-<<<<<<< HEAD
-<<<<<<< HEAD
     Spree::Api::V1::ContactsController,
     Spree::Api::V1::MessagesController,
-<<<<<<< HEAD
     Spree::Api::V1::ThreadsController,
     Spree::Api::V1::MenuLocationsController,
     Spree::Api::V1::MenuItemsController,
-<<<<<<< HEAD
-=======
     Spree::Api::V1::MenuLocationsController,
->>>>>>> e68314f (add menu location to swagger)
-=======
->>>>>>> 4f30c44 (add menu item in swagger)
-=======
-    Spree::Api::V1::ContactsController,
->>>>>>> 165f3bf (Add contact routes)
-=======
->>>>>>> 6943bdf (Add messages and contact module changes)
     SwaggerGlobalModel,
     self,
   ].freeze
