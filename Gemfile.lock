@@ -705,7 +705,11 @@ RUBY VERSION
 
 BUNDLED WITH
 <<<<<<< HEAD
+<<<<<<< HEAD
    2.2.11
 =======
    2.0.2
 >>>>>>> 97b861c (removing tz info gem)
+=======
+   2.0.1
+>>>>>>> 1d7b216 (changing bundler)
