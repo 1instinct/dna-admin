@@ -170,7 +170,8 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 	before_action :set_session
 
 	def index
-		@messages = Message.all
+		collection(Message)
+		respond_with(@collection)
 	end
 
 	def new
@@ -230,6 +231,7 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		params.require(:message).permit(:creator_id, :recipients, :is_received, :is_read, :sentiment)
 	end
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
         def set_msgs
@@ -265,6 +267,18 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 end
 >>>>>>> 0b8dd08 (chat screens and internal request to dna api)
 =======
+=======
+	def collection(resource)
+		return @collection if @collection.present?
+
+		params[:q] ||= {}
+
+		@collection = resource.all
+		# @search needs to be defined as this is passed to search_form_for
+		@search = @collection.ransack(params[:q])
+		@collection = @search.result.order(created_at: :desc).page(params[:page]).per(params[:per_page])
+	end
+>>>>>>> ad6d950 (Add paging code for the live stream)
 end
 # class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 #
