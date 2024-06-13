@@ -46,7 +46,7 @@ gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 =======
 gem 'spree', '~> 3.7'
-# gem 'spree_auth_devise', '~> 3.3'
+gem 'spree_auth_devise', '~> 3.5'
 gem 'spree_gateway', '~> 3.4'
 >>>>>>> 48588a8 (downgrade spree_auth_devise)
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
