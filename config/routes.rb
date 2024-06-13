@@ -22,6 +22,9 @@ Spree::Core::Engine.add_routes do
         get :conversation
         get :conversations
       end
+      collection do
+        get :conversations
+      end
       resources :message_support, only: [:index]
     end
 

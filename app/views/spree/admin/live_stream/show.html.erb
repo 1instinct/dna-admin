@@ -80,7 +80,11 @@
       <%= f.collection_select(:product_ids, Spree::Product.all, :id, :name, { include_blank: Spree.t('match_choices.none') }, { class: 'select2', multiple: :true, :disabled => "disabled" }) %>
       <%= f.error_message_on :product_ids %>
     <% end %>
-
+    <%= f.field_container :actor_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:actor_id) %> <span class="required">*</span>
+      <%= f.select :actor_id, options_for_select(Spree::User.pluck(:email, :id)), {}, { class: 'select2', :disabled => "disabled" } %>
+      <%= f.error_message_on :actor_id %>
+    <% end %>
     <div class="form-actions" data-hook="buttons">
       <%= link_to Spree.t('actions.generate_playback'), generate_playback_admin_live_stream_index_path(id: @live_stream.id), class: 'btn btn-success', data: { disable_with: "#{Spree.t('live_stream.generating')...}"} %>
     </div>
