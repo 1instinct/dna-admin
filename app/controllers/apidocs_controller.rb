@@ -26,11 +26,15 @@ class ApidocsController < ActionController::Base
     Spree::Api::V1::LiveStreamController,
     Spree::Api::V1::UsersController,
     Spree::Api::V1::PagesController,
+<<<<<<< HEAD
     Spree::Api::V1::ContactsController,
     Spree::Api::V1::MessagesController,
     Spree::Api::V1::ThreadsController,
     Spree::Api::V1::MenuLocationsController,
     Spree::Api::V1::MenuItemsController,
+=======
+    Spree::Api::V1::MenuLocationsController,
+>>>>>>> e68314f (add menu location to swagger)
     SwaggerGlobalModel,
     self,
   ].freeze
