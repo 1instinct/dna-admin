@@ -1,7 +1,8 @@
 class MenuItem < Spree::Base
   before_create :set_item_position
   before_save :assign_default_values
-
+  belongs_to :menu_location,
+              foreign_key: :menu_location_id
   belongs_to :parent,
              foreign_key: :parent_id,
              class_name: 'MenuItem',

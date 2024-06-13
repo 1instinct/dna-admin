@@ -13,7 +13,7 @@
 <% end %>
 
 <div id="ajax_error" class="errorExplanation" style="display:none;"></div>
-
+<%= render '/spree/admin/menu_items/children_menu' %>
 <%= form_tag(admin_menu_items_path, method: :post) do |f| %>
   <fieldset class="no-border-top no-border-bottom">
     <%= label_tag nil, Spree.t(:tree) %>
@@ -24,7 +24,7 @@
 
     <div id="menu_tree" class="tree"></div>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-    <%#= render '/spree/admin/menu_items/children_menu' %>
+
     <div id="progress" style="display:none;">
       <%= image_tag 'instinct_logo.png', :title => 'Spinner', :style => "vertical-align:bottom;" %> <%= Spree.t(:updating) %>...
     </div>
