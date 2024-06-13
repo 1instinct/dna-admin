@@ -228,7 +228,7 @@ class Spree::Admin::MessagesController <  Spree::Admin::BaseController
 		session[:return_to] = request.url
 	end
 	def message_params
-		params.require(:message).permit(:creator_id, :recipients, :is_received, :is_read, :sentiment)
+		params.require(:message).permit(:is_received, :is_read, :sentiment, :sender_type, :sender_id, :receiver_type, :receiver_id)
 	end
 <<<<<<< HEAD
 <<<<<<< HEAD
