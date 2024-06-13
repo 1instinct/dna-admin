@@ -68,7 +68,7 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
       property :offset do
         key :type, :integer
       end
-      property :menu_location_listing do
+      property :menu_item_listing do
         key :type, :array
         items do
           key :'$ref', :menu_location_with_menu_items
@@ -116,7 +116,7 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     response_data = {
       total_records: total_count,
       offset: offset,
-      menu_location_listing: menu_location_listing
+      menu_item_listing: menu_item_listing
     }
     singular_success_model(200, Spree.t('menu_item.success.index'), response_data)
   end

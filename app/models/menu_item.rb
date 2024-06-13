@@ -1,4 +1,4 @@
-class MenuItem < ApplicationRecord
+class MenuItem < Spree::Base
   before_create :set_item_position
   before_save :assign_default_values
 
@@ -26,12 +26,6 @@ class MenuItem < ApplicationRecord
   def assign_default_values
     %w(url item_class item_id item_target parent_id).each do |key|
       self[key] = nil if self[key].blank?
-    end
-  end
-
-  def assign_parent_id
-    unless self.parent_id.present?
-      self.update(parent_id: self.id)
     end
   end
 end
