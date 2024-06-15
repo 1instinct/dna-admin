@@ -54,7 +54,7 @@ spec:
     spec:
       containers:
       - name: dna-db
-        image: postgres-13
+        image: postgres:13
         ports:
         - containerPort: 5432
         env:
