@@ -4,21 +4,21 @@ metadata:
   name: dna-admin
   namespace: default
   labels:
-    app: dna
+    app: dna-admin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dna
+      app: dna-admin
   template:
     metadata:
       labels:
-        app: dna
+        app: dna-admin
     spec:
       containers:
       - name: dna-admin
         image: dna-admin:0.1
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         env:
         - name: DATABASE_URL
           value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
