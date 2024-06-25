@@ -27,4 +27,4 @@ docker-compose restart web
 #   kubectl apply -f k8-deployment.yaml
 
 # to forward port
-#   kubectl port-forward --address 0.0.0.0 service/dna-entrypoint 3001:3001
+#   kubectl port-forward --address 0.0.0.0 service/dna-entrypoint 3000
