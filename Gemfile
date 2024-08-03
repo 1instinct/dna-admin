@@ -47,8 +47,8 @@ gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 gem 'spree_digital', github: 'spree-contrib/spree_digital', branch: 'fix/spree-4-1-plus'
-gem 'spree_reffiliate', github: 'Gaurav2728/spree_reffiliate'
-gem 'spree_loyalty_points', github: 'Gaurav2728/spree-loyalty-points'
+gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
+gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
 
 gem 'spree_editor', github: 'spree-contrib/spree_editor'
 

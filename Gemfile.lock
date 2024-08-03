@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/1instinct/spree-loyalty-points.git
+  revision: e99d2ed4913fd52bed865a5c814fefec7d82a28f
+  specs:
+    spree_loyalty_points (1.2.1)
+      spree_core (~> 4.2.5)
+
+GIT
   remote: https://github.com/1instinct/spree.git
   revision: 6bda546328a300aff04591d89d40c7b3f4b02473
   branch: instinct-dna
@@ -67,18 +74,11 @@ GIT
       spree_core (= 4.2.5)
 
 GIT
-  remote: https://github.com/Gaurav2728/spree-loyalty-points.git
-  revision: e99d2ed4913fd52bed865a5c814fefec7d82a28f
-  specs:
-    spree_loyalty_points (1.2.1)
-      spree_core (~> 4.2.5)
-
-GIT
-  remote: https://github.com/Gaurav2728/spree_reffiliate.git
-  revision: f7ee16000c6f278a13f2c7ae9c98e0926fdeeec7
+  remote: https://github.com/1instinct/spree_reffiliate.git
+  revision: 16a092086888b5d9f60aa8510f5bdddf4eb96953
   specs:
     spree_reffiliate (3.2.0.alpha)
-      spree_core (>= 3.2.0, <= 4.2.5)
+      spree_core (>= 3.2.0, <= 4.3.0.alpha)
 
 GIT
   remote: https://github.com/spree-contrib/spree_digital.git
