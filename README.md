@@ -44,7 +44,7 @@ password: spree123
 This will reset the existing database back to blank.
 
 ```shell
-docker-compose exec web rails db:reset railties:install:migrations db:migrate db:seed spree_sample:load
+docker-compose exec web rails db:reset railties:install:migrations db:migrate spree_sample:load db:seed
 ```
 
 You could also blow away all the DB files.  WARNING! You'll have to start

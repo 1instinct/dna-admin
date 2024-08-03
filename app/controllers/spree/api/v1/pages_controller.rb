@@ -1,7 +1,10 @@
-class Spree::Api::V1::PagesController < ApplicationController
+class Spree::Api::V1::PagesController < Spree::Api::BaseController
   include Swagger::Blocks
   include Response
   include Spree::Api::V1::GlobalHelper
+
+  before_action :authenticate_user, :except => [:index, :show]
+
   swagger_path "/pages" do
     operation :get do
       key :summary, "Pages Listing and Searching."
@@ -44,6 +47,7 @@ class Spree::Api::V1::PagesController < ApplicationController
       end
     end
   end
+
   swagger_schema :page_search_response do
     key :required, [:response_code, :response_message]
     property :response_code do
@@ -67,6 +71,7 @@ class Spree::Api::V1::PagesController < ApplicationController
       end
     end
   end
+
   swagger_schema :page do
     property :id do
       key :type, :integer
@@ -122,17 +127,24 @@ class Spree::Api::V1::PagesController < ApplicationController
       key :type, :boolean
     end
   end
+  
   def index
+    puts "params: #{params}"
     page_listing = []
     query = params[:search]
-    pages = Spree::Page.all
-    pages = pages.where("title ILIKE :query OR body ILIKE :query", query: "%#{query}%")&.distinct
+    @pages = Spree::Page.all
+    puts "query: #{query}"
+    @pages = @pages.where("title ILIKE :query OR body ILIKE :query", query: "%#{query}%")&.distinct
+    puts "pages: #{@pages}"
     limit = params[:limit].present? ? params[:limit].to_i : 0
     offset = params[:offset].present? ? params[:offset].to_i : 0
-    total_count = pages.count
-    pages = pages.slice(offset, limit) unless limit == 0
-    pages&.each do |page|
-      page_listing << page_detail(page.id)
+    total_count = @pages.count
+    @pages = @pages.slice(offset, limit) unless limit == 0
+
+    if @pages.present?
+      @pages.each do |page|
+        page_listing << page_detail(page.id)
+      end
     end
 
     response_data = {
@@ -142,6 +154,7 @@ class Spree::Api::V1::PagesController < ApplicationController
     }
     singular_success_model(200, Spree.t('page.success.page_list'), response_data)
   end
+
   swagger_path "/pages/{slug}" do
     operation :get do
       key :summary, "Fetch page using slug"
@@ -170,6 +183,7 @@ class Spree::Api::V1::PagesController < ApplicationController
       end
     end
   end
+
   swagger_schema :single_page_response do
     key :required, [:response_code, :response_message]
     property :response_code do
@@ -182,15 +196,22 @@ class Spree::Api::V1::PagesController < ApplicationController
       key :'$ref', :page
     end
   end
+
   def show
     page = Spree::Page.find_by_slug(params[:slug])
     if page.present?
-      singular_success_model(200, Spree.t('page.success.show'), page_detail(page.id))
+    singular_success_model(200, Spree.t('page.success.show'), page_detail(page.id))
     else
-      error_model(400, Spree.t('page.error.page_not_found'))
+    error_model(400, Spree.t('page.error.page_not_found'))
     end
   end
+
   private
+  
+  def page_params
+    params.require(:page).permit(:title, :body, :slug, :show_in_header, :foreign_link, :position, :visible, :meta_keywords, :meta_description, :layout, :show_in_sidebar, :meta_title, :render_layout_as_partial, :show_in_footer)
+  end
+
   def page_detail(id)
     page = Spree::Page.find(id)
     page = {

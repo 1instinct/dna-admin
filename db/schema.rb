@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_06_153324) do
+ActiveRecord::Schema.define(version: 2023_05_27_161848) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,6 +60,16 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "contacts", force: :cascade do |t|
+    t.integer "actor_id"
+    t.string "full_name"
+    t.text "email"
+    t.text "phone"
+    t.text "ip"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -122,6 +132,45 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.boolean "is_active"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "menu_items", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "url"
+    t.string "item_class"
+    t.string "item_id"
+    t.string "item_target"
+    t.integer "parent_id"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "is_visible"
+    t.integer "menu_location_id"
+  end
+
+  create_table "menu_locations", force: :cascade do |t|
+    t.string "title"
+    t.string "location"
+    t.boolean "is_visible"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.boolean "is_received"
+    t.boolean "is_read"
+    t.integer "sentiment"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "sender_type"
+    t.bigint "sender_id"
+    t.string "receiver_type"
+    t.bigint "receiver_id"
+    t.bigint "thread_table_id"
+    t.text "message"
+    t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
+    t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
+    t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -420,18 +469,6 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["source_id", "source_type"], name: "index_spree_log_entries_on_source_id_and_source_type"
   end
 
-  create_table "spree_menu_items", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "url"
-    t.string "item_class"
-    t.string "item_id"
-    t.string "item_target"
-    t.integer "parent_id"
-    t.integer "position", default: 0, null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
   create_table "spree_loyalty_points_transactions", force: :cascade do |t|
     t.integer "loyalty_points"
     t.string "type"
@@ -446,6 +483,18 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["source_type", "source_id"], name: "by_source"
     t.index ["type"], name: "index_spree_loyalty_points_transactions_on_type"
     t.index ["user_id"], name: "index_spree_loyalty_points_transactions_on_user_id"
+  end
+
+  create_table "spree_menu_items", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "url"
+    t.string "item_class"
+    t.string "item_id"
+    t.string "item_target"
+    t.integer "parent_id"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "spree_oauth_access_grants", force: :cascade do |t|
@@ -1441,7 +1490,15 @@ ActiveRecord::Schema.define(version: 2021_08_06_153324) do
     t.index ["kind"], name: "index_spree_zones_on_kind"
   end
 
+  create_table "thread_tables", force: :cascade do |t|
+    t.boolean "archived"
+    t.boolean "stale"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
 end

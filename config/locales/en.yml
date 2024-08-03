@@ -576,8 +576,16 @@ en:
         no_store_credit: User has no Store Credit available.
         available_store_credit: User has %{amount} in Store Credit available.
       live_stream:
-        list: Live stream list fetch successfully.
-        add_live_stream: New Live Stream
+        live_stream_deleted: Live Stream has been deleted
+        live_stream_show: Live Stream fetch successfully
+        live_stream_menu: Live Streams
+        generating: Generating Playback Id
+        fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+        update_success: Live Stream updated successfully.
+        added_success: Live Stream Added successfully.
+        list_success: Live Stream listed successfully.
+        product_ids: Select live stream products
+        live_stream_not_found: Live Stream not found.
     administration: Administration
     advertise: Advertise
     agree_to_privacy_policy: Agree to Privacy Policy
@@ -914,7 +922,18 @@ en:
     lifetime_stats: Lifetime Stats
     line_item_adjustments: "Line item adjustments"
     list: List
-    menu_location: Menu Location
+    menu_location:
+      title: Menu Location
+      success:
+          index: "Successfully listed menu locations."
+          show: "Successfully fetched menu location."
+          create: "Successfully created menu location."
+    menu_item:
+      title: Menu Item
+      success:
+          index: "Successfully listed menu items."
+          show: "Successfully fetched menu item."
+          create: "Successfully created menu item."
     live_stream:
       live_stream_deleted: Live Stream has been deleted
       live_stream_show: Live Stream fetch successfully
@@ -1652,7 +1671,14 @@ en:
     use_new_cc_or_payment_method: Use a new card / payment method
     use_s3: Use Amazon S3 For Images
     used: Used
-    user: User
+    user:
+      title: User
+      error:
+        user_exists: User exists with given email.
+        email_password_unmatch: Email and Password does not match. Please enter valid credentials.
+      success:
+        sign_up: User created successfully.
+        sign_in: User Sign in Successfully.
     user_rule:
       choose_users: Choose users
     users: Users
@@ -1683,27 +1709,3 @@ en:
     zone: Zone
     zones: Zones
     start_at: Start Date Time
-    live_stream:
-      live_stream_deleted: Live Stream has been deleted
-      live_stream_show: Live Stream fetch successfully
-      live_stream_menu: Live Streams
-      generating: Generating Playback Id
-      fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
-      update_success: Live Stream updated successfully.
-      added_success: Live Stream Added successfully.
-      list_success: Live Stream listed successfully.
-      product_ids: Select live stream products
-      live_stream_not_found: Live Stream not found.
-    user:
-      error:
-        user_exists: User exists with given email.
-        email_password_unmatch: Email and Password does not match. Please enter valid credentials.
-      success:
-        sign_up: User created successfully.
-        sign_in: User Sign in Successfully.
-    page:
-      error:
-        page_not_found: Page not found with passed slug.
-      success:
-        page_list: Pages listed successfully.
-        show: Page fetch successfully.
