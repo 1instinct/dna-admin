@@ -6,7 +6,7 @@ set -e
 #  sudo rm -rf tmp/db
 
 docker-compose build
-docker-compose up -d && sleep 5
+docker-compose up -d
 
 docker-compose exec web rails db:create db:schema:load db:migrate
 docker-compose exec \

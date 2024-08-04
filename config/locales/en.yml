@@ -576,8 +576,16 @@ en:
         no_store_credit: User has no Store Credit available.
         available_store_credit: User has %{amount} in Store Credit available.
       live_stream:
-        list: Live stream list fetch successfully.
-        add_live_stream: New Live Stream
+        live_stream_deleted: Live Stream has been deleted
+        live_stream_show: Live Stream fetch successfully
+        live_stream_menu: Live Streams
+        generating: Generating Playback Id
+        fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+        update_success: Live Stream updated successfully.
+        added_success: Live Stream Added successfully.
+        list_success: Live Stream listed successfully.
+        product_ids: Select live stream products
+        live_stream_not_found: Live Stream not found.
     administration: Administration
     advertise: Advertise
     agree_to_privacy_policy: Agree to Privacy Policy
@@ -914,7 +922,18 @@ en:
     lifetime_stats: Lifetime Stats
     line_item_adjustments: "Line item adjustments"
     list: List
-    menu_location: Menu Location
+    menu_location:
+      title: Menu Location
+      success:
+          index: "Successfully listed menu locations."
+          show: "Successfully fetched menu location."
+          create: "Successfully created menu location."
+    menu_item:
+      title: Menu Item
+      success:
+          index: "Successfully listed menu items."
+          show: "Successfully fetched menu item."
+          create: "Successfully created menu item."
     live_stream:
       live_stream_deleted: Live Stream has been deleted
       live_stream_show: Live Stream fetch successfully
@@ -1169,24 +1188,7 @@ en:
           show: Thread fetched successfully.
       error:
           not_found: Thread not found.
-    menu_location:
-      success:
-          create: Menu Location add successfully.
-          update: Menu Location updated successfully.
-          index: Menu Location listed successfully.
-          delete: Menu Location deleted successfully.
-          show: Menu Location fetched successfully.
-      error:
-          not_found: Menu Location not found.
-    menu_item:
-      success:
-          create: Menu Item add successfully.
-          update: Menu Item updated successfully.
-          index: Menu Item listed successfully.
-          delete: Menu Item deleted successfully.
-          show: Menu Item fetched successfully.
-      error:
-          not_found: Menu Item not found.
+
     pagination:
       next_page: next page &raquo;
       previous_page: ! '&laquo; previous page'
@@ -1669,8 +1671,8 @@ en:
     use_new_cc_or_payment_method: Use a new card / payment method
     use_s3: Use Amazon S3 For Images
     used: Used
-    user_singular: User
     user:
+      title: User
       error:
         user_exists: User exists with given email.
         email_password_unmatch: Email and Password does not match. Please enter valid credentials.

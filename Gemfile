@@ -40,6 +40,8 @@ gem 'bootsnap', '~> 1.8.1'
 
 gem "aws-sdk-s3", require: false
 
+gem "net-http"
+
 gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
@@ -49,6 +51,7 @@ gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
 gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
 
 gem 'spree_avatar', github: '1instinct/spree_avatar'
+gem 'spree_editor', github: 'spree-contrib/spree_editor'
 
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'

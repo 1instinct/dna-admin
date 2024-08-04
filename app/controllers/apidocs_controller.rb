@@ -4,13 +4,13 @@ class ApidocsController < ActionController::Base
     key :swagger, '2.0'
     info do
       key :version, '1.0.0'
-      key :title, ENV['SITE_TITLE']
-      key :description, ENV['SITE_DESCRIPTION']
+      key :title, 'POL Ecommerce website'
+      key :description, 'POL App and Website. Types of user in this are User.'
       contact do
-        key :name, ENV['SITE_ADMIN_NAME']
+        key :name, 'Mayank Gandhi'
       end
     end
-    key :host, 'http://localhost:8080/apidocs.json' if Rails.env.development?
+    key :host, 'https://dna-admin-dev.instinct.is/' if Rails.env.development?
     key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
     key :host, 'https://admin.instinct.is/' if Rails.env.production?
 
@@ -29,8 +29,6 @@ class ApidocsController < ActionController::Base
     Spree::Api::V1::ContactsController,
     Spree::Api::V1::MessagesController,
     Spree::Api::V1::ThreadsController,
-    Spree::Api::V1::MenuLocationsController,
-    Spree::Api::V1::MenuItemsController,
     SwaggerGlobalModel,
     self,
   ].freeze
