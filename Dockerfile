@@ -25,7 +25,16 @@ RUN gem install bundler:2.2.11 && bundle install
 COPY . ./
 
 # Precompile assets
-RUN RAILS_ENV=production bundle exec rake assets:precompile
+
+# Set environment variables for asset precompilation
+# ARG DATABASE_URL=postgresql://postgres:password@db:5432/dna_admin_development
+# ENV RAILS_ENV=production
+
+# RUN RAILS_ENV=production bundle exec rake assets:precompile
+# RUN RAILS_ENV=development DATABASE_URL=postgresql://postgres:password@db:5432/dna_admin_development bundle exec rake assets:precompile
+# COPY wait-for-it.sh /usr/bin/
+# RUN chmod +x /usr/bin/wait-for-it.sh
+# RUN /usr/bin/wait-for-it.sh db:5432 --timeout=30 --strict -- bundle exec rake assets:precompile
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/

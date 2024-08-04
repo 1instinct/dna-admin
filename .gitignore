@@ -80,3 +80,5 @@ secret.yaml
 *.tar
 *.yml.prod
 docker-compose.yml.local
+
+.anima/

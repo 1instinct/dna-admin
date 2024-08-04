@@ -1,14 +1,15 @@
-version: '3.3'
-
 services:
   db:
     image: postgres
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - ./tmp/db:/var/lib/postgresql/data
+      # - ./tmp/db:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: dna_admin_development
   web:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
@@ -17,4 +18,19 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
+      DATABASE_URL: postgresql://postgres:password@db:5432/dna_admin_development
+      AWS_ACCESS_KEY_ID: <%= ENV['AWS_ACCESS_KEY'] %>
+      AWS_SECRET_ACCESS_KEY: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+      AWS_REGION_NAME: <%= ENV['AWS_REGION_NAME'] %>
+      AWS_BUCKET_NAME: <%= ENV['AWS_BUCKET_NAME'] %>
+      RAILS_ENV: production
+  precompile:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails db:migrate && bundle exec rake assets:precompile"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/dna_admin_development
+      RAILS_ENV: production
+volumes:
+  db-data:

@@ -2,7 +2,6 @@ if Rails.env.development? || Rails.env.test?
 
 	Dotenv.require_keys(
 		'AWS_ACCESS_KEY_ID',
-		'AWS_BUCKET',
 		'AWS_BUCKET_NAME',
 		'AWS_REGION_NAME',
 		'AWS_SECRET_ACCESS_KEY',
@@ -39,7 +38,6 @@ if Rails.env.development? || Rails.env.test?
 end
 
 AWS_ACCESS_KEY_ID = ENV['AWS_ACCESS_KEY_ID']
-AWS_BUCKET = ENV['AWS_BUCKET']
 AWS_BUCKET_NAME = ENV['AWS_BUCKET_NAME']
 AWS_REGION_NAME = ENV['AWS_REGION_NAME']
 AWS_SECRET_ACCESS_KEY = ENV['AWS_SECRET_ACCESS_KEY']
