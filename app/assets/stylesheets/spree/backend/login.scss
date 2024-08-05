@@ -1,9 +1,15 @@
 $primary: #2196F3;
 
+body {
+  margin: 0 !important;
+  background: black;
+  overflow: hidden;
+}
+
 .divclass {
   font-family: "Open Sans", sans-serif;
   height: 100vh;
-  background-image: url("https://i.imgur.com/HgflTDf.jpg") 50% fixed;
+  // background-image: url(asset-path('background.jpg', image)) 50% fixed;
   background-size: cover;
 }
 
@@ -27,7 +33,7 @@ $primary: #2196F3;
   background: rgba(darken(#2196F3,40%), 0.85);
   font-family: "Open Sans", sans-serif;
   height: 100vh;
-  background-image: url("https://i.imgur.com/HgflTDf.jpg");
+  // background-image: url(asset-path('background.jpg', image));
   background-size: cover;
 }
 

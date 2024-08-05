@@ -38,7 +38,7 @@ gem 'rack-cors', :require => 'rack/cors'
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '~> 1.8.1'
 
-gem "aws-sdk-s3", require: false
+gem "aws-sdk-s3", '~> 1.96'
 
 gem "net-http"
 
@@ -52,6 +52,8 @@ gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
 
 gem 'spree_avatar', github: '1instinct/spree_avatar'
 gem 'spree_editor', github: 'spree-contrib/spree_editor'
+
+gem 'paperclip', '~> 6.1.0'
 
 # doesn't support spree 4
 #gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
@@ -68,7 +70,7 @@ group :development, :test do
   gem 'prettier'
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   # use to seed the records
-  gem 'factory_bot_rails', '~> 6.0'
+  gem 'factory_bot_rails', '~> 5.2'
   # Use to generate fake data
   gem 'faker'
 end

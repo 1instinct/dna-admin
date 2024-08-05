@@ -1,21 +1,23 @@
-# Spree::Image.class_eval do
-#   attachment_styles.clear
-#   attachment_sizes.clear
+module Spree
+    module ImageDecorator
+        module ClassMethods
+            def styles
+                {
+                    mini: '48x48>',
+                    small: '100x100>',
+                    product: '240x240>',
+                    large: '600x600>',
+                    xl: '1000x1000>',
+                    widescreen: '1600x900>',
+                    portrait: '900x1600>'
+                }
+            end
+        end
+    
+        def self.prepended(base)
+            base.singleton_class.prepend ClassMethods
+        end
+    end
 
-#   # Add your custom styles here
-#   attachment_styles.merge!(
-#     mini: '48x48>',
-#     small: '100x100>',
-#     product: '240x240>',
-#     large: '600x600>'
-#   )
-
-#   # Add your custom sizes here
-#   attachment_sizes.merge!(
-#     mini: { width: 48, height: 48 },
-#     small: { width: 100, height: 100 },
-#     product: { width: 240, height: 240 },
-#     large: { width: 600, height: 600 },
-#     original: { }
-#   )
-# end
+    Spree::Image.prepend(Spree::ImageDecorator)
+end
