@@ -21,7 +21,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DATABASE_URL
-              value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
+              value: "postgres://postgres:c03213be9ab9014e@db-entrypoint:5432/dna_admin_production"
             - name: RAILS_ENV
               value: "production"
             - name: AWS_REGION_NAME
@@ -38,22 +38,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dna-db
+  name: db
   namespace: default
   labels:
-    app: dna-db
+    app: db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dna-db
+      app: db
   template:
     metadata:
       labels:
-        app: dna-db
+        app: db
     spec:
       containers:
-        - name: dna-db
+        - name: db
           image: postgres:13
           ports:
             - containerPort: 5432

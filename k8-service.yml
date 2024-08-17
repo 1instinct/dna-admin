@@ -21,7 +21,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: dna-db
+    app: db
   ports:
     - port: 5432
       targetPort: 5432

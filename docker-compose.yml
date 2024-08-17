@@ -16,4 +16,4 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://postgres:password@dna-db:5432/dna_admin_development
+      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
