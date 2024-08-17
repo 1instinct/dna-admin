@@ -128,8 +128,8 @@ in real values for the keys and bucket name):
      depends_on:
        - db
      environment:
--      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
-+      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_production
+-      DATABASE_URL: postgres://postgres:password@dna-db:5432/dna_admin_development
++      DATABASE_URL: postgres://postgres:password@dna-db:5432/dna_admin_production
 +      RAILS_ENV: production
 +      AWS_REGION_NAME: us-west-1
 +      AWS_BUCKET_NAME:

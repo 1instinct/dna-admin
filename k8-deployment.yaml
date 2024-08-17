@@ -16,24 +16,24 @@ spec:
         app: dna-admin
     spec:
       containers:
-      - name: dna-admin
-        image: dna-admin:0.1
-        imagePullPolicy: Always
-        env:
-        - name: DATABASE_URL
-          value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
-        - name: RAILS_ENV
-          value: "production"
-        - name: AWS_REGION_NAME
-          value: "us-west-1"
-        - name: AWS_BUCKET_NAME
-          value: "instinct-dna-dd"
-        # this won't be needed if using nginx
-        - name: RAILS_SERVE_STATIC_FILES
-          value: "1"
-        envFrom:
-        - secretRef:
-            name: aws-secrets
+        - name: dna-admin
+          image: dna-admin:0.1
+          imagePullPolicy: Always
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
+            - name: RAILS_ENV
+              value: "production"
+            - name: AWS_REGION_NAME
+              value: "us-west-1"
+            - name: AWS_BUCKET_NAME
+              value: "instinct-dna-dd"
+            # this won't be needed if using nginx
+            - name: RAILS_SERVE_STATIC_FILES
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: aws-secrets
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,30 +41,30 @@ metadata:
   name: dna-db
   namespace: default
   labels:
-    app: db
+    app: dna-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: db
+      app: dna-db
   template:
     metadata:
       labels:
-        app: db
+        app: dna-db
     spec:
       containers:
-      - name: dna-db
-        image: postgres:13
-        ports:
-        - containerPort: 5432
-        env:
-        - name: POSTGRES_PASSWORD
-          value: c03213be9ab9014e
-        volumeMounts:
-        - mountPath: /var/lib/postgresql/data
-          name: db-data
+        - name: dna-db
+          image: postgres:13
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              value: c03213be9ab9014e
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: db-data
       volumes:
-      - name: db-data
-        hostPath:
-          # directory location on host
-          path: /data
+        - name: db-data
+          hostPath:
+            # directory location on host
+            path: /data
