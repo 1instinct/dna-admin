@@ -6,22 +6,22 @@ metadata:
   annotations:
     class: public
     nginx.ingress.kubernetes.io/rewrite-target: /
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # If you're using cert-manager for SSL
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # If you're using cert-manager for SSL
   labels:
     app: dna-admin
 spec:
   rules:
-  - host: dna-admin.instinct.is
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: dna-entrypoint-service
-            port:
-              number: 80
+    - host: dna-admin.instinct.is
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dna-entrypoint-service
+                port:
+                  number: 8080
   tls:
-  - hosts:
-    - dna-admin.instinct.is
-      # secretName: dna-tls  # This is the secret that will store the SSL certificate
+    - hosts:
+        - dna-admin.instinct.is
+          # secretName: dna-tls  # This is the secret that will store the SSL certificate
