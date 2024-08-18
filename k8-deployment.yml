@@ -20,7 +20,7 @@ spec:
           # image: dna-admin:0.1
           image: localhost:32000/dna-admin:0.1
           # imagePullPolicy: Always
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: DATABASE_URL
               value: "postgres://postgres:c03213be9ab9014e@db-entrypoint:5432/dna_admin_production"
