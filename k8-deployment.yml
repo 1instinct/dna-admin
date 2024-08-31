@@ -23,7 +23,7 @@ spec:
           # imagePullPolicy: IfNotPresent
           env:
             - name: DATABASE_URL
-              value: "postgres://postgres:c03213be9ab9014e@db-entrypoint:5432/dna_admin_production"
+              value: "postgres://postgres:c03213be9ab9014e@dna-db-entrypoint:5432/dna_admin_production"
             - name: RAILS_ENV
               value: "production"
             - name: AWS_REGION_NAME
