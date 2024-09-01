@@ -16,8 +16,10 @@ sleep 5 ; docker-compose stop
 
 docker commit dna-admin_web_1 dna-admin_web:0.1
 docker tag dna-admin_web:0.1 dna-admin:0.1
+cd ../
 docker save dna-admin > dna-admin.tar
 microk8s ctr image import dna-admin.tar
 
-microk8s kubectl delete deployment.apps/dna-admin || :
-microk8s kubectl apply -f k8-deployment.yaml
+# microk8s kubectl delete deployment.apps/dna-admin || :
+# microk8s kubectl apply -f k8-deployment.yaml
+microk8s kubectl rollout restart deployment.apps/dna-admin -n default
