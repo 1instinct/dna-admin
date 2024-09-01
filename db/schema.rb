@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_05_27_161848) do
+ActiveRecord::Schema.define(version: 2024_08_03_170812) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -102,6 +102,15 @@ ActiveRecord::Schema.define(version: 2023_05_27_161848) do
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
   end
 
+  create_table "live_stream_contacts", force: :cascade do |t|
+    t.bigint "live_stream_id", null: false
+    t.bigint "contact_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["contact_id"], name: "index_live_stream_contacts_on_contact_id"
+    t.index ["live_stream_id"], name: "index_live_stream_contacts_on_live_stream_id"
+  end
+
   create_table "live_stream_likes", force: :cascade do |t|
     t.bigint "live_stream_id"
     t.bigint "user_id"
@@ -132,6 +141,8 @@ ActiveRecord::Schema.define(version: 2023_05_27_161848) do
     t.boolean "is_active"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "thread_table_id"
+    t.bigint "actor_id"
   end
 
   create_table "menu_items", force: :cascade do |t|
@@ -1498,6 +1509,10 @@ ActiveRecord::Schema.define(version: 2023_05_27_161848) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "live_stream_contacts", "contacts"
+  add_foreign_key "live_stream_contacts", "live_streams"
+  add_foreign_key "live_streams", "spree_users", column: "actor_id"
+  add_foreign_key "live_streams", "thread_tables"
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
