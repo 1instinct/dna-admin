@@ -22,20 +22,174 @@ spec:
           imagePullPolicy: Always
           # imagePullPolicy: IfNotPresent
           env:
-            - name: DATABASE_URL
-              value: "postgres://postgres:c03213be9ab9014e@db-entrypoint:5432/dna_admin_development"
-            - name: RAILS_ENV
-              value: "production"
+            - name: COMPANY_LOGO
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: COMPANY_LOGO
+            - name: COMPANY_BACKGROUND
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: COMPANY_BACKGROUND
+            - name: DNA_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DNA_API_URL
+            - name: DNA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DNA_API_KEY
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: SECRET_KEY_BASE
+            - name: DEVISE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DEVISE_SECRET_KEY
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DATABASE_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DATABASE_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DATABASE_NAME
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DATABASE_USER
+            - name: DATABASE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: DATABASE_PASS
+            - name: PUSHER_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: PUSHER_APP_ID
+            - name: PUSHER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: PUSHER_KEY
+            - name: PUSHER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: PUSHER_SECRET
+            - name: PUSHER_CLUSTER
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: PUSHER_CLUSTER
+            - name: TOKEN_EXPIRATION
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: TOKEN_EXPIRATION
+            - name: TOKEN_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: TOKEN_KEY_BASE
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AWS_SECRET_ACCESS_KEY
             - name: AWS_REGION_NAME
-              value: "us-west-1"
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AWS_REGION_NAME
             - name: AWS_BUCKET_NAME
-              value: "instinct-dna-dd"
-            # this won't be needed if using nginx
-            - name: RAILS_SERVE_STATIC_FILES
-              value: "1"
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AWS_BUCKET_NAME
+            - name: MAILGUN_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: MAILGUN_HOST
+            - name: MAILGUN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: MAILGUN_USER
+            - name: MAILGUN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: MAILGUN_PASS
+            - name: MAILGUN_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: MAILGUN_PORT
+            - name: MAILGUN_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: MAILGUN_DOMAIN
+            - name: AUTHORIZE_NET_API_LOGIN_ID
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AUTHORIZE_NET_API_LOGIN_ID
+            - name: AUTHORIZE_NET_TRANSACTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AUTHORIZE_NET_TRANSACTION_KEY
+            - name: AUTHORIZE_NET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: AUTHORIZE_NET_KEY
+            - name: QUICKBOOKS_ONLINE
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: QUICKBOOKS_ONLINE
+            - name: TWILIO_ACCOUNT_SID
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: TWILIO_ACCOUNT_SID
+            - name: TWILIO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: TWILIO_AUTH_TOKEN
+            - name: TWILIO_PHONE_NUMBER
+              valueFrom:
+                secretKeyRef:
+                  name: dna-admin-secrets
+                  key: TWILIO_PHONE_NUMBER
           envFrom:
             - secretRef:
-                name: aws-secrets
+                name: dna-admin-secrets
 ---
 apiVersion: apps/v1
 kind: Deployment
