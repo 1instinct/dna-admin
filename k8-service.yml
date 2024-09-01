@@ -16,7 +16,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dna-db-entrypoint
+  name: db-entrypoint
   namespace: default
 spec:
   type: ClusterIP
