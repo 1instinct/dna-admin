@@ -13,8 +13,7 @@ WORKDIR /dna
 # Rils will be installed once you load it from the Gemfile
 # This will also ensure that gems are cached and only updated when
 # they change.
-COPY Gemfile ./
-COPY Gemfile.lock ./
+COPY Gemfile Gemfile.lock ./
 
 # Note that dotenv is NOT used in production.  Environment
 # comes from the deployment.
@@ -27,18 +26,10 @@ RUN bundle config set force_ruby_platform true
 
 RUN bundle install
 
-# We copy all the application files from the current directory to out
-# /dna directory
-COPY ./app /dna/app
-COPY ./bin /dna/bin
-COPY ./config /dna/config
-COPY ./config.ru /dna/
-COPY ./db /dna/db
-COPY ./docs /dna/docs
-COPY ./lib /dna/lib
-COPY ./public /dna/public
-COPY ./Rakefile /dna/
-COPY ./vendor /dna/vendor
+COPY . ./
+
+# Precompile assets
+RUN RAILS_ENV=production bundle exec rake assets:precompile
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
