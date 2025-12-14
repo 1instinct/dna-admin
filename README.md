@@ -173,13 +173,10 @@ When there are lots of active changes occuring on this repo, make sure to regula
 
 Done!
 …now you will be up-to-date with latest code. Do this before you submit your PR, and you can be sure it will be a clean merge.
-<<<<<<< HEAD
-=======
 
 http://localhost:8080/apidocs/swagger_ui
 Make sure to change the port that the UI is expecting in the search bar
 
->>>>>>> 0cf7023042aa61e7988709e4a49a3b4d12c55c05
 ## TODO
 
 Other things we may need to cover:
