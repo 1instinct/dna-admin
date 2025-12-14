@@ -1,14 +1,26 @@
-# DOCKER SETUP
+# DOCKER SETUP ✻
+
 This repo is using Spree 4.2.4
+
 ## Build
+
 This should only have to be done once, or whenever the Gemfile is updated.
+
+First try this:
+
+```shell
+./docker-build.sh
 ```
+
+The manual way:
+
+```shell
 docker-compose build
 ```
 
 ## Create Containers
 
-```
+```shell
 docker-compose up
 ```
 
@@ -19,7 +31,7 @@ but it probably needs to be set up first.
 
 In a new terminal run:
 
-```
+```shell
 docker-compose exec web rails db:create db:schema:load db:migrate &&
 docker-compose exec -e ADMIN_EMAIL=spree@example.com -e ADMIN_PASSWORD=spree123 web rails db:seed &&
 docker-compose exec web rails spree_sample:load &&
@@ -29,7 +41,7 @@ docker-compose restart
 OPTIONAL: Create a new admin user.  This can be used to reset the
 admin user also:
 
-```
+```shell
 docker-compose exec web rails spree_auth:admin:create
 ```
 
@@ -109,6 +121,13 @@ on github is hooked in to the deployment.
 11. Load Sample Data: `heroku run -a dna-admin-staging rake spree_sample:load`
 12. Asset Precompile: `heroku run -a dna-admin-staging rake assets:precompile`
 
+Alternate (container) deploy:
+
+1. `./docker-build.sh`
+1. `heroku stack:set container -a dna-admin-prod`
+1. `heroku container:push dna-admin-web-1 -a dna-admin-prod`
+1. `heroku container:release web -a dna-admin-prod`
+1. `heroku config:set SECRET_KEY_BASE=$(docker-compose exec dna-admin-web-1 rails secret) -a kry-admin-prod`
 
 Git: <https://github.com/POL-Clothing/pol-admin>
 
