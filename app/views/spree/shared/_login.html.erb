@@ -1,41 +1,44 @@
 <div class="divclass">
-  <div class="col-lg-11 mx-auto wrapper">
-    <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag(ENV['COMPANY_LOGO'], style: "height: 100px;") %></h3>
-    <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
-      <div id="password-credentials" class="mb-4">
-        <div class="form-group mb-4">
-          <p class="form-group checkout-content-inner-field">
-            <%= f.email_field :email, class: 'box1 spree-flat-input', placeholder: Spree.t(:email), value: params.dig(:spree_user, :email) %>
-          </p>
-        </div>
-        <div class="form-group mb-4">
-          <p class="form-group checkout-content-inner-field">
-            <%= f.password_field :password, class: 'box1 spree-flat-input', placeholder: Spree.t(:password) %>
-          </p>
-        </div>
+<div class="col-lg-11 mx-auto wrapper">
+  <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag 'instinct_logo.png', :style => "height: 100px;" %></h3>
+  <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
+    <div id="password-credentials" class="mb-4">
+      <div class="form-group mb-4">
+        <p class="form-group checkout-content-inner-field">
+          <%= f.email_field :email, class: 'box1 spree-flat-input', placeholder: Spree.t(:email), value: params.dig(:spree_user, :email) %>
+        </p>
       </div>
+      <div class="form-group mb-4">
+        <p class="form-group checkout-content-inner-field">
+          <%= f.password_field :password, class: 'box1 spree-flat-input', placeholder: Spree.t(:password) %>
+        </p>
+      </div>
+    </div>
 
-      <% if Spree::Frontend::Config[:remember_me_enabled] %>
-        <div class="spree-checkbox-container mt-4 mt-sm-5 mt-lg-4 spree-mb-medium">
-          <div class="spree-checkbox">
-            <%= f.check_box :remember_me %>
-            <%= f.label :remember_me, '' %>
-          </div>
-
-          <%#= f.label :remember_me, Spree.t(:remember_me), class: 'spree-checkbox-label' %>
+    <% if Spree::Frontend::Config[:remember_me_enabled] %>
+      <div class="spree-checkbox-container mt-4 mt-sm-5 mt-lg-4 spree-mb-medium">
+        <div class="spree-checkbox">
+          <%= f.check_box :remember_me %>
+          <%= f.label :remember_me, '' %>
         </div>
-      <% end %>
 
-      <%= f.submit Spree.t(:log_in), class: 'btn btn-primary btn-block spree-btn mt-2' %>
-    <% end %>
-
-    <% if spree.respond_to?(:recover_password_path) %>
-      <div class="text-center forgot-password mb-4">
-        <%= link_to Spree.t(:forgot_password), spree.recover_password_path, class: 'fp' %>
+        <%#= f.label :remember_me, Spree.t(:remember_me), class: 'spree-checkbox-label' %>
       </div>
     <% end %>
-  </div>
+
+    <%= f.submit Spree.t(:log_in), class: 'btn btn-primary btn-block spree-btn mt-2' %>
+  <% end %>
+
+  <% if spree.respond_to?(:recover_password_path) %>
+    <div class="text-center forgot-password mb-4">
+      <%= link_to Spree.t(:forgot_password), spree.recover_password_path, class: 'fp' %>
+    </div>
+  <% end %>
 </div>
+</div>
+
+
+
 
 <style type="text/css">
   $primary: #2196F3;
@@ -43,7 +46,7 @@
   .divclass {
     font-family: "Open Sans", sans-serif;
     height: 100vh;
-    background-image: url("<%= ENV['COMPANY_BACKGROUND'] %>") 50% fixed;
+    background-image: url("https://i.imgur.com/HgflTDf.jpg") 50% fixed;
     background-size: cover;
   }
 
@@ -64,12 +67,10 @@
     width: 100%;
     min-height: 100%;
     padding: 20px;
-    background: rgba(darken(#008EAE,40%), 0.85);
+    background: rgba(darken(#2196F3,40%), 0.85);
     font-family: "Open Sans", sans-serif;
     height: 100vh;
-    margin: -8px -8px;
-    width: 100vw;
-    background-image: url("<%= ENV['COMPANY_BACKGROUND'] %>");
+        background-image: url("https://i.imgur.com/yzS1Nse.jpeg");
     background-size: cover;
   }
 
@@ -135,7 +136,7 @@
         }
         outline: none;
         color: #444;
-        border-color: #008EAE;
+        border-color: #2196F3;
         border-left-width: 35px;
       }
 
@@ -153,7 +154,7 @@
       width: 100%;
       height: 100%;
       padding: 10px 10px;
-      background: #008EAE;
+      background: #2196F3;
       color: black;
       display: block;
       border: none;
@@ -193,7 +194,7 @@
 
 
       &:not(.loading) .btn:hover {
-        box-shadow: 0px 1px 3px #008EAE;
+        box-shadow: 0px 1px 3px #2196F3;
       }
       &:not(.loading) .btn:focus {
         border-bottom-width: 4px;
@@ -215,4 +216,6 @@
       text-decoration: none;
     }
   }
+
+
 </style>

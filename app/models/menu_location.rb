@@ -1,5 +1,5 @@
 class MenuLocation < Spree::Base
-  has_many :menu_items
+  has_many :menu_items, dependent: :destroy
 
   self.whitelisted_ransackable_attributes = %w[tittle]
   self.whitelisted_ransackable_scopes = %w[search_by_title]

@@ -10,31 +10,17 @@ if Rails.env.development? || Rails.env.test?
 		'COMPANY_BACKGROUND',
 		'DATABASE_URL',
 		'DEVISE_SECRET_KEY',
-		'DNA_API_KEY',
-		'LANG',
-		'MAILGUN_HOST',
-		'MAILGUN_PASS',
-		'MAILGUN_PORT',
-		'MAILGUN_USER',
 		'PUSHER_APP_ID',
-		'PUSHER_CLUSTER',
 		'PUSHER_KEY',
 		'PUSHER_SECRET',
-		'RACK_ENV',
-		'RAILS_ENV',
-		'RAILS_LOG_TO_STDOUT',
-		'RAILS_SERVE_STATIC_FILES',
-		'SECRET_KEY_BASE',
-		'SITE_ADMIN_NAME',
-		'SITE_SLUG',
-		'SITE_TITLE',
-		'SITE_URL',
+		'PUSHER_CLUSTER',
 		'TOKEN_EXPIRATION',
 		'TOKEN_KEY_BASE',
-		'TWILIO_ACCOUNT_SID',
-		'TWILIO_PHONE_NUMBER',
-		'TWILIO_TOKEN_AUTH'
+		'DNA_API_URL',
+		'DNA_API_KEY'
 	)
+
+	Dotenv.load(Rails.root.join('.env.development'))
 
 end
 

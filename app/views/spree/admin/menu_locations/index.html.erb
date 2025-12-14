@@ -1,5 +1,5 @@
 <% content_for :page_title do %>
-  <%= Spree.t(:"admin.menu_location") %>
+  <%= Spree.t(:"admin.menu_location.title") %>
 <% end %>
 <% content_for :page_actions do %>
   <%= button_link_to Spree.t(:add_menu_location), spree.new_admin_menu_location_path, class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>

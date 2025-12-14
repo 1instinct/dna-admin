@@ -20,7 +20,11 @@ COPY Gemfile Gemfile.lock ./
 COPY .env.development .env.development
 
 # Install the Gems
-RUN gem install bundler:2.2.11 && bundle install
+RUN gem install bundler:2.2.11
+
+RUN bundle config set force_ruby_platform true
+
+RUN bundle install
 
 COPY . ./
 
