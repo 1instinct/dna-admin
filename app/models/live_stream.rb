@@ -1,6 +1,8 @@
 class LiveStream < Spree::Base
   has_many :live_stream_products, dependent: :destroy
   has_many :products, class_name: 'Spree::Product', through: :live_stream_products, dependent: :destroy
+  has_many :live_stream_contacts, dependent: :destroy
+  has_many :contacts, through: :live_stream_contacts
   belongs_to :thread_table, optional: true
   belongs_to :actor, class_name: 'Spree::User'
 

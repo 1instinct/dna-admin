@@ -1,0 +1,88 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:homepage_sections) %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to 'Add Homepage Section', spree.new_admin_homepage_section_path, class: "btn-success", icon: 'add.svg' if can?(:create, HomepageSection) %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_homepage_sections_sidebar">    
+    <%= search_form_for @q, url: admin_homepage_sections_path do |f| %>
+      <div data-hook="admin_homepage_sections_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :title_cont, 'Title' %>
+            <%= f.text_field :title_cont, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :section_type_eq, 'Section Type' %>
+            <%= f.select :section_type_eq, options_for_select([['All', '']] + HomepageSection::SECTION_TYPES.map { |t| [t.titleize, t] }, params.dig(:q, :section_type_eq)), {}, class: "form-control" %>
+          </div>
+        </div>
+      </div>
+      <div data-hook="admin_homepage_sections_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @collection.present? %>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Position</th>
+          <th scope="col"><%= sort_link(@q, :title, "Title", default_order: :asc) %></th>
+          <th scope="col">Section Type</th>
+          <th scope="col">Visible</th>
+          <th scope="col" class="text-center">Order</th>
+          <th data-hook="admin_homepage_sections_index_header_actions" class="actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @collection.each do |section| %>
+          <tr class="homepage_section_<%= section.id %>">
+            <td class="text-center"><%= section.position %></td>
+            <td><%= link_to section.title, edit_admin_homepage_section_path(section) %></td>
+            <td><span class="badge badge-secondary"><%= section.section_type.titleize %></span></td>
+            <td>
+              <% if section.is_visible %>
+                <span class="badge badge-success">Visible</span>
+              <% else %>
+                <span class="badge badge-secondary">Hidden</span>
+              <% end %>
+            </td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm" role="group">
+                <%= button_to '↑', move_up_admin_homepage_section_path(section), 
+                    method: :post, 
+                    class: 'btn btn-sm btn-outline-secondary',
+                    disabled: section.position == @collection.minimum(:position),
+                    title: 'Move Up' %>
+                <%= button_to '↓', move_down_admin_homepage_section_path(section), 
+                    method: :post, 
+                    class: 'btn btn-sm btn-outline-secondary',
+                    disabled: section.position == @collection.maximum(:position),
+                    title: 'Move Down' %>
+              </div>
+            </td>
+            <td class="actions text-right" data-hook="admin_homepage_sections_index_row_actions">
+              <%= link_to_with_icon 'edit.svg', 'Edit', edit_admin_homepage_section_path(section), class: 'btn btn-sm btn-primary', no_text: true if can?(:edit, section) %>
+              <%= link_to_with_icon 'delete.svg', 'Delete', admin_homepage_section_path(section), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-sm btn-danger', no_text: true if can?(:delete, section) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  
+  <%= paginate @collection, theme: 'admin-twitter-bootstrap-4' %>
+<% else %>
+  <div class="alert alert-info no-objects-found" role="alert">
+    <%= Spree.t(:no_resource_found, resource: 'homepage sections') %>
+  </div>
+<% end %>

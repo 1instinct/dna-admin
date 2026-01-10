@@ -2,7 +2,16 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins '*'
-    resource '*', headers: :any, methods: [:get, :post, :patch, :put]
+    if Rails.env.development?
+      origins '*'
+    else
+      # Use comma-separated list: ALLOWED_ORIGINS=https://dna.com,https://www.dna.com
+      origins ENV['ALLOWED_ORIGINS']&.split(',') || 'https://dna-admin-staging.instinct.is'
+    end
+    
+    resource '*', 
+      headers: :any, 
+      methods: [:get, :post, :patch, :put, :delete, :options, :head],
+      credentials: Rails.env.production?  # Only enable credentials in production
   end
 end

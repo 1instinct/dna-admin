@@ -10,7 +10,7 @@ class ApidocsController < ActionController::Base
         key :name, 'Mayank Gandhi'
       end
     end
-    key :host, 'https://dna-admin-dev.instinct.is/' if Rails.env.development?
+    key :host, 'localhost:3001' if Rails.env.development?
     key :host, 'https://dna-admin-staging.instinct.is/' if Rails.env.staging?
     key :host, 'https://admin.instinct.is/' if Rails.env.production?
 
@@ -24,6 +24,8 @@ class ApidocsController < ActionController::Base
   SWAGGERED_CLASSES_V1 = [
     #SwaggerController, #controller details goes from here where from you are creating api
     Spree::Api::V1::LiveStreamController,
+    Spree::Api::V1::HomepageSectionsController,
+    Spree::Api::V1::FavoritesController,
     Spree::Api::V1::UsersController,
     Spree::Api::V1::PagesController,
     Spree::Api::V1::ContactsController,

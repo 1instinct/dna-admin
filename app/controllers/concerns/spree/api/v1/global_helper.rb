@@ -11,4 +11,15 @@ module Spree::Api::V1::GlobalHelper
     utc_date_time = convert_to_datetime.utc
     return utc_date_time
   end
+
+  def user_detail(user)
+    return nil unless user
+    {
+      id: user.id,
+      email: user.email,
+      first_name: user.bill_address&.firstname || "",
+      last_name: user.bill_address&.lastname || "",
+      phone: user.bill_address&.phone || ""
+    }
+  end
 end

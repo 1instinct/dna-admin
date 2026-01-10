@@ -4,7 +4,7 @@
 
 <% content_for :page_actions do %>
   <li>
-    <%= form_tag admin_reports_path, method: :get, class: 'form-inline' do %>
+    <%= form_tag admin_dashboard_analytics_path, method: :get, class: 'form-inline' do %>
       <%= select_tag :date_range, options_for_select([
         ['Last 7 Days', '7'],
         ['Last 30 Days', '30'],
