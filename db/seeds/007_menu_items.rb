@@ -7,8 +7,8 @@ menu_items = [
   { name: 'Sale', url: '/t/sale', item_class: 'nav-sale' },
   { name: 'Collections', url: '/t/collections', item_class: 'nav-collections' },
   { name: 'Live Shopping', url: '/live-streams', item_class: 'nav-live' },
-  { name: 'About Us', url: '/pages/about-us', item_class: 'nav-about' },
-  { name: 'Contact', url: '/pages/contact', item_class: 'nav-contact' }
+  { name: 'About Us', url: '/about', item_class: 'nav-about' },
+  { name: 'Contact', url: '/contact', item_class: 'nav-contact' }
 ]
 
 menu_items.each_with_index do |item_data, i|
