@@ -13,7 +13,9 @@ module Spree::Api::V1::LiveStreamHelper
       status: live_stream&.status || "",
       start_date: to_timestamp(live_stream&.start_date) || "",
       is_active: live_stream&.is_active || true,
-      product_ids: live_stream&.product_ids || []
+      product_ids: live_stream&.product_ids || [],
+      contact_ids: live_stream&.contact_ids || [],
+      actor: user_detail(live_stream&.actor)
     }
     return live_stream
   end

@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  protect_from_forgery with: :null_session, if: -> { request.format.json? }
   before_action :require_login
   # skip_before_action :require_login, only: [:spree_login]
 

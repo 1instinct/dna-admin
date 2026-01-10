@@ -11,6 +11,8 @@ gem 'pg'
 gem 'puma', '~> 4.3'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
+# Sass engine required by bootstrap
+gem 'sassc-rails'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '>= 1.3.0'
 # See https://github.com/rails/execjs#readme for more supported runtimes
@@ -49,6 +51,8 @@ gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 # gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
 gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
+# gem 'spree_avatax_official', github: 'spree-contrib/spree_avatax_official', branch: 'spree-4-1-plus'
+# gem 'spree_avatax_official', '~> 1.9.0'
 
 gem 'spree_avatar', github: '1instinct/spree_avatar'
 gem 'spree_editor', github: 'spree-contrib/spree_editor'
