@@ -10,13 +10,13 @@
   AWS_BUCKET_NAME=dna-admin-dev-jon-12345
   ```
 
-### 2. Import Products (Images already in S3)
+### 2. Import Products
 ```shell
-# Clear existing products
+# Clear existing products (optional)
 docker-compose exec web rails products:cleanup
 
-# Import products - images will reference existing S3 files
-docker-compose exec web rails products:import CSV_FILE=/dna/db/seed_data/products.csv
+# Import products with images
+docker-compose exec web bash -c "export AWS_BUCKET_NAME=dna-admin-dev-jon-12345 && rails products:import CSV_FILE=/dna/db/seed_data/products.csv IMAGES_PATH=/dna/db/seed_data/images"
 ```
 
 ### 3. Files Included
