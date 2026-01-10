@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_09_054125) do
+ActiveRecord::Schema.define(version: 2024_08_03_170812) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -72,17 +72,6 @@ ActiveRecord::Schema.define(version: 2026_01_09_054125) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "favorites", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "variant_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.boolean "is_public"
-    t.index ["user_id", "variant_id"], name: "index_favorites_on_user_and_variant", unique: true
-    t.index ["user_id"], name: "index_favorites_on_user_id"
-    t.index ["variant_id"], name: "index_favorites_on_variant_id"
-  end
-
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "created_at", null: false
@@ -111,20 +100,6 @@ ActiveRecord::Schema.define(version: 2026_01_09_054125) do
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
-  end
-
-  create_table "homepage_sections", force: :cascade do |t|
-    t.string "title", null: false
-    t.string "section_type", null: false
-    t.text "content"
-    t.integer "position", default: 0, null: false
-    t.boolean "is_visible", default: true
-    t.json "settings"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["is_visible"], name: "index_homepage_sections_on_is_visible"
-    t.index ["position"], name: "index_homepage_sections_on_position"
-    t.index ["section_type"], name: "index_homepage_sections_on_section_type"
   end
 
   create_table "live_stream_contacts", force: :cascade do |t|
@@ -1533,16 +1508,7 @@ ActiveRecord::Schema.define(version: 2026_01_09_054125) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "user_follows", force: :cascade do |t|
-    t.integer "follower_id"
-    t.integer "following_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "favorites", "spree_users", column: "user_id"
-  add_foreign_key "favorites", "spree_variants", column: "variant_id"
   add_foreign_key "live_stream_contacts", "contacts"
   add_foreign_key "live_stream_contacts", "live_streams"
   add_foreign_key "live_streams", "spree_users", column: "actor_id"
