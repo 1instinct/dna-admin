@@ -4,7 +4,8 @@ namespace :products do
   desc "Import products from CSV with existing S3 images"
   task import_with_s3: :environment do
     file_path = ENV['CSV_FILE'] || Rails.root.join('db', 'seed_data', 'products.csv')
-    bucket_name = ENV['AWS_BUCKET_NAME'] || 'dna-admin-dev-jon-12345'
+    bucket_name = ENV['AWS_BUCKET_NAME'] || 'dna-product-images-jon'
+    region = ENV['AWS_REGION_NAME'] || 'us-east-1'
     
     # Get default shipping category
     shipping_category = Spree::ShippingCategory.first || Spree::ShippingCategory.create!(name: 'Default')
@@ -26,7 +27,7 @@ namespace :products do
       
       # Reference existing S3 image
       if row['image_file'] && !product.images.any?
-        s3_url = "https://#{bucket_name}.s3.amazonaws.com/#{row['image_file']}"
+        s3_url = "https://#{bucket_name}.s3.#{region}.amazonaws.com/#{row['image_file']}"
         
         begin
           downloaded_image = URI.open(s3_url)

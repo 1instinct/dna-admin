@@ -16,5 +16,7 @@ services:
       - "8080:3000"
     depends_on:
       - db
+    env_file:
+      - .env.development
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
