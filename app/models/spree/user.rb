@@ -12,6 +12,15 @@ module Spree
     acts_as_paranoid
     has_many :sent_messages, class_name: 'Message',as: :sender, dependent: :destroy
     has_many :received_messages, class_name: 'Message', as: :receiver, dependent: :destroy
+    has_many :favorites, dependent: :destroy
+    has_many :favorite_variants, through: :favorites, source: :variant
+    
+    # Follow relationships
+    has_many :follower_relationships, class_name: 'UserFollow', foreign_key: :following_id, dependent: :destroy
+    has_many :followers, through: :follower_relationships, source: :follower
+    has_many :following_relationships, class_name: 'UserFollow', foreign_key: :follower_id, dependent: :destroy
+    has_many :followings, through: :following_relationships, source: :following
+    
     after_destroy :scramble_email_and_password
 
     before_validation :set_login

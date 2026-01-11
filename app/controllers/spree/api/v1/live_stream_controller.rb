@@ -88,6 +88,32 @@ module Spree::Api::V1
           key :type, :integer
         end
       end
+      property :contact_ids do
+        key :type, :array
+        items do
+          key :type, :integer
+        end
+      end
+      property :actor do
+        key :'$ref', :user_detail
+      end
+    end
+    swagger_schema :user_detail do
+      property :id do
+        key :type, :integer
+      end
+      property :email do
+        key :type, :string
+      end
+      property :first_name do
+        key :type, :string
+      end
+      property :last_name do
+        key :type, :string
+      end
+      property :phone do
+        key :type, :string
+      end
     end
 
     def index
@@ -151,6 +177,131 @@ module Spree::Api::V1
         singular_success_model(200, Spree.t('live_stream.live_stream_show'), live_stream_detail(live_stream.id))
       else
         error_model(400, Spree.t('live_stream.live_stream_not_found'))
+      end
+    end
+
+    swagger_path "/live_stream/{id}/add_watcher" do
+      operation :post do
+        key :summary, "Add Watcher to Live Stream"
+        key :description, "Add a contact/visitor as a watcher to the live stream"
+        key :tags, ['LiveStream']
+        parameter do
+          key :name, :'X-Spree-Token'
+          key :description, "User API Key"
+          key :type, :string
+          key :in, :header
+          key :required, false
+        end
+        parameter do
+          key :name, :id
+          key :in, :path
+          key :description, 'ID of live stream'
+          key :required, true
+          key :type, :integer
+        end
+        parameter do
+          key :name, :contact_id
+          key :in, :formData
+          key :description, 'Contact ID to add as watcher'
+          key :required, true
+          key :type, :integer
+        end
+        response 200 do
+          key :description, "Successfully added watcher"
+          schema do
+            key :'$ref', :single_live_stream_response
+          end
+        end
+        response 400 do
+          key :description, "Error"
+          schema do
+            key :'$ref', :common_response_model
+          end
+        end
+      end
+    end
+
+    def add_watcher
+      live_stream = LiveStream.find_by_id(params[:id])
+      unless live_stream
+        return error_model(400, Spree.t('live_stream.live_stream_not_found'))
+      end
+
+      contact = Contact.find_by_id(params[:contact_id])
+      unless contact
+        return error_model(400, "Contact not found")
+      end
+
+      # Check if already watching
+      existing = LiveStreamContact.find_by(live_stream_id: live_stream.id, contact_id: contact.id)
+      if existing
+        return singular_success_model(200, "Already watching", live_stream_detail(live_stream.id))
+      end
+
+      # Add watcher
+      LiveStreamContact.create(live_stream_id: live_stream.id, contact_id: contact.id)
+      singular_success_model(200, "Watcher added successfully", live_stream_detail(live_stream.id))
+    end
+
+    swagger_path "/live_stream/{id}/remove_watcher" do
+      operation :post do
+        key :summary, "Remove Watcher from Live Stream"
+        key :description, "Remove a contact/visitor from watching the live stream"
+        key :tags, ['LiveStream']
+        parameter do
+          key :name, :'X-Spree-Token'
+          key :description, "User API Key"
+          key :type, :string
+          key :in, :header
+          key :required, false
+        end
+        parameter do
+          key :name, :id
+          key :in, :path
+          key :description, 'ID of live stream'
+          key :required, true
+          key :type, :integer
+        end
+        parameter do
+          key :name, :contact_id
+          key :in, :formData
+          key :description, 'Contact ID to remove from watchers'
+          key :required, true
+          key :type, :integer
+        end
+        response 200 do
+          key :description, "Successfully removed watcher"
+          schema do
+            key :'$ref', :single_live_stream_response
+          end
+        end
+        response 400 do
+          key :description, "Error"
+          schema do
+            key :'$ref', :common_response_model
+          end
+        end
+      end
+    end
+
+    def remove_watcher
+      live_stream = LiveStream.find_by_id(params[:id])
+      unless live_stream
+        return error_model(400, Spree.t('live_stream.live_stream_not_found'))
+      end
+
+      contact = Contact.find_by_id(params[:contact_id])
+      unless contact
+        return error_model(400, "Contact not found")
+      end
+
+      # Remove watcher
+      watcher = LiveStreamContact.find_by(live_stream_id: live_stream.id, contact_id: contact.id)
+      if watcher
+        watcher.destroy
+        singular_success_model(200, "Watcher removed successfully", live_stream_detail(live_stream.id))
+      else
+        error_model(400, "Watcher not found")
       end
     end
   end
