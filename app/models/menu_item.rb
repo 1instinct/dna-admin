@@ -27,16 +27,17 @@ class MenuItem < Spree::Base
       end
     end.to_a.reverse + [self]
   end
-  def child_chain
-    Enumerator.new do |enum|
-      child_products = childrens
-      unless child_products.nil?
-        child_products.each do |child_product|
-          enum.yield child_product unless child_product.nil?
-          child_products = child_product.childrens unless child_product.nil?
-        end
-      end
-    end.to_a + [self]
+  def child_chain(visited_ids = [])
+    return [self] if visited_ids.include?(id)
+    
+    visited_ids << id
+    result = [self]
+    
+    childrens.each do |child|
+      result += child.child_chain(visited_ids.dup)
+    end
+    
+    result
   end
 
   protected

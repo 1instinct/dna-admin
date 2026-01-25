@@ -24,6 +24,10 @@ envvars.txt
 .env.staging
 .env.production
 .prettierrc
+secret.yml
+secret.yaml
+secrets.yml
+secrets.yaml
 
 .byebug_history
 # Ignore precompiled javascript packs
@@ -86,3 +90,5 @@ secret.yaml
 *.tar
 *.yml.prod
 docker-compose.yml.local
+
+.anima/

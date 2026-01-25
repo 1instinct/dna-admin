@@ -1,11 +1,10 @@
 class HomepageSection < Spree::Base
   # Validations
-  validates :title, presence: true
   validates :section_type, presence: true
-  validates :position, presence: true, numericality: { only_integer: true }
+  validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   
   # Scopes
-  default_scope { order(position: :asc) }
+  scope :ordered, -> { order(position: :asc) }
   scope :visible, -> { where(is_visible: true) }
   scope :by_type, ->(type) { where(section_type: type) }
   
@@ -24,6 +23,8 @@ class HomepageSection < Spree::Base
     call_to_action
     newsletter
     video
+    live_streams
+    categories
     custom
   ].freeze
   
@@ -44,12 +45,21 @@ class HomepageSection < Spree::Base
     end
   end
   
-  # Set position before create
-  before_create :set_position
+  # Set position before validation on create
+  before_validation :set_position, on: :create
+  
+  # Class method to reset all positions sequentially
+  def self.reset_positions!
+    unscoped.order(:id).each_with_index do |section, index|
+      section.update_column(:position, index + 1)
+    end
+  end
   
   private
   
   def set_position
-    self.position ||= HomepageSection.maximum(:position).to_i + 1
+    if self.position.nil? || self.position.zero?
+      self.position = (HomepageSection.maximum(:position) || 0) + 1
+    end
   end
 end

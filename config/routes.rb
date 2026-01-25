@@ -33,6 +33,7 @@ Spree::Core::Engine.add_routes do
       member do
         post :move_up
         post :move_down
+        patch :toggle_visibility
       end
     end
     
@@ -95,6 +96,12 @@ Spree::Core::Engine.add_routes do
         member do
           get :menu_items
         end
+      end
+    end
+
+    namespace :v2 do
+      namespace :storefront do
+        resource :store, only: [:show], path: 'default_store', as: :default_store, controller: 'store'
       end
     end
   end

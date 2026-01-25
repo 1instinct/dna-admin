@@ -74,24 +74,21 @@ GIT
       spree_core (= 4.2.5)
 
 GIT
+  remote: https://github.com/1instinct/spree_avatar.git
+  revision: 2831457dd9d7bd3e36981f3fae57f978ba579a4f
+  specs:
+    spree_avatar (1.1.0)
+      active_storage_validations
+      inline_svg
+      rails (~> 6.0)
+      spree (~> 4.0, < 6.0)
+
+GIT
   remote: https://github.com/1instinct/spree_reffiliate.git
   revision: 16a092086888b5d9f60aa8510f5bdddf4eb96953
   specs:
     spree_reffiliate (3.2.0.alpha)
       spree_core (>= 3.2.0, <= 4.3.0.alpha)
-
-GIT
-  remote: https://github.com/spree-contrib/spree_digital.git
-  revision: 7cca74ccae17e556c5aa97732cbb3c2d95fbd3ac
-  branch: fix/spree-4-1-plus
-  specs:
-    spree_digital (4.1.0)
-      deface (~> 1.0)
-      spree_api (>= 3.1.0, < 5.0)
-      spree_backend (>= 3.1.0, < 5.0)
-      spree_core (>= 3.1.0, < 5.0)
-      spree_extension
-      spree_frontend (>= 3.1.0, < 5.0)
 
 GIT
   remote: https://github.com/spree-contrib/spree_editor.git
@@ -196,11 +193,11 @@ GEM
       io-like (~> 0.4.0)
     autoprefixer-rails (10.4.21.0)
       execjs (~> 2)
-    awesome_nested_set (3.8.0)
-      activerecord (>= 4.0.0, < 8.1)
+    awesome_nested_set (3.9.0)
+      activerecord (>= 4.0.0, < 8.2)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1194.0)
-    aws-sdk-core (3.239.2)
+    aws-partitions (1.1202.0)
+    aws-sdk-core (3.241.3)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -208,18 +205,18 @@ GEM
       bigdecimal
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.118.0)
-      aws-sdk-core (~> 3, >= 3.239.1)
+    aws-sdk-kms (1.120.0)
+      aws-sdk-core (~> 3, >= 3.241.3)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.206.0)
-      aws-sdk-core (~> 3, >= 3.234.0)
+    aws-sdk-s3 (1.211.0)
+      aws-sdk-core (~> 3, >= 3.241.3)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.12.1)
       aws-eventstream (~> 1, >= 1.0.2)
     base64 (0.3.0)
-    bcrypt (3.1.20)
-    bigdecimal (3.3.1)
+    bcrypt (3.1.21)
+    bigdecimal (4.0.1)
     bindex (0.8.1)
     bootsnap (1.8.1)
       msgpack (~> 1.0)
@@ -249,6 +246,7 @@ GEM
     ckeditor (5.0.0)
       orm_adapter (~> 0.5.0)
     cldr-plurals-runtime-rb (1.1.0)
+    climate_control (0.2.0)
     coffee-rails (4.2.2)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0)
@@ -292,7 +290,7 @@ GEM
     faker (3.4.2)
       i18n (>= 1.8.11, < 2)
     ffaker (2.21.0)
-    ffi (1.17.2)
+    ffi (1.17.3)
     flatpickr (4.6.13.1)
     friendly_id (5.6.0)
       activerecord (>= 4.0.0)
@@ -308,7 +306,7 @@ GEM
     http-accept (1.7.0)
     http-cookie (1.1.0)
       domain_name (~> 0.5)
-    i18n (1.14.7)
+    i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
       mini_magick (>= 4.9.5, < 6)
@@ -346,7 +344,7 @@ GEM
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
     logger (1.7.0)
-    loofah (2.24.1)
+    loofah (2.25.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
     mail (2.9.0)
@@ -362,6 +360,9 @@ GEM
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0924)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_magick (4.13.2)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
@@ -371,7 +372,7 @@ GEM
     money (6.19.0)
       i18n (>= 0.6.4, <= 2)
     msgpack (1.8.0)
-    net-http (0.8.0)
+    net-http (0.9.1)
       uri (>= 0.11.1)
     net-imap (0.3.9)
       date
@@ -388,9 +389,15 @@ GEM
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     orm_adapter (0.5.0)
+    paperclip (6.1.0)
+      activemodel (>= 4.2.0)
+      activesupport (>= 4.2.0)
+      mime-types
+      mimemagic (~> 0.3.0)
+      terrapin (~> 0.6.0)
     paranoia (2.6.4)
       activerecord (>= 5.1, < 7.2)
-    pg (1.6.2)
+    pg (1.6.3)
     polyglot (0.3.5)
     popper_js (1.16.1)
     premailer (1.22.0)
@@ -539,9 +546,11 @@ GEM
       rbs
       syntax_tree (>= 2.0.1)
     temple (0.10.4)
-    thor (1.4.0)
-    tilt (2.6.1)
-    timeout (0.5.0)
+    terrapin (0.6.0)
+      climate_control (>= 0.0.3, < 1.0)
+    thor (1.5.0)
+    tilt (2.7.0)
+    timeout (0.6.0)
     tinymce-rails (4.2.8)
       railties (>= 3.1.1)
     turbolinks (5.2.1)
@@ -577,18 +586,19 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aws-sdk-s3
+  aws-sdk-s3 (~> 1.96)
   bootsnap (~> 1.8.1)
   byebug
   capybara (>= 2.15)
   chromedriver-helper
   coffee-rails (~> 4.2)
   dotenv-rails
-  factory_bot_rails (~> 5.1)
+  factory_bot_rails (~> 5.2)
   faker
   jbuilder (~> 2.5)
   listen (>= 3.0.5, < 3.2)
   net-http
+  paperclip (~> 6.1.0)
   pg
   prettier
   puma (~> 4.3)
@@ -600,7 +610,7 @@ DEPENDENCIES
   selenium-webdriver
   spree!
   spree_auth_devise (~> 4.3)
-  spree_digital!
+  spree_avatar!
   spree_editor!
   spree_gateway (~> 3.9)
   spree_loyalty_points!

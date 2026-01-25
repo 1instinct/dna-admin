@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_09_054125) do
+ActiveRecord::Schema.define(version: 2026_01_11_065155) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -114,10 +114,10 @@ ActiveRecord::Schema.define(version: 2026_01_09_054125) do
   end
 
   create_table "homepage_sections", force: :cascade do |t|
-    t.string "title", null: false
+    t.string "title"
     t.string "section_type", null: false
     t.text "content"
-    t.integer "position", default: 0, null: false
+    t.integer "position", null: false
     t.boolean "is_visible", default: true
     t.json "settings"
     t.datetime "created_at", precision: 6, null: false

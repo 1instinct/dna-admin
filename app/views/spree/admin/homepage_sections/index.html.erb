@@ -48,12 +48,17 @@
           <tr class="homepage_section_<%= section.id %>">
             <td class="text-center"><%= section.position %></td>
             <td><%= link_to section.title, edit_admin_homepage_section_path(section) %></td>
-            <td><span class="badge badge-secondary"><%= section.section_type.titleize %></span></td>
             <td>
-              <% if section.is_visible %>
-                <span class="badge badge-success">Visible</span>
-              <% else %>
-                <span class="badge badge-secondary">Hidden</span>
+              <%= link_to edit_admin_homepage_section_path(section), class: 'badge badge-secondary section-type-badge' do %>
+                <%= section.section_type.titleize %>
+              <% end %>
+            </td>
+            <td>
+              <%= link_to toggle_visibility_admin_homepage_section_path(section), 
+                  method: :patch,
+                  class: "badge #{section.is_visible ? 'badge-success' : 'badge-secondary'} visibility-badge",
+                  title: 'Click to toggle visibility' do %>
+                <%= section.is_visible ? 'Visible' : 'Hidden' %>
               <% end %>
             </td>
             <td class="text-center">
@@ -61,12 +66,12 @@
                 <%= button_to '↑', move_up_admin_homepage_section_path(section), 
                     method: :post, 
                     class: 'btn btn-sm btn-outline-secondary',
-                    disabled: section.position == @collection.minimum(:position),
+                    disabled: section.position == @min_position,
                     title: 'Move Up' %>
                 <%= button_to '↓', move_down_admin_homepage_section_path(section), 
                     method: :post, 
                     class: 'btn btn-sm btn-outline-secondary',
-                    disabled: section.position == @collection.maximum(:position),
+                    disabled: section.position == @max_position,
                     title: 'Move Down' %>
               </div>
             </td>
@@ -86,3 +91,28 @@
     <%= Spree.t(:no_resource_found, resource: 'homepage sections') %>
   </div>
 <% end %>
+
+<style>
+  .section-type-badge {
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .section-type-badge:hover {
+    background-color: #007bff !important;
+    color: white !important;
+    text-decoration: none;
+  }
+  
+  .visibility-badge {
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+  }
+  
+  .visibility-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    text-decoration: none;
+  }
+</style>

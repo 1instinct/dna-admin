@@ -1,40 +1,42 @@
 <div class="divclass">
-<div class="col-lg-11 mx-auto wrapper">
-  <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag 'instinct_logo.png', :style => "height: 100px;" %></h3>
-  <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
-    <div id="password-credentials" class="mb-4">
-      <div class="form-group mb-4">
-        <p class="form-group checkout-content-inner-field">
-          <%= f.email_field :email, class: 'box1 spree-flat-input', placeholder: Spree.t(:email), value: params.dig(:spree_user, :email) %>
-        </p>
-      </div>
-      <div class="form-group mb-4">
-        <p class="form-group checkout-content-inner-field">
-          <%= f.password_field :password, class: 'box1 spree-flat-input', placeholder: Spree.t(:password) %>
-        </p>
-      </div>
-    </div>
-
-    <% if Spree::Frontend::Config[:remember_me_enabled] %>
-      <div class="spree-checkbox-container mt-4 mt-sm-5 mt-lg-4 spree-mb-medium">
-        <div class="spree-checkbox">
-          <%= f.check_box :remember_me %>
-          <%= f.label :remember_me, '' %>
+  <div class="wrapper">
+    <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag 'instinct_logo.png', :style => "height: 100px;" %></h3>
+    <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
+      <div id="password-credentials" class="mb-4">
+        <div class="form-group mb-4">
+          <p class="form-group checkout-content-inner-field">
+            <%= f.email_field :email, class: 'box1 spree-flat-input', placeholder: Spree.t(:email), value: params.dig(:spree_user, :email) %>
+          </p>
         </div>
-
-        <%#= f.label :remember_me, Spree.t(:remember_me), class: 'spree-checkbox-label' %>
+        <div class="form-group mb-4">
+          <p class="form-group checkout-content-inner-field">
+            <%= f.password_field :password, class: 'box1 spree-flat-input', placeholder: Spree.t(:password) %>
+          </p>
+        </div>
       </div>
+
+      <% if Spree::Frontend::Config[:remember_me_enabled] %>
+        <div class="spree-checkbox-container mt-4 mt-sm-5 mt-lg-4 spree-mb-medium">
+          <div class="spree-checkbox">
+            <%= f.check_box :remember_me %>
+            <%= f.label :remember_me, '' %>
+          </div>
+
+          <%#= f.label :remember_me, Spree.t(:remember_me), class: 'spree-checkbox-label' %>
+        </div>
+      <% end %>
+
+      <%= f.submit Spree.t(:log_in), class: 'btn btn-primary btn-block spree-btn mt-2' %>
     <% end %>
 
-    <%= f.submit Spree.t(:log_in), class: 'btn btn-primary btn-block spree-btn mt-2' %>
-  <% end %>
-
-  <% if spree.respond_to?(:recover_password_path) %>
-    <div class="text-center forgot-password mb-4">
-      <%= link_to Spree.t(:forgot_password), spree.recover_password_path, class: 'fp' %>
-    </div>
-  <% end %>
-</div>
+    <% if spree.respond_to?(:recover_password_path) %>
+      <div class="text-center forgot-password mb-4">
+        <%= link_to Spree.t(:forgot_password), spree.recover_password_path, class: 'fp' %>
+      </div>
+    <% end %>
+    
+  </div>
+  <%= render partial: 'spree/shared/copyright' %>
 </div>
 
 
@@ -43,11 +45,27 @@
 <style type="text/css">
   $primary: #2196F3;
 
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  #content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .divclass {
     font-family: "Open Sans", sans-serif;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
     height: 100vh;
-    background-image: url("https://i.imgur.com/HgflTDf.jpg") 50% fixed;
-    background-size: cover;
+    margin: 0;
+    padding: 0;
   }
 
   @keyframes spinner {
@@ -64,16 +82,31 @@
     align-items: center;
     flex-direction: column;
     justify-content: center;
-    width: 100%;
-    min-height: 100%;
-    padding: 20px;
-    background: rgba(darken(#2196F3,40%), 0.85);
-    font-family: "Open Sans", sans-serif;
+    width: 100vw;
     height: 100vh;
-        background-image: url("https://i.imgur.com/yzS1Nse.jpeg");
+    min-height: 100vh;
+    padding: 20px;
+    margin: 0;
+    background: rgba(33, 150, 243, 0.85);
+    font-family: "Open Sans", sans-serif;
+    background-image: url("https://i.imgur.com/yzS1Nse.jpeg");
     background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
+  .footer-spree-copyright {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+  }
 
   .new_spree_user {
     border-radius: 2px 2px 5px 5px;

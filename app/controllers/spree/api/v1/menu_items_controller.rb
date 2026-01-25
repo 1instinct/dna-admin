@@ -199,7 +199,7 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     return menu_item
   end
   def fetch_childrens(menu_item)
-    childrens = MenuItem.all.where(id: menu_item.child_chain.pluck(:id))
-    return childrens
+    # Only fetch direct children, not all descendants
+    menu_item.childrens
   end
 end

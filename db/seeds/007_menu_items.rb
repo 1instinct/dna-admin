@@ -1,5 +1,5 @@
 menu_location_ids = MenuLocation.pluck(:id)
-(1..50).each do |i|
+(1..20).each do |i|
   MenuItem.create!(
     name: Faker::Lorem.word.capitalize,
     url: Faker::Internet.url,
