@@ -4,14 +4,12 @@ metadata:
   name: dna-entrypoint
   namespace: default
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: dna-admin
   ports:
-    # - port: 3000
     - port: 8080
       targetPort: 3000
-      # nodePort: 30006
 ---
 apiVersion: v1
 kind: Service
