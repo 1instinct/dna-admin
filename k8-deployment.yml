@@ -38,17 +38,20 @@ spec:
             limits:
               cpu: "1000m"
               memory: "1Gi"
-          readinessProbe:
-            httpGet:
-              path: /admin/login
+          startupProbe:
+            tcpSocket:
               port: 3000
-            initialDelaySeconds: 30
+            failureThreshold: 60
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /admin/login
+            tcpSocket:
               port: 3000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 5
             periodSeconds: 30
 ---
 apiVersion: apps/v1

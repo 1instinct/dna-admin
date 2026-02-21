@@ -38,8 +38,7 @@ RUN bundle install
 
 COPY . ./
 
-# Precompile assets
-# RUN RAILS_ENV=production bundle exec rake assets:precompile
+# Assets are precompiled at runtime via entrypoint (Spree requires DB during boot)
 
 # Add a script to be executed every time the container starts.
 COPY entrypoint.sh /usr/bin/
