@@ -46,18 +46,15 @@ gem "aws-sdk-s3", '~> 1.96'
 
 gem "net-http"
 
-gem 'spree', github: '1instinct/spree'
+gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
 
-gem 'spree_auth_devise', '~> 3.5'
-gem 'spree_gateway', '~> 3.4'
+# gem 'spree_auth_devise', '~> 3.5'
+# gem 'spree_gateway', '~> 3.4'
 
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 
-gem 'spree_auth_devise', '~> 4.3'
-gem 'spree_gateway', '~> 3.9'
-gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
 # gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
 gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
@@ -77,7 +74,7 @@ gem 'sprockets-helpers', '~> 1.2.1'
 gem 'rest-client'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
-gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
+# gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

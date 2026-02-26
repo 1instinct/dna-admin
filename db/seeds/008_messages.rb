@@ -57,7 +57,7 @@ end
           "Yes, that would be great.",
           "My order number is ##{rand(10000..99999)}",
           "I appreciate your quick response.",
-          Faker::Lorem.sentence,
+          FFaker::Lorem.sentence,
           "Okay, I understand now.",
           "Perfect, thank you so much!"
         ].sample
@@ -86,7 +86,7 @@ end
           "I've updated that for you. You should see the changes shortly.",
           "Let me look into that and get back to you in a few minutes.",
           "That's all set! Anything else I can assist with today?",
-          Faker::Lorem.sentence,
+          FFaker::Lorem.sentence,
           "I've sent you an email with the details.",
           "Great! Feel free to reach out if you need anything else."
         ].sample
