@@ -1,7 +1,5 @@
 Rails.application.routes.draw do
-  # This line mounts Spree's routes at the root of your application.
-  mount Spree::Core::Engine, at: '/'
-
+  # Webhook routes MUST be before Spree mount — Spree's /api namespace intercepts otherwise
   namespace :api do
     namespace :webhooks do
       post 'mdi', to: 'mdi#create'
@@ -9,6 +7,9 @@ Rails.application.routes.draw do
       get 'mdi/encounters/:encounter_id', to: 'mdi#show'
     end
   end
+
+  # This line mounts Spree's routes at the root of your application.
+  mount Spree::Core::Engine, at: '/'
 
   resources :apidocs, only: [:index] do
     collection do
