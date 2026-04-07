@@ -3,6 +3,18 @@ module Spree
     module V2
       module Storefront
         module CartControllerDecorator
+          def add_item
+            variant = Spree::Variant.find_by(id: params[:variant_id])
+            if variant && !variant.product.can_purchase?(spree_current_user)
+              render json: {
+                error: "consultation_required",
+                message: "A completed consultation is required to purchase this product."
+              }, status: :unprocessable_entity and return
+            end
+
+            super
+          end
+
           def remove_line_item
             spree_authorize! :update, spree_current_order, order_token
             
