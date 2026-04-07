@@ -2,6 +2,8 @@ require "test_helper"
 
 class ConsultationGateTest < ActiveSupport::TestCase
   setup do
+    # Ensure Product has requires_consultation column loaded
+    Spree::Product.reset_column_information unless Spree::Product.column_names.include?("requires_consultation")
     @product = Spree::Product.new(name: "Test Product", price: 10.0)
     @user_passed = Spree::User.new(
       email: "passed@example.com",

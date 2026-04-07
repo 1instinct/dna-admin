@@ -17,4 +17,5 @@ production:
 
 test:
   <<: *default
+  url: <%= nil %>
   database: <%= ENV.fetch('DATABASE_NAME_TEST', "#{ENV['DATABASE_NAME']}_test") %>
