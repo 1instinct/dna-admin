@@ -4,4 +4,5 @@ Rails.application.config.to_prepare do
     require_dependency decorator
   end
   load Rails.root.join("app/serializers/spree/api/v2/storefront/product_serializer_decorator.rb")
+  load Rails.root.join("app/serializers/spree/api/v2/storefront/account_serializer_decorator.rb")
 end
