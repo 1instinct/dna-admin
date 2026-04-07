@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Health check — before Spree mount for Azure Container Apps probes
+  get '/health', to: 'health#show'
+
   # Webhook routes MUST be before Spree mount — Spree's /api namespace intercepts otherwise
   namespace :api do
     namespace :webhooks do
