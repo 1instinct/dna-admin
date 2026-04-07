@@ -2,6 +2,14 @@ Rails.application.routes.draw do
   # This line mounts Spree's routes at the root of your application.
   mount Spree::Core::Engine, at: '/'
 
+  namespace :api do
+    namespace :webhooks do
+      post 'mdi', to: 'mdi#create'
+      post 'honeybee', to: 'honeybee#create'
+      get 'mdi/encounters/:encounter_id', to: 'mdi#show'
+    end
+  end
+
   resources :apidocs, only: [:index] do
     collection do
       get 'swagger_ui'
