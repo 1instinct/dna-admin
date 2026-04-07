@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_11_065155) do
+ActiveRecord::Schema.define(version: 2026_04_07_000007) do
 
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
   create_table "action_mailbox_inbound_emails", force: :cascade do |t|
@@ -207,6 +208,72 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
     t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
+  end
+
+  create_table "patient_mappings", force: :cascade do |t|
+    t.string "honeybee_patient_id", null: false
+    t.bigint "spree_user_id"
+    t.string "email"
+    t.string "mdi_encounter_id"
+    t.integer "source", null: false
+    t.jsonb "history", default: []
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["email"], name: "index_patient_mappings_on_email"
+    t.index ["honeybee_patient_id"], name: "index_patient_mappings_on_honeybee_patient_id", unique: true
+    t.index ["mdi_encounter_id"], name: "index_patient_mappings_on_mdi_encounter_id"
+    t.index ["spree_user_id"], name: "index_patient_mappings_on_spree_user_id"
+  end
+
+  create_table "pending_customers", force: :cascade do |t|
+    t.string "email", null: false
+    t.bigint "spree_user_id"
+    t.bigint "spree_order_id"
+    t.string "mdi_encounter_id", null: false
+    t.jsonb "patient_info", default: {}
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["email"], name: "index_pending_customers_on_email", unique: true
+    t.index ["mdi_encounter_id"], name: "index_pending_customers_on_mdi_encounter_id"
+    t.index ["spree_order_id"], name: "index_pending_customers_on_spree_order_id"
+    t.index ["spree_user_id"], name: "index_pending_customers_on_spree_user_id"
+  end
+
+  create_table "pharmacy_orders", force: :cascade do |t|
+    t.bigint "spree_user_id"
+    t.bigint "spree_order_id"
+    t.bigint "patient_mapping_id", null: false
+    t.string "honeybee_order_number", null: false
+    t.integer "prescription_ids", default: [], array: true
+    t.string "status"
+    t.jsonb "shipment_data", default: {}
+    t.jsonb "exception_data", default: {}
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["honeybee_order_number"], name: "index_pharmacy_orders_on_honeybee_order_number", unique: true
+    t.index ["patient_mapping_id", "created_at"], name: "index_pharmacy_orders_on_patient_mapping_and_created_at"
+    t.index ["patient_mapping_id"], name: "index_pharmacy_orders_on_patient_mapping_id"
+    t.index ["spree_order_id"], name: "index_pharmacy_orders_on_spree_order_id"
+    t.index ["spree_user_id"], name: "index_pharmacy_orders_on_spree_user_id"
+  end
+
+  create_table "prescriptions", force: :cascade do |t|
+    t.bigint "patient_mapping_id", null: false
+    t.integer "prescription_id", null: false
+    t.string "drug_name", null: false
+    t.string "ndc", null: false
+    t.integer "written_qty"
+    t.integer "refills_left"
+    t.date "expire_date"
+    t.string "prescriber_name"
+    t.integer "status", default: 0, null: false
+    t.datetime "received_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["ndc"], name: "index_prescriptions_on_ndc"
+    t.index ["patient_mapping_id"], name: "index_prescriptions_on_patient_mapping_id"
+    t.index ["prescription_id"], name: "index_prescriptions_on_prescription_id", unique: true
+    t.index ["status"], name: "index_prescriptions_on_status"
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -878,7 +945,7 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.boolean "used", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "code"
+    t.index ["promotion_id"], name: "index_spree_promotion_codes_on_promotion_id"
   end
 
   create_table "spree_promotion_rule_taxons", id: :serial, force: :cascade do |t|
@@ -923,6 +990,7 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "promotion_category_id"
+    t.boolean "multi_coupon", default: false, null: false
     t.index ["advertise"], name: "index_spree_promotions_on_advertise"
     t.index ["code"], name: "index_spree_promotions_on_code", unique: true
     t.index ["expires_at"], name: "index_spree_promotions_on_expires_at"
@@ -1480,9 +1548,16 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.boolean "referrer_benefit_enabled", default: true
     t.integer "loyalty_points_balance", default: 0, null: false
     t.integer "lock_version", default: 0, null: false
+    t.integer "consultation_status", default: 0, null: false
+    t.string "mdi_encounter_id"
+    t.datetime "consultation_completed_at"
+    t.string "honeybee_patient_id"
     t.index ["bill_address_id"], name: "index_spree_users_on_bill_address_id"
+    t.index ["consultation_status"], name: "index_spree_users_on_consultation_status"
     t.index ["deleted_at"], name: "index_spree_users_on_deleted_at"
     t.index ["email"], name: "email_idx_unique", unique: true
+    t.index ["honeybee_patient_id"], name: "index_spree_users_on_honeybee_patient_id", unique: true, where: "(honeybee_patient_id IS NOT NULL)"
+    t.index ["mdi_encounter_id"], name: "index_spree_users_on_mdi_encounter_id", unique: true, where: "(mdi_encounter_id IS NOT NULL)"
     t.index ["ship_address_id"], name: "index_spree_users_on_ship_address_id"
     t.index ["spree_api_key"], name: "index_spree_users_on_spree_api_key"
   end
@@ -1544,20 +1619,33 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
   end
 
   create_table "user_follows", force: :cascade do |t|
-    t.integer "follower_id"
-    t.integer "following_id"
+    t.integer "follower_id", null: false
+    t.integer "following_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["follower_id", "following_id"], name: "index_user_follows_on_follower_and_following", unique: true
+    t.index ["follower_id"], name: "index_user_follows_on_follower_id"
+    t.index ["following_id"], name: "index_user_follows_on_following_id"
   end
 
-  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "favorites", "spree_users", column: "user_id"
-  add_foreign_key "favorites", "spree_variants", column: "variant_id"
-  add_foreign_key "live_stream_contacts", "contacts"
-  add_foreign_key "live_stream_contacts", "live_streams"
-  add_foreign_key "live_streams", "spree_users", column: "actor_id"
-  add_foreign_key "live_streams", "thread_tables"
-  add_foreign_key "messages", "thread_tables"
-  add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
-  add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  create_table "webhook_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "event_type", null: false
+    t.integer "source", null: false
+    t.jsonb "payload", default: {}
+    t.string "correlation_id"
+    t.datetime "processed_at"
+    t.text "error"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["correlation_id"], name: "index_webhook_events_on_correlation_id"
+    t.index ["created_at"], name: "index_webhook_events_on_created_at"
+    t.index ["event_type"], name: "index_webhook_events_on_event_type"
+    t.index ["source"], name: "index_webhook_events_on_source"
+  end
+
+  add_foreign_key "patient_mappings", "spree_users"
+  add_foreign_key "pending_customers", "spree_users"
+  add_foreign_key "pharmacy_orders", "patient_mappings"
+  add_foreign_key "pharmacy_orders", "spree_users"
+  add_foreign_key "prescriptions", "patient_mappings"
 end
