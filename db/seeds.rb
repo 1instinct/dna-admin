@@ -16,3 +16,6 @@ end
 
 # Multi-market stores
 load Rails.root.join("db/seeds/stores.rb")
+
+# Sample products (dev only)
+load Rails.root.join("db/seeds/sample_products.rb")
