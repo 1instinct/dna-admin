@@ -13,3 +13,6 @@ Dir[File.dirname(__FILE__) + '/seeds/*.rb'].sort.each do |file|
   puts "Seeds #{file} ..."
   require file
 end
+
+# Multi-market stores
+load Rails.root.join("db/seeds/stores.rb")
