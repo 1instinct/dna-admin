@@ -1,0 +1,290 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:analytics_dashboard) %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <li>
+    <%= form_tag admin_dashboard_analytics_path, method: :get, class: 'form-inline' do %>
+      <%= select_tag :date_range, options_for_select([
+        ['Last 7 Days', '7'],
+        ['Last 30 Days', '30'],
+        ['Last 90 Days', '90'],
+        ['Last 365 Days', '365']
+      ], params[:date_range] || '30'), class: 'form-control', onchange: 'this.form.submit()' %>
+    <% end %>
+  </li>
+<% end %>
+
+<div class="row">
+  <!-- Summary Cards -->
+  <div class="col-md-3">
+    <div class="card text-white bg-primary mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Total Orders</h5>
+        <h2><%= @total_orders %></h2>
+        <p class="card-text">Last <%= @date_range %> days</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card text-white bg-success mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Total Revenue</h5>
+        <h2><%= number_to_currency(@total_revenue) %></h2>
+        <p class="card-text">Avg: <%= number_to_currency(@average_order_value) %></p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card text-white bg-info mb-3">
+      <div class="card-body">
+        <h5 class="card-title">New Users</h5>
+        <h2><%= @new_users %></h2>
+        <p class="card-text">Total: <%= @total_users %></p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card text-white bg-warning mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Messages</h5>
+        <h2><%= @total_messages %></h2>
+        <p class="card-text">Unread: <%= @unread_messages %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Orders Chart -->
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Orders & Revenue Over Time</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="ordersChart" style="height: 300px;"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Order Status Breakdown -->
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Order Status Distribution</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="orderStatusChart" style="height: 300px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Users Growth Chart -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>User & Contact Growth</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="usersChart" style="height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Messages Activity Chart -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Message Activity</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="messagesChart" style="height: 250px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Top Products -->
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Top Selling Products</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Quantity Sold</th>
+              <th>Total Sales</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @top_products.each do |product| %>
+              <tr>
+                <td><%= product.sku %></td>
+                <td><%= product.total_quantity %></td>
+                <td><%= number_to_currency(product.total_sales) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+  // Orders & Revenue Chart
+  const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+  new Chart(ordersCtx, {
+    type: 'line',
+    data: {
+      labels: <%= raw @orders_chart_data.map { |d| d[:date] }.to_json %>,
+      datasets: [
+        {
+          label: 'Orders',
+          data: <%= raw @orders_chart_data.map { |d| d[:orders] }.to_json %>,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          yAxisID: 'y'
+        },
+        {
+          label: 'Revenue ($)',
+          data: <%= raw @orders_chart_data.map { |d| d[:revenue] }.to_json %>,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left'
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
+          }
+        }
+      }
+    }
+  });
+  
+  // Order Status Pie Chart
+  const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+  new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: <%= raw @order_status_data.map { |d| d[:status] }.to_json %>,
+      datasets: [{
+        data: <%= raw @order_status_data.map { |d| d[:count] }.to_json %>,
+        backgroundColor: [
+          'rgb(40, 167, 69)',
+          'rgb(255, 193, 7)',
+          'rgb(0, 123, 255)',
+          'rgb(23, 162, 184)',
+          'rgb(108, 117, 125)',
+          'rgb(220, 53, 69)'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+  // Users Growth Chart
+  const usersCtx = document.getElementById('usersChart').getContext('2d');
+  new Chart(usersCtx, {
+    type: 'bar',
+    data: {
+      labels: <%= raw @users_chart_data.map { |d| d[:date] }.to_json %>,
+      datasets: [
+        {
+          label: 'New Users',
+          data: <%= raw @users_chart_data.map { |d| d[:users] }.to_json %>,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor: 'rgb(54, 162, 235)',
+          borderWidth: 1
+        },
+        {
+          label: 'New Contacts',
+          data: <%= raw @users_chart_data.map { |d| d[:contacts] }.to_json %>,
+          backgroundColor: 'rgba(255, 159, 64, 0.5)',
+          borderColor: 'rgb(255, 159, 64)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  
+  // Messages Activity Chart
+  const messagesCtx = document.getElementById('messagesChart').getContext('2d');
+  new Chart(messagesCtx, {
+    type: 'line',
+    data: {
+      labels: <%= raw @messages_chart_data.map { |d| d[:date] }.to_json %>,
+      datasets: [
+        {
+          label: 'Total Messages',
+          data: <%= raw @messages_chart_data.map { |d| d[:total] }.to_json %>,
+          borderColor: 'rgb(153, 102, 255)',
+          backgroundColor: 'rgba(153, 102, 255, 0.2)',
+          fill: true
+        },
+        {
+          label: 'Unread Messages',
+          data: <%= raw @messages_chart_data.map { |d| d[:unread] }.to_json %>,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>

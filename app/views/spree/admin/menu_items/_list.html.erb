@@ -1,0 +1,14 @@
+<% items.each do |item| %>
+  <tr id="<%= spree_dom_id item %>" class="<%= cycle('odd', 'even')%>">
+    <td><% if is_child %>----<% end %><%= item.name %></td>
+    <td><%= item.url %></td>
+    <td class="actions">
+      <%= link_to_edit(item, { no_text: true, url: edit_admin_menu_item_path(item.id) }) %>
+      <%= link_to_delete(item, { no_text: true, url: admin_menu_item_path(item.id) }) %>
+    </td>
+  </tr>
+
+  <% if item.children.any? %>
+    <%= render partial: 'spree/admin/menu_items/list', locals: { items: item.children, is_child: true } %>
+  <% end %>
+<% end %>

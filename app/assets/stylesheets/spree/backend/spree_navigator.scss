@@ -1,0 +1,70 @@
+// Same styles as taxonomy section
+#menu_tree {
+  > ul,
+  .jstree-icon {
+    background-image: none;
+  }
+
+  li {
+    background-image: none;
+
+    a {
+      background-color: #f3f8fc;
+      border: 1px solid #cee1f4;
+      color: #6788a2;
+      font-weight: 600;
+      text-shadow: none;
+      width: 90%;
+      height: auto;
+      line-height: inherit;
+      padding: 5px 0 5px 10px;
+      margin-bottom: 10px;
+
+      .jstree-icon {
+        padding-left: 0px;
+
+        &:before {
+          content: "\f047";
+        }
+      }
+    }
+  }
+
+  .jstree-icon {
+    display: inline-block;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-right: 5px;
+
+    &.pull-left {
+      margin-right: .3em;
+    }
+
+    &.pull-right {
+      margin-left: .3em;
+    }
+  }
+
+  .jstree-open > .jstree-icon:before {
+    content: "\f0d7";
+  }
+
+  .jstree-closed > .jstree-icon:before {
+    content: "\f0da";
+  }
+
+  .button.jstree-icon,
+  .icon_link.jstree-icon {
+    padding-right: 5px;
+    padding-top: 3px;
+  }
+
+  button.jstree-icon:before,
+  a.jstree-icon:before {
+    padding-right: 5px;
+  }
+}

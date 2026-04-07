@@ -1,0 +1,22 @@
+STEPS TO USING PRETTIER
+
+
+1. Make a prettier config file
+	https://prettier.io/docs/en/configuration.html
+2. save that file as .prettierrc in root
+	this file is ignored via github  .. example below
+3. on command line run ..
+	bundle exec rbprettier --write '**/*.rb'
+4. done
+
+
+
+
+
+.prettierrc
+
+
+{
+  "tabWidth": 4,
+  "semi": false
+}

@@ -1,0 +1,15 @@
+<%#= render partial: 'spree/admin/shared/configuration_menu' %>
+
+<% content_for :page_title do %>
+  <%= Spree.t('menu_navigator.admin.title.edit', name: @menu_item.name) %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t('menu_navigator.admin.button.back'), admin_menu_items_path, class: "btn-success", icon: 'arrow-left' %>
+<% end %>
+
+<%= render partial: 'spree/shared/error_messages', locals: { target: @menu_item } %>
+
+<%= form_for @menu_item, url: admin_menu_item_path(@menu_item) do |f| %>
+  <%= render 'form', f: f %>
+<% end %>

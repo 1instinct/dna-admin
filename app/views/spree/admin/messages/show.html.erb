@@ -1,0 +1,67 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @contact } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:contacts), spree.admin_contact_path %> /
+  <%= Spree.t(:contact_detail) %>
+<% end %>
+
+<%= form_for [:admin, @message], url: admin_message_path(id: @message.id), html: { multipart: true }, method: :patch do |f| %>
+  <fieldset data-hook="new_message">
+    <%= f.field_container :message, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:message) %> <span class="required">*</span>
+      <%= f.text_field :message, class: 'form-control message', required: :required, readonly: :true %>
+      <%= f.error_message_on :message %>
+    <% end %>
+    <% if @message&.sender_type == "Spree::User" %>
+      <%= f.field_container :sender_email, class: ['form-group'] do %>
+        <%= f.label :name, Spree.t(:sender_email) %> <span class="required">*</span>
+        <%= text_field_tag 'query', @message.sender.email, class: 'form-control', readonly: :true %>
+        <%= f.error_message_on :sender_email %>
+      <% end %>
+    <% elsif @message&.sender_type == "Spree::User" %>
+      <%= f.field_container :sender_full_name, class: ['form-group'] do %>
+        <%= f.label :name, Spree.t(:sender_full_name) %> <span class="required">*</span>
+        <%= text_field_tag 'query', @message.sender.full_name, class: 'form-control', readonly: :true %>
+        <%= f.error_message_on :sender_full_name %>
+      <% end %>
+    <% end %>
+    <%= f.field_container :sender_type, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sender_type) %> <span class="required">*</span>
+      <%= f.text_field :sender_type, class: 'form-control sender_type', required: :required, readonly: :true %>
+      <%= f.error_message_on :sender_type %>
+    <% end %>
+    <%= f.field_container :sender_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sender_id) %> <span class="required">*</span>
+      <%= f.text_field :sender_id, class: 'form-control sender_id', required: :required, readonly: :true %>
+      <%= f.error_message_on :sender_id %>
+    <% end %>
+    <%= f.field_container :receiver_type, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:receiver_type) %> <span class="required">*</span>
+      <%= f.text_field :receiver_type, class: 'form-control receiver_type', required: :required, readonly: :true %>
+      <%= f.error_message_on :receiver_type %>
+    <% end %>
+    <%= f.field_container :receiver_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:receiver_id) %> <span class="required">*</span>
+      <%= f.text_field :receiver_id, class: 'form-control receiver_id', required: :required, readonly: :true %>
+      <%= f.error_message_on :receiver_id %>
+    <% end %>
+
+    <%= f.field_container :is_received, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:is_received) %> <span class="required">*</span>
+      <%= f.text_field :is_received, class: 'form-control is_received', required: :required, readonly: :true %>
+      <%= f.error_message_on :is_received %>
+    <% end %>
+
+    <%= f.field_container :is_read, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:is_read) %> <span class="required">*</span>
+      <%= f.text_field :is_read, class: 'form-control is_read', required: :required, readonly: :true %>
+      <%= f.error_message_on :is_read %>
+    <% end %>
+
+    <%= f.field_container :sentiment, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:sentiment) %> <span class="required">*</span>
+      <%= f.text_field :sentiment, class: 'form-control sentiment', required: :required, readonly: :true %>
+      <%= f.error_message_on :sentiment %>
+    <% end %>
+  </fieldset>
+<% end %>

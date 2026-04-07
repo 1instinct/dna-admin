@@ -1,0 +1,25 @@
+// Basic submenu rollovers
+nav {
+  #main-nav-bar {
+    li {
+      position: relative;
+
+      &:hover {
+        > ul {
+          display: block;
+        }
+      }
+    }
+
+    ul {
+      position: absolute;
+      left: 0;
+      display: none;
+
+      ul {
+        left: 100%;
+        top: 0;
+      }
+    }
+  }
+}

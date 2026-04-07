@@ -1,0 +1,24 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @thread } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:messages), spree.admin_threads_path %> /
+  <%= Spree.t(:new_message) %>
+<% end %>
+
+<%= form_for [:admin, @thread], url: admin_threads_path, html: { multipart: true }, method: :post do |f| %>
+  <fieldset data-hook="new_product">
+
+    <%= f.field_container :archived, class: ['form-group'] do %>
+      <%= f.check_box :archived %>
+      <%= Spree.t(:archived) %>
+    <% end %>
+
+    <%= f.field_container :stale, class: ['form-group'] do %>
+      <%= f.check_box :stale %>
+      <%= Spree.t(:stale) %>
+    <% end %>
+
+    <%= render partial: 'spree/admin/messages/new_resource_links' %>
+
+  </fieldset>
+<% end %>

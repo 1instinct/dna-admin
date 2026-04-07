@@ -1,0 +1,49 @@
+<div class="footer-spree-copyright">
+  <div class="container bottom">
+    <div class="relative d-flex flex-column flex-lg-row align-items-center justify-content-center py-3 footer-spree-copyright-content">
+      <div>Designed and developed with</div>
+      <div class="mb-1 mb-lg-0">
+        <%= link_to 'https://instinct.is', target: :blank, 'aria-label': 'Go to Material Instinct', rel: :follow do %>
+          <%= image_tag 'favicon-32x32.png', class: 'footer-spree-copyright-logo-spark mx-2', alt: 'Material Instinct', title: 'Spree Commerce & Ruby on Rails developers' %>
+        <% end %>
+      </div>
+      <div class="d-none d-lg-inline-block mr-2">|</div>
+      <div>
+        © <%= Time.current.year %>
+        <%= link_to current_store.name, "https://#{current_store.url}" %>.
+        <%= Spree.t(:all_rights_reserved) %>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<style type="text/css">
+  .footer-spree-copyright .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .footer-spree-copyright * {
+    color: white !important;
+    font-size: 12px !important;
+  }
+
+  .footer-spree-copyright a:hover {
+    opacity: 0.8;
+  }
+
+  .footer-spree-copyright-content {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .footer-spree-copyright-content > div {
+    display: inline !important;
+    margin: 0 !important;
+  }
+</style>

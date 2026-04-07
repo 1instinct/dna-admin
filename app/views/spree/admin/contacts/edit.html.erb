@@ -1,0 +1,43 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @contact } %>
+
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:contacts), spree.admin_contacts_path %> /
+  <%= Spree.t(:edit_contacts) %>
+<% end %>
+
+<%= form_for [:admin, @contact], url: admin_contact_path(id: @contact.id), html: { multipart: true }, method: :patch do |f| %>
+  <fieldset data-hook="contact">
+    <%= f.field_container :actor_id, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:actor_id) %> <span class="required">*</span>
+      <%= f.select :actor_id, options_for_select(Spree::User.pluck(:email, :id), @contact.actor_id), {}, { class: 'select2' } %>
+      <%= f.error_message_on :actor_id %>
+    <% end %>
+
+    <%= f.field_container :full_name, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:full_name) %> <span class="required">*</span>
+      <%= f.text_field :full_name, class: 'form-control full_name', required: :required %>
+      <%= f.error_message_on :full_name %>
+    <% end %>
+
+    <%= f.field_container :email, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:email) %> <span class="required">*</span>
+      <%= f.text_field :email, class: 'form-control email', required: :required %>
+      <%= f.error_message_on :email %>
+    <% end %>
+
+    <%= f.field_container :phone, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:phone) %> <span class="required">*</span>
+      <%= f.text_field :phone, class: 'form-control phone', required: :required %>
+      <%= f.error_message_on :phone %>
+    <% end %>
+
+    <%= f.field_container :ip, class: ['form-group'] do %>
+      <%= f.label :name, Spree.t(:ip) %> <span class="required">*</span>
+      <%= f.text_field :ip, class: 'form-control ip', required: :required %>
+      <%= f.error_message_on :ip %>
+    <% end %>
+
+    <%= render partial: 'spree/admin/contacts/edit_resource_links' %>
+
+  </fieldset>
+<% end %>

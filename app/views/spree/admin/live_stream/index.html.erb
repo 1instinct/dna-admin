@@ -1,0 +1,66 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:"admin.live_stream.list_success") %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t(:add_live_stream), spree.new_admin_live_stream_path(@user), class: "btn-success", icon: 'add.svg' if can?(:create, Spree::Store) %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_products_sidebar">    
+    <%= search_form_for @q, url: admin_live_stream_index_path do |f| %>
+      <%- locals = {f: f} %>
+      <div data-hook="admin_products_index_search" class="row">
+        <div class="col-12 col-lg-6">
+          <div class="form-group">
+            <%= f.label :search_livestream, Spree.t(:title) %>
+            <%= f.text_field :search_livestream, size: 15, class: "form-control js-quick-search-target js-filterable" %>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div data-hook="admin_products_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:search), 'search.svg' %>
+      </div>
+    <% end %>
+<% end %>
+
+
+<% if @collection.present? %>
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <th scope="col"><%= sort_link(@q, :title, "Title", default_order: :asc) %></th>
+      <th>Description</th>
+      <th>Stream URL</th>
+      <th>Stream Key</th>
+      <th>Start Date</th>
+      <th>Is Active</th>
+      <th data-hook="admin_stores_index_header_actions" class="actions">Actions</th>
+    <thead>
+    <tbody>
+      <%# @response[1]['data'].each do |stream| %>
+      <% @collection.each do |live_stream| %>
+        <tr class="live_stream_<%= live_stream.id %>">
+          <td><%= link_to live_stream.title, admin_live_stream_path(live_stream.id) %></td>
+          <td><%= live_stream.description %></td>
+          <td><%= live_stream.stream_url %></td>
+          <td><%= live_stream.stream_key %></td>
+          <td><%= live_stream.start_date %></td>
+          <td><%= live_stream.is_active.present? ? live_stream.is_active : true %></td>
+          <td class="actions actions-2 text-right" data-hook="admin_live_stream_index_row_actions">
+            <%= link_to_edit_url spree.edit_admin_live_stream_path(live_stream.id), no_text: true if can?(:edit, live_stream) %>
+            <%= link_to_delete live_stream.id, no_text: true, url: admin_live_stream_path(id: live_stream.id) if can?(:destroy, live_stream.id) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<% else %>
+  <div class="alert alert-info no-objects-found">
+    <%= Spree.t(:no_resource_found, resource: plural_resource_name(LiveStream)) %>
+  </div>
+<% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @collection } %>

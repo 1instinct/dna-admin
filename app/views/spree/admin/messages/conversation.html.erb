@@ -1,0 +1,161 @@
+<style media="screen">
+.msg_container_base{
+  background: #e5e5e5;
+  margin: 0;
+  padding: 0 10px 10px;
+}
+.top-bar {
+  background: #666;
+  color: white;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.msg_receive{
+  padding-left:0;
+  margin-left:0;
+}
+.msg_sent{
+  padding-bottom:20px !important;
+  margin-right:0;
+}
+.messages {
+  background: white;
+  padding: 10px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  max-width:100%;
+}
+.messages > p {
+  font-size: 16px;
+  margin: 0 0 0.2rem 0;
+}
+.messages > time {
+  font-size: 11px;
+  color: #ccc;
+}
+.msg_container {
+  padding: 10px;
+  overflow: hidden;
+  display: flex;
+}
+img {
+  display: block;
+  width: 100%;
+}
+.avatar {
+  position: relative;
+}
+  content: "";
+  .base_receive > .avatar:after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border: 5px solid #FFF;
+  border-left-color: rgba(0, 0, 0, 0);
+  border-bottom-color: rgba(0, 0, 0, 0);
+}
+
+.base_sent {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.base_sent > .avatar:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border: 5px solid white;
+  border-right-color: transparent;
+  border-top-color: transparent;
+  box-shadow: 1px 1px 2px rgba(black, 0.2); // not quite perfect but close
+}
+
+.msg_sent > time{
+  float: right;
+}
+
+.msg_container_base::-webkit-scrollbar-track
+{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  background-color: #F5F5F5;
+}
+
+.msg_container_base::-webkit-scrollbar
+{
+  width: 12px;
+  background-color: #F5F5F5;
+}
+
+.msg_container_base::-webkit-scrollbar-thumb
+{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: #555;
+}
+
+.btn-group.dropup{
+  position:fixed;
+  left:0px;
+  bottom:0;
+}
+</style>
+<%# first_user = @user_1.class.to_s == "Spree::User" ? @user_1.email : @user_1.full_name %>
+<%# second_user = @user_1.class.to_s == "Spree::User" ? @user_2.email : @user_2.full_name %>
+<% content_for :page_title do %>
+  <%= link_to Spree.t(:messages), spree.admin_messages_path %> /
+  conversation between <%#= first_user %> and <%#= second_user %>
+<% end %>
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading top-bar">
+          <div class="col-md-12 col-xs-12">
+            <h3 class="panel-title"><span class="glyphicon glyphicon-comment"></span> Chat between <%#= first_user %> and <%#= second_user %></h3>
+          </div>
+        </div>
+
+        <div class="panel-body msg_container_base">
+            <% @threads.each do |thread| %>
+              <% thread.each do |message| %>
+                <% if message.sender == @user_1 %>
+                  <div class="row msg_container base_sent">
+                    <div class="col-md-10 col-xs-10">
+                      <div class="messages msg_sent">
+                        <p>
+                          <%= message.message %>
+                        </p>
+                        <time datetime="2009-11-13T20:00">
+                          <%= distance_of_time_in_words(message.created_at, Time.now) %> ago
+                        </time>
+                      </div>
+                    </div>
+                    <div class="col-md-2 col-xs-2">
+                      <b><%= sender = message.sender_type == "Spree::User" ?  message.sender.email : message.sender.full_name %></b>
+                    </div>
+                  </div>
+                <% elsif message.sender == @user_2  %>
+                  <div class="row msg_container base_receive">
+                    <div class="col-md-2 col-xs-2">
+                      <b><%= sender = message.sender_type == "Spree::User" ?  message.sender.email : message.sender.full_name %></b>
+                    </div>
+                    <div class="col-md-10 col-xs-10">
+                      <div class="messages msg_receive">
+                        <p><%= message.message %></p>
+                        <time datetime="2009-11-13T20:00"><%= distance_of_time_in_words(message.created_at, Time.now) %> ago</time>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+              <hr size="1" width="" color="black">
+            <% end %>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>

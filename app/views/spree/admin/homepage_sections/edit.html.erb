@@ -1,0 +1,83 @@
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @homepage_section } %>
+
+<% content_for :page_title do %>
+  <%= link_to 'Homepage Sections', spree.admin_homepage_sections_path %> /
+  Edit: <%= @homepage_section.title %>
+<% end %>
+
+<%= form_for [:admin, @homepage_section], html: { class: 'form' } do |f| %>
+  <fieldset data-hook="edit_homepage_section">
+    
+    <%= f.field_container :title, class: ['form-group'] do %>
+      <%= f.label :title, 'Title' %> <small class="text-muted">(Optional)</small>
+      <%= f.text_field :title, class: 'form-control' %>
+      <%= f.error_message_on :title %>
+    <% end %>
+
+    <%= f.field_container :section_type, class: ['form-group'] do %>
+      <%= f.label :section_type, 'Section Type' %> <span class="required">*</span>
+      <%= f.select :section_type, 
+                   options_for_select(HomepageSection::SECTION_TYPES.map { |t| [t.titleize, t] }, @homepage_section.section_type), 
+                   {}, 
+                   { class: 'form-control select2', required: true } %>
+      <%= f.error_message_on :section_type %>
+      <small class="form-text text-muted">Choose the type of content section</small>
+    <% end %>
+
+    <%= f.field_container :content, class: ['form-group'] do %>
+      <%= f.label :content, 'Content (HTML/Text)' %>
+      <%= f.text_area :content, class: 'form-control', rows: 10, id: 'homepage_section_content' %>
+      <%= f.error_message_on :content %>
+      <small class="form-text text-muted">Main content for this section</small>
+    <% end %>
+
+    <%= f.field_container :settings, class: ['form-group'] do %>
+      <%= f.label :settings, 'Settings (JSON)' %>
+      <%= f.text_area :settings, class: 'form-control', rows: 6, placeholder: '{ "key": "value" }' %>
+      <%= f.error_message_on :settings %>
+      <small class="form-text text-muted">Additional configuration in JSON format. Example: {"background_color": "#fff", "text_color": "#000"}</small>
+    <% end %>
+
+    <%= f.field_container :position, class: ['form-group'] do %>
+      <%= f.label :position, 'Position' %>
+      <%= f.number_field :position, class: 'form-control', min: 1 %>
+      <%= f.error_message_on :position %>
+      <small class="form-text text-muted">Order position on the page (lower numbers appear first)</small>
+    <% end %>
+
+    <%= f.field_container :is_visible, class: ['form-group'] do %>
+      <div class="form-check">
+        <%= f.check_box :is_visible, class: 'form-check-input' %>
+        <%= f.label :is_visible, 'Visible on website', class: 'form-check-label' %>
+      </div>
+      <%= f.error_message_on :is_visible %>
+    <% end %>
+
+    <div class="form-actions" data-hook="buttons">
+      <%= button Spree.t(:update), 'save.svg' %>
+      <%= button_link_to Spree.t(:cancel), admin_homepage_sections_path, icon: 'cancel.svg' %>
+    </div>
+
+  </fieldset>
+<% end %>
+
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof CKEDITOR !== 'undefined') {
+      CKEDITOR.replace('homepage_section_content', {
+        height: 400,
+        versionCheck: false,
+        toolbar: [
+          ['Bold', 'Italic', 'Underline', 'Strike'],
+          ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+          ['Link', 'Unlink', 'Anchor'],
+          ['Image', 'Table', 'HorizontalRule', 'SpecialChar'],
+          ['Format', 'FontSize'],
+          ['TextColor', 'BGColor'],
+          ['Maximize', '-', 'Source']
+        ]
+      });
+    }
+  });
+</script>
