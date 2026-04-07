@@ -5,6 +5,8 @@ ruby '3.2.2'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 6.1.3'
+# Pin minitest to 5.x — 6.0.3 has argument count incompatibility with Rails 6.1 + Ruby 3.2
+gem 'minitest', '~> 5.16'
 # Use postgresql as the database for Active Record
 gem 'pg'
 
