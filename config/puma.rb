@@ -1,34 +1,33 @@
-# Puma can serve each request in a thread from an internal thread pool.
-# The `threads` method setting takes two numbers: a minimum and maximum.
-# Any libraries that use thread pools should be configured to match
-# the maximum value specified for Puma. Default is set to 5 threads for minimum
-# and maximum; this matches the default thread size of Active Record.
-#
-threads_count = ENV.fetch('RAILS_MAX_THREADS') { 5 }
-threads threads_count, threads_count
+# Puma configuration for production (Azure Container Apps)
+# https://puma.io/puma/Puma/DSL.html
 
-# Specifies the `port` that Puma will listen on to receive requests; default is 3000.
-#
-port ENV.fetch('PORT') { 3_000 }
+# Thread pool — Container Apps allocates 0.5 CPU per container
+max_threads_count = ENV.fetch("RAILS_MAX_THREADS", 5).to_i
+min_threads_count = ENV.fetch("RAILS_MIN_THREADS", max_threads_count).to_i
+threads min_threads_count, max_threads_count
 
-# Specifies the `environment` that Puma will run in.
-#
-environment ENV.fetch('RAILS_ENV') { 'development' }
+# Workers — for Container Apps with 0.5 CPU, use 2 workers
+# WEB_CONCURRENCY=0 disables workers (single mode, useful for debugging)
+workers ENV.fetch("WEB_CONCURRENCY", 2).to_i
 
-# Specifies the number of `workers` to boot in clustered mode.
-# Workers are forked webserver processes. If using threads and workers together
-# the concurrency of the application would be max `threads` * `workers`.
-# Workers do not work on JRuby or Windows (both of which do not support
-# processes).
-#
-# workers ENV.fetch("WEB_CONCURRENCY") { 2 }
+# Preload app for Copy-on-Write memory savings with workers
+preload_app!
 
-# Use the `preload_app!` method when specifying a `workers` number.
-# This directive tells Puma to first boot the application and load code
-# before forking the application. This takes advantage of Copy On Write
-# process behavior so workers use less memory.
-#
-# preload_app!
+# Port
+port ENV.fetch("PORT", 3000)
 
-# Allow puma to be restarted by `rails restart` command.
+# Environment
+environment ENV.fetch("RAILS_ENV", "development")
+
+# Worker boot hook — re-establish DB connections in forked workers
+on_worker_boot do
+  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+end
+
+# Allow puma to be restarted by `bin/rails restart`
 plugin :tmp_restart
+
+# Logging
+if ENV["RAILS_LOG_TO_STDOUT"] == "true"
+  stdout_redirect "/dev/stdout", "/dev/stderr", true
+end
