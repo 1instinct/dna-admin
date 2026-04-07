@@ -91,7 +91,7 @@ module Spree
           :item_target,
           :parent_id,
           :position,
-          :menu_location_id
+          :menu_location_id,
           :position
         ]
       end
