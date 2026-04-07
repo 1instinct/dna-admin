@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20170827000002)
-class AddLayoutToTranslatableFields < SpreeExtension::Migration[4.2]
+class AddLayoutToTranslatableFields < ActiveRecord::Migration[4.2]
   def up
     if defined?(SpreeGlobalize)
       Spree::Page.add_translation_fields! layout: :string

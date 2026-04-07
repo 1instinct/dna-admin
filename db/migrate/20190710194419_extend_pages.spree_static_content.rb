@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20090625125735)
-class ExtendPages < SpreeExtension::Migration[4.2]
+class ExtendPages < ActiveRecord::Migration[4.2]
   class Page < ActiveRecord::Base
   end
 

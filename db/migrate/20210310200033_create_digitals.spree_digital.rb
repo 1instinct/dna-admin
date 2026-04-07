@@ -1,5 +1,5 @@
 # This migration comes from spree_digital (originally 20110410134726)
-class CreateDigitals < SpreeExtension::Migration[4.2]
+class CreateDigitals < ActiveRecord::Migration[4.2]
 
   def self.up
     create_table :digitals do |t|

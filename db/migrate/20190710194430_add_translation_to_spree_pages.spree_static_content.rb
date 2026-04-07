@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20170827000001)
-class AddTranslationToSpreePages < SpreeExtension::Migration[4.2]
+class AddTranslationToSpreePages < ActiveRecord::Migration[4.2]
   def up
     params = { title: :string, body: :text, slug: :string, foreign_link: :string, meta_keywords: :string, meta_title: :string, meta_description: :string }
     if defined?(SpreeGlobalize)

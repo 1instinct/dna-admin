@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20140926121757)
-class AddPagesStores < SpreeExtension::Migration[4.2]
+class AddPagesStores < ActiveRecord::Migration[4.2]
   def change
     create_table :spree_pages_stores, id: false do |t|
       t.integer :store_id

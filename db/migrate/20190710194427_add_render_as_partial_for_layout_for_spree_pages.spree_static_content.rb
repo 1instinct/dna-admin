@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20120723144115)
-class AddRenderAsPartialForLayoutForSpreePages < SpreeExtension::Migration[4.2]
+class AddRenderAsPartialForLayoutForSpreePages < ActiveRecord::Migration[4.2]
   def up
     unless column_exists? :spree_pages, :render_layout_as_partial
       add_column :spree_pages, :render_layout_as_partial, :boolean, default: false

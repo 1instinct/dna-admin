@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20100204105222)
-class AddLayoutToPages < SpreeExtension::Migration[4.2]
+class AddLayoutToPages < ActiveRecord::Migration[4.2]
   def self.up
     add_column :spree_pages, :layout, :string
   end

@@ -1,5 +1,5 @@
 # This migration comes from spree_static_content (originally 20090814113100)
-class AddVisibleToPages < SpreeExtension::Migration[4.2]
+class AddVisibleToPages < ActiveRecord::Migration[4.2]
   class Page < ActiveRecord::Base
   end
 
