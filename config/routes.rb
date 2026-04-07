@@ -117,6 +117,7 @@ Spree::Core::Engine.add_routes do
           get :menu_items
         end
       end
+      resource :consultation, only: [:show], controller: 'consultation'
     end
 
     namespace :v2 do
