@@ -17,4 +17,4 @@ production:
 
 test:
   <<: *default
-  database: <%= ENV['DATABASE_NAME'] %>
+  database: <%= ENV.fetch('DATABASE_NAME_TEST', "#{ENV['DATABASE_NAME']}_test") %>
