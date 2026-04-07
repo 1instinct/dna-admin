@@ -19,13 +19,13 @@ class HoneybeeClient
     @api_connection ||= Faraday.new(url: @api_base) do |f|
       f.request :json
       f.request :authorization, :bearer, -> { access_token }
-      f.request :retry,
-                max: 3,
-                interval: 1,
-                backoff_factor: 2,
-                retry_statuses: [429, 500, 502, 503, 504]
       f.response :json
       f.response :raise_error
+      f.request :retry,
+                max: 3,
+                interval: 0.1,
+                backoff_factor: 2,
+                exceptions: [Faraday::ServerError, Faraday::TimeoutError, Faraday::ConnectionFailed]
       f.adapter Faraday.default_adapter
     end
   end

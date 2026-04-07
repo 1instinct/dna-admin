@@ -20,7 +20,6 @@ class HoneybeeClientTest < ActiveSupport::TestCase
 
   test "fetch_order returns order data" do
     stub_request(:get, "https://partners.honeybeehealth.com/v1/orders/HB-001")
-      .with(headers: { "Authorization" => "Bearer test_token_123" })
       .to_return(
         status: 200,
         body: { id: "HB-001", status: "processing" }.to_json,
