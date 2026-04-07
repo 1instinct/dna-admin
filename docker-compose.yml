@@ -8,6 +8,12 @@ services:
       - ./tmp/db:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: password
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./tmp/redis:/data
   web:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
@@ -15,5 +21,16 @@ services:
       - "8080:3000"
     depends_on:
       - db
+      - redis
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
+      REDIS_URL: redis://redis:6379/0
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
+      REDIS_URL: redis://redis:6379/0
