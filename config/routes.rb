@@ -118,6 +118,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resource :consultation, only: [:show], controller: 'consultation'
+      resources :prescriptions, only: [:index, :show], controller: 'prescriptions'
     end
 
     namespace :v2 do
