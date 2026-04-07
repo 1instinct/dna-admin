@@ -24,6 +24,7 @@ services:
       - redis
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
+      DATABASE_URL_TEST: postgres://postgres:password@db:5432/dna_admin_test
       REDIS_URL: redis://redis:6379/0
   sidekiq:
     build: .
