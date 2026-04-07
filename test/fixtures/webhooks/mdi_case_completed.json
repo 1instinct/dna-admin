@@ -1,0 +1,14 @@
+{
+  "event_type": "case_completed",
+  "encounter_id": "enc_test_002",
+  "timestamp": 1712448000,
+  "metadata": {
+    "patient": {
+      "id": "pat_mdi_002",
+      "first_name": "Alice",
+      "last_name": "Smith",
+      "email": "alice.smith@example.com"
+    },
+    "shopify": { "customer_id": "123456790" }
+  }
+}

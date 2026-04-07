@@ -1,0 +1,14 @@
+{
+  "event_id": "evt_exc_001",
+  "event_type": "ORDER_EXCEPTION",
+  "patient_id": "hb_pat_001",
+  "order_number": "HB-100001",
+  "timestamp": 1712448300,
+  "exception": {
+    "name": "AddressValidationFailed",
+    "message": "Address missing apartment number",
+    "order_actions": [
+      { "event_key": "contact_patient", "action": "Contact patient for updated address" }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "event_id": "evt_rx_002",
+  "event_type": "RX_UPDATED",
+  "patient_id": "hb_pat_001",
+  "timestamp": 1712448100,
+  "medication_requests": [
+    { "prescription_id": 10001, "order_status": "filling" }
+  ]
+}

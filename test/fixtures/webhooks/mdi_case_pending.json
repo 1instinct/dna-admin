@@ -1,0 +1,9 @@
+{
+  "event_type": "case_created",
+  "encounter_id": "enc_test_004",
+  "timestamp": 1712448000,
+  "metadata": {
+    "patient": { "id": "pat_mdi_004", "email": "pending@example.com" },
+    "shopify": { "customer_id": "123456792" }
+  }
+}

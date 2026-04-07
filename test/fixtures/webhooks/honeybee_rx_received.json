@@ -1,0 +1,17 @@
+{
+  "event_id": "evt_rx_001",
+  "event_type": "RX_RECEIVED",
+  "patient_id": "hb_pat_001",
+  "timestamp": 1712448000,
+  "medication_requests": [
+    {
+      "prescription_id": 10001,
+      "drug_name": "Cntrl+ Pessary Starter Kit",
+      "ndc": "02400000713",
+      "written_qty": 1,
+      "refills_left": 0,
+      "expire_date": "2027-04-07",
+      "prescriber_name": "Dr. Smith"
+    }
+  ]
+}

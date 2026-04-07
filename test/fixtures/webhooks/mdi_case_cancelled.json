@@ -1,0 +1,9 @@
+{
+  "event_type": "case_cancelled",
+  "encounter_id": "enc_test_003",
+  "timestamp": 1712448000,
+  "metadata": {
+    "patient": { "id": "pat_mdi_003", "email": "bob@example.com" },
+    "shopify": { "customer_id": "123456791" }
+  }
+}
