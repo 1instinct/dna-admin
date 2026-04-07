@@ -7,6 +7,15 @@ ruby '3.2.2'
 gem 'rails', '~> 6.1.3'
 # Use postgresql as the database for Active Record
 gem 'pg'
+
+# Background Jobs
+gem 'sidekiq', '~> 7.2'
+gem 'redis', '~> 5.0'
+
+# HTTP Clients (for MDI/Honeybee integrations)
+gem 'faraday', '~> 2.9'
+gem 'faraday-retry', '~> 2.2'
+
 # Use Puma as the app server
 gem 'puma', '~> 4.3'
 # Use SCSS for stylesheets
@@ -24,8 +33,6 @@ gem 'coffee-rails', '~> 4.2'
 gem 'turbolinks', '~> 5'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
-# Use Redis adapter to run Action Cable in production
-# gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 gem 'rack-cors'
@@ -99,6 +106,7 @@ end
 group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
+  gem 'webmock', '~> 3.23'
   gem 'matrix'
   gem 'selenium-webdriver'
   # Easy installation and use of chromedriver to run system tests with Chrome
