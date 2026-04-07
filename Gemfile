@@ -109,8 +109,7 @@ group :test do
   gem 'webmock', '~> 3.23'
   gem 'matrix'
   gem 'selenium-webdriver'
-  # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  # chromedriver-helper removed — incompatible with Ruby 3.2/Selenium 4
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
