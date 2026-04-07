@@ -1,4 +1,5 @@
 if Rails.env.development? || Rails.env.test?
+	Dotenv.load(Rails.root.join('.env.development'))
 
 	Dotenv.require_keys(
 		'AWS_ACCESS_KEY_ID',
@@ -7,7 +8,6 @@ if Rails.env.development? || Rails.env.test?
 		'AWS_SECRET_ACCESS_KEY',
 		'COMPANY_LOGO',
 		'COMPANY_BACKGROUND',
-		'DATABASE_URL',
 		'DEVISE_SECRET_KEY',
 		'PUSHER_APP_ID',
 		'PUSHER_KEY',
@@ -18,9 +18,6 @@ if Rails.env.development? || Rails.env.test?
 		'DNA_API_URL',
 		'DNA_API_KEY'
 	)
-
-	Dotenv.load(Rails.root.join('.env.development'))
-
 end
 
 AWS_ACCESS_KEY_ID = ENV['AWS_ACCESS_KEY_ID']
