@@ -1,0 +1,17 @@
+default: &default
+  starter_kit:
+    bundle_ndc: "02400000713"
+    device_ndcs:
+      - "02400000714"
+      - "02400000715"
+      - "02400000716"
+    dedup_window_minutes: 10
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default
