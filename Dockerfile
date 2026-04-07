@@ -1,9 +1,5 @@
 # https://docs.docker.com/compose/rails/#define-the-project
-FROM ruby:2.7.2
-# Fix Debian repository URLs for old Buster image
-RUN sed -i 's|http://deb.debian.org|http://archive.debian.org|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.debian.org|http://archive.debian.org|g' /etc/apt/sources.list && \
-    sed -i '/security.debian.org/d' /etc/apt/sources.list
+FROM ruby:3.2.2
 # The qq is for silent output in the console
 RUN apt-get update -qq && apt-get install -y \
     build-essential \
@@ -30,7 +26,7 @@ COPY Gemfile Gemfile.lock ./
 COPY .env.development .env.development
 
 # Install the Gems
-RUN gem install bundler:2.4.13
+RUN gem install bundler:2.4.22
 
 RUN bundle config set force_ruby_platform true
 
