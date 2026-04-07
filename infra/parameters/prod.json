@@ -1,0 +1,139 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "prod"
+    },
+    "location": {
+      "value": "westeurope"
+    },
+    "publicApiUrl": {
+      "value": "https://api.cntrlplus.com"
+    },
+    "publicSiteUrl": {
+      "value": "https://cntrlplus.com"
+    },
+    "postgresSkuName": {
+      "value": "Standard_D2s_v3"
+    },
+    "postgresSkuTier": {
+      "value": "GeneralPurpose"
+    },
+    "postgresStorageGB": {
+      "value": 64
+    },
+    "postgresBackupRetention": {
+      "value": 14
+    },
+    "postgresHighAvailability": {
+      "value": true
+    },
+    "redisSkuName": {
+      "value": "Standard"
+    },
+    "redisSkuCapacity": {
+      "value": 1
+    },
+    "registrySkuName": {
+      "value": "Standard"
+    },
+    "mdiApiBase": {
+      "value": "https://api.mdintegrations.com/v1"
+    },
+    "honeybeeApiBase": {
+      "value": "https://partners.honeybeehealth.com"
+    },
+    "honeybeeAuthBase": {
+      "value": "https://auth.honeybeehealth.com"
+    },
+    "postgresAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "POSTGRES-ADMIN-PASSWORD"
+      }
+    },
+    "railsMasterKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "RAILS-MASTER-KEY"
+      }
+    },
+    "secretKeyBase": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "SECRET-KEY-BASE"
+      }
+    },
+    "deviseSecretKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "DEVISE-SECRET-KEY"
+      }
+    },
+    "mdiClientId": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "MDI-CLIENT-ID"
+      }
+    },
+    "mdiClientSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "MDI-CLIENT-SECRET"
+      }
+    },
+    "honeybeeClientId": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "HONEYBEE-CLIENT-ID"
+      }
+    },
+    "honeybeeSecretKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "HONEYBEE-SECRET-KEY"
+      }
+    },
+    "honeybeeWebhookSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "HONEYBEE-WEBHOOK-SECRET"
+      }
+    },
+    "stripeSecretKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "STRIPE-SECRET-KEY"
+      }
+    },
+    "stripePublishableKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-cntrl-prod/providers/Microsoft.KeyVault/vaults/kv-cntrl-bootstrap-prod"
+        },
+        "secretName": "STRIPE-PUBLISHABLE-KEY"
+      }
+    }
+  }
+}
