@@ -1,0 +1,39 @@
+query ExtractMenus($country: CountryCode!, $language: LanguageCode!) @inContext(country: $country, language: $language) {
+  menus(first: 50) {
+    edges {
+      node {
+        id
+        handle
+        title
+        items {
+          id
+          title
+          url
+          type
+          resourceId
+          items {
+            id
+            title
+            url
+            type
+            resourceId
+            items {
+              id
+              title
+              url
+              type
+              resourceId
+              items {
+                id
+                title
+                url
+                type
+                resourceId
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

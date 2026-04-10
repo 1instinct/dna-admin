@@ -1,0 +1,59 @@
+{
+  "data": {
+    "menus": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Menu/1",
+            "handle": "main-menu",
+            "title": "Main menu",
+            "items": [
+              {
+                "id": "gid://shopify/MenuItem/1",
+                "title": "Shop",
+                "url": "/collections/all",
+                "type": "COLLECTION",
+                "resourceId": "gid://shopify/Collection/1",
+                "items": [
+                  {
+                    "id": "gid://shopify/MenuItem/2",
+                    "title": "Starter Kits",
+                    "url": "/collections/starter-kits",
+                    "type": "COLLECTION",
+                    "resourceId": "gid://shopify/Collection/2",
+                    "items": []
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/MenuItem/3",
+                "title": "About",
+                "url": "/pages/about",
+                "type": "PAGE",
+                "resourceId": "gid://shopify/Page/1",
+                "items": []
+              }
+            ]
+          }
+        },
+        {
+          "node": {
+            "id": "gid://shopify/Menu/2",
+            "handle": "footer",
+            "title": "Footer",
+            "items": [
+              {
+                "id": "gid://shopify/MenuItem/4",
+                "title": "Privacy",
+                "url": "/policies/privacy-policy",
+                "type": "POLICY",
+                "resourceId": null,
+                "items": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
