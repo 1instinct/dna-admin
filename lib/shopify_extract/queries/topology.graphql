@@ -1,0 +1,36 @@
+query Topology {
+  shop {
+    name
+    email
+    primaryDomain { host }
+    ianaTimezone
+    weightUnit
+    currencyCode
+    shopLocales {
+      locale
+      primary
+      published
+    }
+  }
+  markets(first: 50) {
+    edges {
+      node {
+        id
+        name
+        enabled
+        primary
+        regions(first: 20) {
+          edges {
+            node {
+              ... on MarketRegionCountry { code }
+            }
+          }
+        }
+        webPresence { rootUrls { url, locale } }
+      }
+    }
+  }
+  currentAppInstallation {
+    accessScopes { handle }
+  }
+}
