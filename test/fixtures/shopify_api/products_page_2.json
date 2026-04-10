@@ -1,0 +1,26 @@
+{
+  "data": {
+    "products": {
+      "pageInfo": { "hasNextPage": false, "endCursor": null },
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Product/2",
+            "handle": "refill-kit",
+            "title": "Refill Kit",
+            "descriptionHtml": "<p>Refill.</p>",
+            "vendor": "Cntrl+",
+            "productType": "Medical Device",
+            "tags": ["refill"],
+            "publishedAt": "2026-01-15T00:00:00Z",
+            "seo": { "title": "Refill Kit", "description": "Refill" },
+            "options": [],
+            "variants": { "edges": [] },
+            "images": { "edges": [] },
+            "metafields": { "edges": [] }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,43 @@
+query ExtractProducts($first: Int!, $after: String, $country: CountryCode!, $language: LanguageCode!) @inContext(country: $country, language: $language) {
+  products(first: $first, after: $after, query: "status:active") {
+    pageInfo { hasNextPage endCursor }
+    edges {
+      node {
+        id
+        handle
+        title
+        descriptionHtml
+        vendor
+        productType
+        tags
+        publishedAt
+        seo { title description }
+        options { id name position values }
+        variants(first: 100) {
+          edges {
+            node {
+              id
+              sku
+              price
+              compareAtPrice
+              inventoryQuantity
+              weight
+              weightUnit
+              selectedOptions { name value }
+            }
+          }
+        }
+        images(first: 50) {
+          edges {
+            node { id url altText width height }
+          }
+        }
+        metafields(first: 50) {
+          edges {
+            node { namespace key value type }
+          }
+        }
+      }
+    }
+  }
+}
