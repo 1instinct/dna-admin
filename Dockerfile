@@ -19,7 +19,7 @@ WORKDIR /dna
 # Rils will be installed once you load it from the Gemfile
 # This will also ensure that gems are cached and only updated when
 # they change.
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock* ./
 
 # Note that dotenv is NOT used in production.  Environment
 # comes from the deployment.
