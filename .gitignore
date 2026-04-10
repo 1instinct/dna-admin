@@ -92,3 +92,7 @@ secret.yaml
 docker-compose.yml.local
 
 .anima/
+
+# Shopify extraction output — never commit
+extracted/
+.env.local

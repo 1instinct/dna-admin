@@ -85,6 +85,10 @@ gem 'rest-client'
 gem 'swagger-blocks'
 # gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
+# Shopify content extraction tool (dev/staging only, guarded in initializer)
+gem "shopify_api", "~> 14"
+gem "down", "~> 5.4"
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'dotenv-rails'
