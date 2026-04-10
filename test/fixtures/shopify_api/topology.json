@@ -1,0 +1,78 @@
+{
+  "data": {
+    "shop": {
+      "name": "Cntrl+ Dev",
+      "email": "dev@cntrlplus.com",
+      "primaryDomain": { "host": "cntrlplus-md-integration-dev.myshopify.com" },
+      "ianaTimezone": "America/Los_Angeles",
+      "weightUnit": "KILOGRAMS",
+      "currencyCode": "USD",
+      "shopLocales": [
+        { "locale": "en", "primary": true, "published": true },
+        { "locale": "de", "primary": false, "published": true },
+        { "locale": "fr", "primary": false, "published": true },
+        { "locale": "it", "primary": false, "published": true },
+        { "locale": "es", "primary": false, "published": true }
+      ]
+    },
+    "markets": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Market/1",
+            "name": "United States",
+            "enabled": true,
+            "primary": true,
+            "regions": { "edges": [{ "node": { "code": "US" } }] },
+            "webPresence": { "rootUrls": [{ "url": "https://cntrlplus.com", "locale": "en" }] }
+          }
+        },
+        {
+          "node": {
+            "id": "gid://shopify/Market/2",
+            "name": "European Union",
+            "enabled": true,
+            "primary": false,
+            "regions": {
+              "edges": [
+                { "node": { "code": "DE" } },
+                { "node": { "code": "FR" } },
+                { "node": { "code": "IT" } },
+                { "node": { "code": "ES" } }
+              ]
+            },
+            "webPresence": { "rootUrls": [
+              { "url": "https://cntrlplus.com/de", "locale": "de" },
+              { "url": "https://cntrlplus.com/fr", "locale": "fr" },
+              { "url": "https://cntrlplus.com/it", "locale": "it" },
+              { "url": "https://cntrlplus.com/es", "locale": "es" }
+            ]}
+          }
+        }
+      ]
+    },
+    "currentAppInstallation": {
+      "accessScopes": [
+        { "handle": "read_products" },
+        { "handle": "read_content" },
+        { "handle": "read_online_store_pages" },
+        { "handle": "read_themes" },
+        { "handle": "read_locales" },
+        { "handle": "read_translations" },
+        { "handle": "read_metaobjects" },
+        { "handle": "read_files" }
+      ]
+    }
+  },
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 20,
+      "actualQueryCost": 18,
+      "throttleStatus": {
+        "maximumAvailable": 2000,
+        "currentlyAvailable": 1982,
+        "restoreRate": 100
+      }
+    }
+  }
+}
