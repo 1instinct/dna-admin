@@ -9,7 +9,9 @@ end
 
 Spree::Sample.load_sample("products")
 
+explicit_seeds = %w[stores.rb sample_products.rb]
 Dir[File.dirname(__FILE__) + '/seeds/*.rb'].sort.each do |file|
+  next if explicit_seeds.include?(File.basename(file))
   puts "Seeds #{file} ..."
   require file
 end

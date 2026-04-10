@@ -3,6 +3,7 @@
 .dockerignore
 .env*
 !.env.example
+!.env.development
 tmp/
 log/
 storage/
