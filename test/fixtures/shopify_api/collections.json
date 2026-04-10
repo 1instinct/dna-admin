@@ -1,0 +1,47 @@
+{
+  "data": {
+    "collections": {
+      "pageInfo": { "hasNextPage": false, "endCursor": null },
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Collection/1",
+            "handle": "starter-kits",
+            "title": "Starter Kits",
+            "descriptionHtml": "<p>All starter kits</p>",
+            "sortOrder": "MANUAL",
+            "image": null,
+            "seo": { "title": "Starter Kits", "description": "Our starter kits" },
+            "products": {
+              "edges": [
+                { "node": { "handle": "pessary-starter-kit" } },
+                { "node": { "handle": "refill-kit" } }
+              ]
+            },
+            "metafields": { "edges": [] },
+            "ruleSet": null
+          }
+        },
+        {
+          "node": {
+            "id": "gid://shopify/Collection/2",
+            "handle": "all-products",
+            "title": "All Products",
+            "descriptionHtml": null,
+            "sortOrder": "BEST_SELLING",
+            "image": null,
+            "seo": { "title": null, "description": null },
+            "products": { "edges": [] },
+            "metafields": { "edges": [] },
+            "ruleSet": {
+              "appliedDisjunctively": true,
+              "rules": [
+                { "column": "TAG", "condition": "*", "relation": "NOT_EQUALS" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

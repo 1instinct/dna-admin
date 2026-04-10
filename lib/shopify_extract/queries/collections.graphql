@@ -1,0 +1,28 @@
+query ExtractCollections($first: Int!, $after: String, $country: CountryCode!, $language: LanguageCode!) @inContext(country: $country, language: $language) {
+  collections(first: $first, after: $after) {
+    pageInfo { hasNextPage endCursor }
+    edges {
+      node {
+        id
+        handle
+        title
+        descriptionHtml
+        sortOrder
+        image { url altText width height }
+        seo { title description }
+        products(first: 250, sortKey: MANUAL) {
+          edges { node { handle } }
+        }
+        metafields(first: 20) {
+          edges {
+            node { namespace key value type }
+          }
+        }
+        ruleSet {
+          appliedDisjunctively
+          rules { column condition relation }
+        }
+      }
+    }
+  }
+}
