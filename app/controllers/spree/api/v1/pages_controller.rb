@@ -33,6 +33,13 @@ class Spree::Api::V1::PagesController < Spree::Api::BaseController
         key :required, false
         key :type, :integer
       end
+      parameter do
+        key :name, 'layout'
+        key :in, :query
+        key :description, 'Filter by page layout type (e.g., blog, cms, simple, landing)'
+        key :required, false
+        key :type, :string
+      end
       response 200 do
         key :description, "Successfull"
         schema do
@@ -135,6 +142,7 @@ class Spree::Api::V1::PagesController < Spree::Api::BaseController
     @pages = Spree::Page.all
     puts "query: #{query}"
     @pages = @pages.where("title ILIKE :query OR body ILIKE :query", query: "%#{query}%")&.distinct
+    @pages = @pages.where(layout: params[:layout]) if params[:layout].present?
     puts "pages: #{@pages}"
     limit = params[:limit].present? ? params[:limit].to_i : 0
     offset = params[:offset].present? ? params[:offset].to_i : 0
