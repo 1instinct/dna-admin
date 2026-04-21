@@ -147,19 +147,19 @@ menu_defs = {
     title: "Header Primary",
     location: "header_primary",
     items: [
-      { name: "How to Use",  url: "/pages/cntrlplus-how-to-use", position: 1 },
-      { name: "Starter Kit", url: "/products/starter-kit",       position: 2 },
-      { name: "Refills",     url: "/pages/refills",              position: 3 },
-      { name: "Learn More",  url: "/pages/learn-more",           position: 4 },
-      { name: "About",       url: "/pages/about-cntrl",          position: 5,
+      { name: "How to Use",  url: "/how-to-use",    position: 1 },
+      { name: "Starter Kit", url: "/starter-kit",   position: 2 },
+      { name: "Refills",     url: "/refills",        position: 3 },
+      { name: "Learn More",  url: "/learn-more",     position: 4 },
+      { name: "About",       url: "#",               position: 5,
         children: [
-          { name: "About Cntrl+", url: "/pages/about-cntrl",  position: 1 },
-          { name: "Videos",       url: "/pages/videos",        position: 2 },
-          { name: "Insights",     url: "/blogs/insights",      position: 3 },
-          { name: "FAQ",          url: "/pages/faq",           position: 4 },
+          { name: "About Cntrl+", url: "/about-cntrl", position: 1 },
+          { name: "Videos",       url: "/videos",       position: 2 },
+          { name: "Insights",     url: "/insights",     position: 3 },
+          { name: "FAQ",          url: "/faq",           position: 4 },
         ]
       },
-      { name: "News", url: "/pages/news", position: 6 },
+      { name: "News", url: "/news", position: 6 },
     ]
   },
   header_utilities: {
@@ -174,29 +174,29 @@ menu_defs = {
     title: "Footer — Support",
     location: "footer_support",
     items: [
-      { name: "FAQs",       url: "/pages/faq",                    position: 1 },
-      { name: "How to Use", url: "/pages/cntrlplus-how-to-use",   position: 2 },
-      { name: "Contact",    url: "/pages/contact",                position: 3 },
+      { name: "FAQs",       url: "/faq",        position: 1 },
+      { name: "How to Use", url: "/how-to-use", position: 2 },
+      { name: "Contact",    url: "/contact",    position: 3 },
     ]
   },
   footer_company: {
     title: "Footer — Company",
     location: "footer_company",
     items: [
-      { name: "About",      url: "/pages/about-cntrl",  position: 1 },
-      { name: "Learn More", url: "/pages/learn-more",   position: 2 },
-      { name: "Insights",   url: "/blogs/insights",     position: 3 },
-      { name: "Affiliates", url: "/pages/affiliates",   position: 4 },
+      { name: "About",      url: "/about-cntrl", position: 1 },
+      { name: "Learn More", url: "/learn-more",  position: 2 },
+      { name: "Insights",   url: "/insights",    position: 3 },
+      { name: "Affiliates", url: "/affiliates",  position: 4 },
     ]
   },
   footer_policies: {
     title: "Footer — Policies",
     location: "footer_policies",
     items: [
-      { name: "Replacement Policy", url: "/pages/replacement-policy-and-limited-warranty", position: 1 },
-      { name: "Terms of Service",   url: "/policies/terms-of-service",                    position: 2 },
-      { name: "Privacy Policy",     url: "/policies/privacy-policy",                      position: 3 },
-      { name: "Accessibility",      url: "/pages/accessibility",                          position: 4 },
+      { name: "Replacement Policy", url: "/replacement-policy-and-limited-warranty", position: 1 },
+      { name: "Terms of Service",   url: "/terms-of-service",                      position: 2 },
+      { name: "Privacy Policy",     url: "/privacy-policy",                        position: 3 },
+      { name: "Accessibility",      url: "/accessibility",                          position: 4 },
     ]
   },
 }
