@@ -1,23 +1,6 @@
-#
-# Place all seeds in /seeds/ folder.
-#
+# Load Spree core defaults (countries, states, zones, roles, etc.)
+Spree::Core::Engine.load_seed if defined?(Spree::Core)
+Spree::Auth::Engine.load_seed if defined?(Spree::Auth)
 
-Dir[File.dirname(__FILE__) + '/spree_seeds/*.rb'].sort.each do |file|
-  puts "Seeds #{file} ..."
-  require file
-end
-
-Spree::Sample.load_sample("products")
-
-explicit_seeds = %w[stores.rb sample_products.rb]
-Dir[File.dirname(__FILE__) + '/seeds/*.rb'].sort.each do |file|
-  next if explicit_seeds.include?(File.basename(file))
-  puts "Seeds #{file} ..."
-  require file
-end
-
-# Multi-market stores
-load Rails.root.join("db/seeds/stores.rb")
-
-# Sample products (dev only)
-load Rails.root.join("db/seeds/sample_products.rb")
+# Load Cntrl+ specific data
+load Rails.root.join("db/seeds/cntrlplus.rb")
