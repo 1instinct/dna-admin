@@ -38,6 +38,24 @@
       <small class="form-text text-muted">Additional configuration in JSON format. Example: {"background_color": "#fff", "text_color": "#000"}</small>
     <% end %>
 
+    <div class="form-group mt-3">
+      <label>Image Pickers</label>
+      <small class="text-muted d-block mb-2">Select an image, then copy the URL into the Settings JSON above.</small>
+      <div class="d-flex flex-wrap" style="gap: 8px;">
+        <% %w[background_image_desktop background_image_mobile image background_image].each do |key| %>
+          <div class="mb-2">
+            <small class="text-muted d-block"><%= key.titleize %></small>
+            <div class="input-group input-group-sm" style="max-width: 400px;">
+              <input type="text" class="form-control" id="settings_<%= key %>"
+                     placeholder="<%= key %>" readonly>
+              <%= render 'spree/admin/content_assets/picker_modal',
+                         target_field_id: "settings_#{key}" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
     <%= f.field_container :position, class: ['form-group'] do %>
       <%= f.label :position, 'Position' %>
       <%= f.number_field :position, class: 'form-control', min: 1 %>
