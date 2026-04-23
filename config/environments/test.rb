@@ -41,6 +41,10 @@ Rails.application.configure do
     # Print deprecation notices to the stderr.
     config.active_support.deprecation = :stderr
 
+    # Required for URL helpers used in model methods (e.g. rails_storage_proxy_path).
+    config.action_mailer.default_url_options = { host: "localhost" }
+    Rails.application.routes.default_url_options = { host: "localhost" }
+
     # Raises error for missing translations
     # config.action_view.raise_on_missing_translations = true
 end
