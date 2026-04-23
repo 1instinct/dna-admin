@@ -1,0 +1,82 @@
+<% content_for :page_title do %>
+  <%= Spree.t('admin.content_assets.title') %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t('admin.content_assets.new'),
+        new_admin_content_asset_path,
+        class: "btn-success", icon: 'add.svg' %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div class="row">
+    <div class="col-md-4">
+      <%= search_form_for @search, url: admin_content_assets_path do |f| %>
+        <div class="input-group">
+          <%= f.text_field :original_filename_or_alt_text_cont,
+                placeholder: Spree.t('admin.content_assets.search'),
+                class: 'form-control' %>
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">
+              <span class="icon icon-search"></span>
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <div class="col-md-3">
+      <%= form_tag admin_content_assets_path, method: :get do %>
+        <%= select_tag :tag,
+              options_for_select(
+                [[Spree.t('admin.content_assets.all_tags'), '']] + @tags.map { |t| [t.titleize, t] },
+                params[:tag]
+              ),
+              class: 'form-control',
+              onchange: 'this.form.submit()' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if @content_assets.any? %>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 16px;">
+    <% @content_assets.each do |asset| %>
+      <div class="card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden;">
+        <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <% if asset.file.attached? %>
+            <%= image_tag main_app.rails_blob_path(asset.file, disposition: 'inline'),
+                  style: "max-width: 100%; max-height: 100%; object-fit: cover;",
+                  alt: asset.alt_text || asset.original_filename %>
+          <% end %>
+        </div>
+        <div style="padding: 8px;">
+          <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+               title="<%= asset.original_filename %>">
+            <%= asset.original_filename %>
+          </div>
+          <% if asset.tag.present? %>
+            <span class="badge badge-info" style="font-size: 10px;"><%= asset.tag %></span>
+          <% end %>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">
+            <%= number_to_human_size(asset.byte_size) %> &middot; <%= asset.created_at.strftime('%b %d, %Y') %>
+          </div>
+          <div style="margin-top: 8px; display: flex; gap: 8px;">
+            <%= link_to_with_icon 'edit.svg', '', edit_admin_content_asset_path(asset),
+                  class: 'btn btn-sm btn-outline-primary', title: 'Edit',
+                  no_text: true %>
+            <%= link_to_with_icon 'delete.svg', '', admin_content_asset_path(asset),
+                  class: 'btn btn-sm btn-outline-danger', title: 'Delete',
+                  no_text: true, method: :delete,
+                  data: { confirm: Spree.t('admin.content_assets.confirm_delete') } %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%= paginate @content_assets, theme: 'admin-twitter-bootstrap-4' %>
+<% else %>
+  <div class="alert alert-info no-objects-found" role="alert">
+    <%= Spree.t('admin.content_assets.no_assets') %>
+  </div>
+<% end %>

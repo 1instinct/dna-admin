@@ -10,3 +10,5 @@ puts "AWS Access Key: #{Rails.application.credentials.dig(:aws, :access_key_id) 
 puts "AWS Secret Key: #{Rails.application.credentials.dig(:aws, :secret_access_key) || ENV['AWS_SECRET_ACCESS_KEY']}"
 puts "AWS Region: #{Rails.application.credentials.dig(:aws, :region) || ENV['AWS_REGION_NAME']}"
 puts "AWS Bucket: #{Rails.application.credentials.dig(:aws, :bucket) || ENV['AWS_BUCKET_NAME']}"
+# Enable proxy mode for stable, cacheable URLs (no expiring S3 signatures)
+Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy

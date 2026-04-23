@@ -1,0 +1,60 @@
+<%# Usage: render 'spree/admin/content_assets/picker_modal', target_field_id: 'field_id' %>
+<% target_field_id = local_assigns[:target_field_id] || 'content_asset_url' %>
+
+<button type="button" class="btn btn-sm btn-outline-secondary content-asset-picker-btn"
+        data-target-field="<%= target_field_id %>"
+        data-toggle="modal"
+        data-target="#contentAssetPickerModal_<%= target_field_id %>">
+  Choose Image
+</button>
+
+<span class="content-asset-preview" id="preview_<%= target_field_id %>"></span>
+
+<div class="modal fade content-asset-picker-modal"
+     id="contentAssetPickerModal_<%= target_field_id %>"
+     tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Choose Image</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control content-asset-search"
+                   placeholder="Search by filename or alt text..."
+                   data-modal-id="contentAssetPickerModal_<%= target_field_id %>">
+          </div>
+          <div class="col-md-3">
+            <select class="form-control content-asset-tag-filter"
+                    data-modal-id="contentAssetPickerModal_<%= target_field_id %>">
+              <option value="">All Tags</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="btn btn-success btn-block mb-0">
+              Upload New
+              <input type="file" class="content-asset-inline-upload d-none"
+                     accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                     data-modal-id="contentAssetPickerModal_<%= target_field_id %>">
+            </label>
+          </div>
+        </div>
+        <div class="content-asset-grid" data-modal-id="contentAssetPickerModal_<%= target_field_id %>"
+             style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-height: 400px; overflow-y: auto;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary content-asset-select-btn" disabled
+                data-target-field="<%= target_field_id %>"
+                data-modal-id="contentAssetPickerModal_<%= target_field_id %>">
+          Select
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
