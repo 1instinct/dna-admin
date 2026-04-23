@@ -1,0 +1,29 @@
+<%= render 'spree/admin/shared/error_messages', target: @content_asset %>
+
+<div class="row">
+  <div class="col-md-8">
+    <fieldset class="no-border-top">
+      <div class="form-group">
+        <%= f.label :file, Spree.t('admin.content_assets.file') %>
+        <%= f.file_field :file, class: 'form-control-file', accept: 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml' %>
+        <% if @content_asset.file.attached? %>
+          <div style="margin-top: 8px;">
+            <%= image_tag rails_storage_proxy_path(@content_asset.file.variant(resize_to_fill: [300, 200])),
+                  style: "max-width: 300px; border-radius: 4px;",
+                  alt: @content_asset.alt_text %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :alt_text, Spree.t('admin.content_assets.alt_text') %>
+        <%= f.text_field :alt_text, class: 'form-control', placeholder: 'Descriptive text for accessibility' %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :tag, Spree.t('admin.content_assets.tag') %>
+        <%= f.text_field :tag, class: 'form-control', placeholder: 'e.g. homepage, hero, footer' %>
+      </div>
+    </fieldset>
+  </div>
+</div>
