@@ -22,6 +22,12 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - ./app:/dna/app
+      - ./config:/dna/config
+      - ./db:/dna/db
+      - ./lib:/dna/lib
+      - ./test:/dna/test
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/dna_admin_development
       DATABASE_URL_TEST: postgres://postgres:password@db:5432/dna_admin_test
