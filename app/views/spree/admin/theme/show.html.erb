@@ -1,0 +1,208 @@
+<% content_for :page_title do %>
+  <%= Spree.t('admin.theme.title') %>
+<% end %>
+
+<%= render 'spree/admin/shared/error_messages', target: @theme %>
+
+<div class="row" id="theme-editor-form-wrapper">
+  <%= form_for @theme, url: admin_theme_path, html: { multipart: true, method: :put, id: 'theme-editor-form' } do |f| %>
+
+    <%# ── Left column: form controls ── %>
+    <div class="col-lg-7">
+
+      <%# Brand Identity %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.brand_identity') %></h3>
+        </div>
+        <div class="panel-body">
+
+          <div class="form-group">
+            <%= f.label :logo, Spree.t('admin.theme.logo') %>
+            <% if @theme.logo.attached? %>
+              <div style="margin-bottom: 8px;">
+                <%= image_tag main_app.rails_blob_path(@theme.logo, disposition: :inline),
+                      style: "max-height: 60px; border-radius: 4px;",
+                      alt: "Current logo" %>
+              </div>
+              <label style="display:inline-flex; align-items:center; gap:6px; font-weight:normal; cursor:pointer;">
+                <%= f.check_box :remove_logo, { id: 'admin_theme_remove_logo' }, '1', '0' %>
+                <%= Spree.t('admin.theme.remove_logo') %>
+              </label>
+            <% end %>
+            <%= f.file_field :logo, class: 'form-control-file', accept: 'image/png,image/svg+xml,image/jpeg,image/webp' %>
+            <small class="form-text text-muted"><%= Spree.t('admin.theme.logo_help') %></small>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :favicon, Spree.t('admin.theme.favicon') %>
+            <% if @theme.favicon.attached? %>
+              <div style="margin-bottom: 8px;">
+                <%= image_tag main_app.rails_blob_path(@theme.favicon, disposition: :inline),
+                      style: "max-height: 32px; border-radius: 2px;",
+                      alt: "Current favicon" %>
+              </div>
+              <label style="display:inline-flex; align-items:center; gap:6px; font-weight:normal; cursor:pointer;">
+                <%= f.check_box :remove_favicon, { id: 'admin_theme_remove_favicon' }, '1', '0' %>
+                <%= Spree.t('admin.theme.remove_favicon') %>
+              </label>
+            <% end %>
+            <%= f.file_field :favicon, class: 'form-control-file', accept: 'image/x-icon,image/png,image/svg+xml' %>
+            <small class="form-text text-muted"><%= Spree.t('admin.theme.favicon_help') %></small>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :brand_name, Spree.t('admin.theme.brand_name') %>
+            <%= f.text_field :brand_name, class: 'form-control', id: 'admin_theme_brand_name' %>
+          </div>
+
+        </div>
+      </div>
+
+      <%# Colors %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.colors') %></h3>
+        </div>
+        <div class="panel-body">
+
+          <% [
+            [:primary_color,    Spree.t('admin.theme.primary_color')],
+            [:secondary_color,  Spree.t('admin.theme.secondary_color')],
+            [:surface_color,    Spree.t('admin.theme.surface_color')],
+            [:background_color, Spree.t('admin.theme.background_color')],
+            [:text_color,       Spree.t('admin.theme.text_color')],
+            [:sidebar_color,    Spree.t('admin.theme.sidebar_color')]
+          ].each do |field, label| %>
+            <div class="form-group">
+              <%= f.label field, label %>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="color"
+                       value="<%= @theme.send(field) %>"
+                       data-target="admin_theme_<%= field %>"
+                       style="width:44px; height:36px; padding:2px; border:1px solid #ccc; border-radius:4px; cursor:pointer; flex-shrink:0;">
+                <%= f.text_field field,
+                      class: 'form-control',
+                      id: "admin_theme_#{field}",
+                      style: 'width:120px; font-family:monospace;',
+                      placeholder: '#rrggbb',
+                      pattern: '^#[0-9a-fA-F]{6}$' %>
+              </div>
+            </div>
+          <% end %>
+
+        </div>
+      </div>
+
+      <%# Typography & Shape %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.typography_shape') %></h3>
+        </div>
+        <div class="panel-body">
+
+          <div class="form-group">
+            <%= f.label :font_family, Spree.t('admin.theme.font_family') %>
+            <%= f.select :font_family,
+                  options_for_select(AdminTheme::FONT_PRESETS.map { |fp| [fp.split(',').first.strip, fp] }, @theme.font_family),
+                  {},
+                  { class: 'form-control select2', id: 'admin_theme_font_family' } %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :border_radius, Spree.t('admin.theme.border_radius') %>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <input type="range"
+                     min="0" max="24" step="1"
+                     value="<%= @theme.border_radius.to_i %>"
+                     style="flex:1;"
+                     oninput="document.getElementById('admin_theme_border_radius').value = this.value + 'px'; document.getElementById('theme_border_radius_display').textContent = this.value + 'px';">
+              <span id="theme_border_radius_display" style="min-width:36px; font-family:monospace;"><%= @theme.border_radius %></span>
+              <%= f.hidden_field :border_radius, id: 'admin_theme_border_radius' %>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <%# Behavior %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.behavior') %></h3>
+        </div>
+        <div class="panel-body">
+
+          <div class="form-group">
+            <%= f.label :color_mode, Spree.t('admin.theme.color_mode') %>
+            <div>
+              <% [['system', Spree.t('admin.theme.color_mode_system')],
+                  ['light',  Spree.t('admin.theme.color_mode_light')],
+                  ['dark',   Spree.t('admin.theme.color_mode_dark')]].each do |value, label| %>
+                <label style="display:inline-flex; align-items:center; gap:6px; margin-right:16px; font-weight:normal; cursor:pointer;">
+                  <%= f.radio_button :color_mode, value, id: "admin_theme_color_mode_#{value}" %>
+                  <%= label %>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="display:inline-flex; align-items:center; gap:8px; font-weight:normal; cursor:pointer;">
+              <%= f.check_box :enable_animations, { id: 'admin_theme_enable_animations' }, '1', '0' %>
+              <%= Spree.t('admin.theme.enable_animations') %>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <%# Custom CSS %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.custom_css_label') %></h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <%= f.text_area :custom_css,
+                  class: 'form-control',
+                  rows: 10,
+                  style: 'font-family:monospace; font-size:12px;',
+                  placeholder: "/* custom overrides */" %>
+            <small class="form-text text-muted"><%= Spree.t('admin.theme.custom_css_help') %></small>
+          </div>
+        </div>
+      </div>
+
+      <%# Action buttons %>
+      <div class="form-actions" style="display:flex; gap:12px; align-items:center;">
+        <%= button Spree.t('admin.theme.save'), 'save.svg' %>
+        <%= link_to Spree.t('admin.theme.reset'),
+              admin_theme_path(admin_theme: {
+                primary_color: '#6366f1', secondary_color: '#8b5cf6',
+                surface_color: '#1a1a2e', background_color: '#0f0f1a',
+                text_color: '#e2e8f0', sidebar_color: '#16162a',
+                border_radius: '8px', font_family: 'Inter, system-ui, sans-serif',
+                color_mode: 'system', enable_animations: true,
+                brand_name: 'Admin', custom_css: ''
+              }),
+              method: :put,
+              data: { confirm: Spree.t('admin.theme.reset_confirm') },
+              class: 'btn btn-default' %>
+      </div>
+
+    </div><%# /col-lg-7 %>
+
+    <%# ── Right column: live preview ── %>
+    <div class="col-lg-5">
+      <div class="panel panel-default" style="position:sticky; top:20px;">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= Spree.t('admin.theme.preview') %></h3>
+        </div>
+        <div class="panel-body" style="padding:0; overflow:hidden; border-radius:0 0 4px 4px;">
+          <div id="theme-preview" style="min-height:280px; background:#0f0f1a; color:#e2e8f0;"></div>
+        </div>
+      </div>
+    </div><%# /col-lg-5 %>
+
+  <% end %>
+</div>

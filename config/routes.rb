@@ -30,7 +30,8 @@ Spree::Core::Engine.add_routes do
     end
     
     resources :homepage_sections do
-      member do
+
+    resource :theme, only: [:show, :update], controller: 'theme'      member do
         post :move_up
         post :move_down
         patch :toggle_visibility
@@ -63,7 +64,8 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :homepage_sections
-      resources :favorites, only: [:index, :destroy] do
+
+    resource :theme, only: [:show, :update], controller: 'theme'      resources :favorites, only: [:index, :destroy] do
         collection do
           post :toggle
           get :check

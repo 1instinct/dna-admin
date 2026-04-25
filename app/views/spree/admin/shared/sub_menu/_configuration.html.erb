@@ -20,4 +20,4 @@
   <%= configurations_sidebar_menu_item(Spree.t(:reimbursement_types), spree.admin_reimbursement_types_path) if can? :manage, Spree::ReimbursementType %>
   <%= configurations_sidebar_menu_item(Spree.t(:return_authorization_reasons), spree.admin_return_authorization_reasons_path) if can? :manage, Spree::ReturnAuthorizationReason %>
   <%= configurations_sidebar_menu_item(Spree.t(:roles), spree.admin_roles_path) if can? :manage, Spree::Role %>
-</ul>
+  <%= configurations_sidebar_menu_item(Spree.t('admin.theme.title'), admin_theme_path) %></ul>

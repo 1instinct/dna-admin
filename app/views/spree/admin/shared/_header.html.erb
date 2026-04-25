@@ -11,6 +11,11 @@
       </button>
     </div>
     <div class="col text-center text-lg-left">
+      <% if AdminTheme.current.logo.attached? %>
+        <%= image_tag main_app.rails_blob_path(AdminTheme.current.logo, disposition: :inline), class: 'admin-logo', alt: AdminTheme.current.brand_name, style: 'height: 32px; object-fit: contain;' %>
+      <% else %>
+        <span class="admin-brand-text"><%= AdminTheme.current.brand_name %></span>
+      <% end %>
       
     </div>
 
