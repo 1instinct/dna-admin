@@ -878,7 +878,6 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.boolean "used", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "code"
   end
 
   create_table "spree_promotion_rule_taxons", id: :serial, force: :cascade do |t|
