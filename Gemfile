@@ -72,6 +72,9 @@ gem 'paperclip', '~> 6.1.0'
 gem 'sprockets-helpers', '~> 1.2.1'
 
 gem 'rest-client'
+
+# In-app purchase verification (StoreKit 2 JWS, App Store Server API, Google Play service-account tokens)
+gem 'jwt', '~> 2.7'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
 # gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
@@ -102,6 +105,8 @@ group :test do
   gem 'selenium-webdriver'
   # Easy installation and use of chromedriver to run system tests with Chrome
   gem 'chromedriver-helper'
+  # Stub all outbound HTTP in tests (store APIs are never called for real)
+  gem 'webmock', '~> 3.18'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

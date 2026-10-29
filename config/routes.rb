@@ -10,8 +10,32 @@ Rails.application.routes.draw do
 end
 
 Spree::Core::Engine.add_routes do
+  # In-app purchases (App Store / Google Play): app API, store notifications, admin.
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      namespace :iap do
+        resources :transactions, only: %i[index show create]
+        resources :entitlements, only: :index
+        resources :products, only: :index
+        post :restore, to: 'restores#create'
+        post 'apple/notifications', to: 'apple_notifications#create', as: :apple_notifications
+        post 'google/notifications', to: 'google_notifications#create', as: :google_notifications
+      end
+    end
+  end
+
   namespace :admin, path: Spree.admin_path do
-    resources :messages do      
+    resources :iap_transactions, only: %i[index show] do
+      member { post :revoke }
+    end
+    resources :iap_products, except: :show
+    resources :entitlements, only: [] do
+      member { post :revoke }
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resources :messages do
       collection do
         get :conversation
         get :conversations

@@ -1,0 +1,109 @@
+<% content_for :page_title do %>
+  <%= link_to 'IAP Orders', spree.admin_iap_transactions_path %> &raquo;
+  <%= @transaction.platform %> <%= @transaction.transaction_id.truncate(40) %>
+<% end %>
+
+<div class="row">
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3" id="iap_transaction_details">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Transaction</h1></div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tr><th>User</th><td><%= @transaction.user ? link_to(@transaction.user.email, spree.edit_admin_user_path(@transaction.user)) : 'not linked to a user yet' %></td></tr>
+          <tr><th>Platform</th><td><%= @transaction.platform %></td></tr>
+          <tr><th>Product</th><td><%= @transaction.product_id %><%= " (#{@transaction.iap_product.kind})" if @transaction.iap_product %></td></tr>
+          <tr><th>Transaction id</th><td class="text-break"><%= @transaction.transaction_id %></td></tr>
+          <tr><th>Original transaction id</th><td class="text-break"><%= @transaction.original_transaction_id %></td></tr>
+          <tr><th>Order id</th><td><%= @transaction.order_id || '-' %></td></tr>
+          <tr><th>Status</th><td><%= @transaction.effective_status %><%= ' (revoked by admin)' if @transaction.admin_revoked_at %></td></tr>
+          <tr><th>Environment</th><td><%= @transaction.environment %></td></tr>
+          <tr><th>Auto-renew</th><td><%= @transaction.auto_renew.nil? ? '-' : (@transaction.auto_renew ? 'on' : 'off') %></td></tr>
+          <tr><th>Purchased</th><td><%= @transaction.purchased_at || '-' %></td></tr>
+          <tr><th>Expires</th><td><%= @transaction.expires_at || '-' %></td></tr>
+          <% if @transaction.grace_expires_at %><tr><th>Grace period ends</th><td><%= @transaction.grace_expires_at %></td></tr><% end %>
+          <tr><th>Revoked</th><td><%= @transaction.revoked_at || @transaction.admin_revoked_at || '-' %><%= " (#{@transaction.revocation_reason})" if @transaction.revocation_reason %></td></tr>
+          <tr><th>Price</th><td><%= @transaction.price ? "#{@transaction.price.round(2)} #{@transaction.currency}" : '-' %></td></tr>
+          <tr><th>Verified</th><td><%= @transaction.verified_at %></td></tr>
+          <tr><th>Acknowledged</th><td><%= @transaction.platform == 'google' ? (@transaction.acknowledged_at || 'pending') : 'n/a' %></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Entitlement granted</h1></div>
+      <div class="card-body">
+        <% if @entitlements.any? %>
+          <% @entitlements.each do |e| %>
+            <div class="iap-entitlement">
+              <strong><%= e.key %></strong> &middot; <%= e.current? ? 'active' : 'inactive' %>
+              <%= " until #{e.expires_at}" if e.expires_at %>
+            </div>
+          <% end %>
+        <% elsif @transaction.entitlement_key %>
+          <div class="iap-entitlement text-muted"><%= @transaction.entitlement_key %> (another transaction is the current source)</div>
+        <% else %>
+          <span class="text-muted">None (consumable or product not in the IAP catalogue)</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3" id="iap_transaction_revoke">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Revoke</h1></div>
+      <div class="card-body">
+        <% if @transaction.admin_revoked_at %>
+          <p class="text-muted mb-0">Revoked by an admin on <%= @transaction.admin_revoked_at %>.</p>
+        <% else %>
+          <%= form_tag spree.revoke_admin_iap_transaction_path(@transaction), method: :post do %>
+            <div class="form-group">
+              <%= label_tag :note, 'Reason (kept in the audit log)' %>
+              <%= text_area_tag :note, nil, rows: 2, class: 'form-control', required: true %>
+            </div>
+            <%= button 'Revoke purchase', 'delete.svg', 'submit', class: 'btn-danger', data: { confirm: 'Revoke this purchase and its entitlement?' } %>
+          <% end %>
+        <% end %>
+        <% if @audit_logs.any? %>
+          <table class="table table-sm mt-3 mb-0">
+            <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Note</th></tr></thead>
+            <tbody>
+              <% @audit_logs.each do |log| %>
+                <tr><td><%= log.created_at %></td><td><%= log.admin_user&.email || '-' %></td><td><%= log.action %></td><td><%= log.note %></td></tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Store notifications</h1></div>
+      <div class="card-body">
+        <% if @notifications.any? %>
+          <table class="table table-sm mb-0" id="iap_notifications">
+            <thead><tr><th>Received</th><th>Type</th><th>Subtype</th><th>Processed</th></tr></thead>
+            <tbody>
+              <% @notifications.each do |n| %>
+                <tr>
+                  <td><%= n.created_at %></td>
+                  <td><%= n.notification_type %></td>
+                  <td><%= n.subtype %></td>
+                  <td><%= n.processed_at ? 'yes' : "no#{" (#{n.error})" if n.error}" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <span class="text-muted">No notifications received for this transaction.</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Decoded payload</h1></div>
+      <div class="card-body">
+        <pre class="mb-0" style="white-space: pre-wrap; word-break: break-all;"><%= JSON.pretty_generate(@transaction.payload || {}) %></pre>
+      </div>
+    </div>
+  </div>
+</div>
