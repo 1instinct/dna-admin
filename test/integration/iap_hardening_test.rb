@@ -132,18 +132,62 @@ class IapHardeningTest < ActionDispatch::IntegrationTest
     assert_equal 'active', Spree::IapTransaction.take!.status
   end
 
-  test 'a voided-purchase notification the Play API does not confirm changes nothing' do
+  def void_rtdn(token, message_id:, published_at:)
+    stub_google_certs
+    data = { packageName: PACKAGE, eventTimeMillis: ms(published_at).to_s,
+             voidedPurchaseNotification: { purchaseToken: token, productType: 1, refundType: 1 } }
+    envelope = { message: { data: Base64.strict_encode64(data.to_json), messageId: message_id,
+                            publishTime: published_at.utc.iso8601 } }
+    post GOOGLE_URL, params: envelope.to_json,
+                     headers: { 'Authorization' => "Bearer #{push_token}", 'Content-Type' => 'application/json' }
+  end
+
+  def google_purchase_for_alice(token)
     stub_google_token
-    stub_google_subscription('g-v', google_subscription_json(acknowledgementState: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED'))
-    post_purchase(@alice, platform: 'google', purchase_token: 'g-v', product_id: GOOGLE_PRODUCT)
+    stub_google_subscription(token, google_subscription_json(acknowledgementState: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED'))
+    post_purchase(@alice, platform: 'google', purchase_token: token, product_id: GOOGLE_PRODUCT)
+  end
+
+  test 'an unconfirmed void is retried (503, no dedupe row) and applied once the Play API shows it' do
+    google_purchase_for_alice('g-v')
     stub_request(:get, /voidedpurchases/).to_return(status: 200, body: { voidedPurchases: [] }.to_json)
 
-    rtdn({ packageName: PACKAGE, voidedPurchaseNotification: { purchaseToken: 'g-v', productType: 1, refundType: 1 } }, message_id: 'v-1')
-
-    assert_response :ok
+    void_rtdn('g-v', message_id: 'v-1', published_at: 5.minutes.ago)
+    assert_response :service_unavailable
+    assert_nil Spree::IapNotification.find_by(notification_id: 'v-1')
     assert_equal 'active', Spree::IapTransaction.take!.status
     assert pro?(@alice)
-    assert_equal 'void_not_confirmed', Spree::IapNotification.find_by(notification_id: 'v-1').error
+
+    stub_request(:get, /voidedpurchases/)
+      .to_return(status: 200, body: { voidedPurchases: [{ purchaseToken: 'g-v', voidedTimeMillis: ms(4.minutes.ago).to_s }] }.to_json)
+    void_rtdn('g-v', message_id: 'v-1', published_at: 5.minutes.ago)
+    assert_response :ok
+    assert_equal 'refunded', Spree::IapTransaction.take!.status
+    refute pro?(@alice)
+  end
+
+  test 'a void still unconfirmed after 24 hours is parked for manual review in IAP Orders' do
+    google_purchase_for_alice('g-v2')
+    stub_request(:get, /voidedpurchases/).to_return(status: 200, body: { voidedPurchases: [] }.to_json)
+
+    void_rtdn('g-v2', message_id: 'v-2', published_at: 25.hours.ago)
+
+    assert_response :ok
+    txn = Spree::IapTransaction.take!
+    assert_equal 'active', txn.status
+    note = Spree::IapNotification.find_by(notification_id: 'v-2')
+    assert note.processed_at
+    assert_equal 'void_unconfirmed', note.error
+    assert_equal txn, note.iap_transaction
+
+    admin = create_user
+    admin.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
+    sign_in admin, scope: :spree_user
+    get '/admin/iap_transactions'
+    assert_select '#iap_needs_review', text: /1 purchase/
+    assert_select "#iap_transaction_#{txn.id} .iap-needs-review"
+    get '/admin/iap_transactions', params: { needs_review: 1 }
+    assert_select "#iap_transaction_#{txn.id}"
   end
 
   test 'a message for another package leaves no dedupe row to suppress the real one' do

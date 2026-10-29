@@ -13,7 +13,8 @@ module Iap
       account_token_mismatch: 403,
       unauthorized: 401,
       store_unreachable: 503,
-      store_not_configured: 503
+      store_not_configured: 503,
+      void_pending: 503
     }.freeze
 
     attr_reader :code

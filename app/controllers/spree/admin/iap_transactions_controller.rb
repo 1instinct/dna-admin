@@ -3,6 +3,8 @@ module Spree
     # "IAP Orders": verified App Store / Google Play transactions.
     class IapTransactionsController < Spree::Admin::BaseController
       FILTERS = %i[platform status environment product_id].freeze
+      # Notification outcomes an admin has to resolve by hand.
+      NEEDS_REVIEW = %w[void_unconfirmed].freeze
 
       def index
         scope = Spree::IapTransaction.includes(:user, :iap_product).newest_first
@@ -14,7 +16,12 @@ module Spree
         end
         scope = scope.where('spree_iap_transactions.purchased_at >= ?', parse_date(params[:from]).beginning_of_day) if parse_date(params[:from])
         scope = scope.where('spree_iap_transactions.purchased_at <= ?', parse_date(params[:to]).end_of_day) if parse_date(params[:to])
+        review_ids = Spree::IapNotification.where(error: NEEDS_REVIEW).select(:iap_transaction_id)
+        @needs_review_count = Spree::IapTransaction.where(id: review_ids).count
+        scope = scope.where(id: review_ids) if params[:needs_review].present?
         @transactions = scope.page(params[:page]).per(params[:per_page].presence || 25)
+        @review_ids = Spree::IapNotification.where(error: NEEDS_REVIEW, iap_transaction_id: @transactions.map(&:id))
+                                            .distinct.pluck(:iap_transaction_id)
       end
 
       def show

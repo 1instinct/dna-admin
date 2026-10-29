@@ -29,6 +29,7 @@ module Iap
       message = envelope.is_a?(Hash) ? (envelope['message'] || {}) : {}
       data = decode(message['data'])
       id = (message['messageId'] || message['message_id']).presence || raise(Iap::Error.new(:invalid_payload, 'messageId missing'))
+      @published_at = parse_publish_time(message['publishTime'] || message['publish_time'], data)
 
       # Messages for another app leave no row behind, so they can never
       # occupy (and suppress) a real message id.
@@ -45,6 +46,11 @@ module Iap
       notification.update!(processed_at: Time.current, error: @note)
       Result.new(notification, :processed)
     rescue Iap::Error => e
+      if e.code == :void_pending
+        # Let Pub/Sub redeliver: no dedupe row may survive this attempt.
+        notification.destroy if notification&.persisted? && notification.processed_at.nil?
+        raise
+      end
       if e.code == :wrong_environment && notification&.persisted?
         # Test purchase while sandbox is disallowed: acknowledge, change nothing.
         notification.update!(processed_at: Time.current, error: 'ignored: sandbox purchase')
@@ -55,6 +61,16 @@ module Iap
     end
 
     private
+
+    # When Pub/Sub first published the message (falls back to the event time).
+    def parse_publish_time(value, data)
+      return Time.zone.parse(value.to_s) if value.present?
+      return Time.zone.at(data['eventTimeMillis'].to_i / 1000.0) if data['eventTimeMillis'].present?
+
+      Time.current
+    rescue ArgumentError
+      Time.current
+    end
 
     def decode(raw)
       raise Iap::Error.new(:invalid_payload, 'message.data missing') unless raw.is_a?(String) && raw.present?
@@ -99,6 +115,7 @@ module Iap
     end
 
     VOIDED_LOOKBACK = 2.days
+    VOID_RETRY_WINDOW = 24.hours
     VOIDED_MAX_PAGES = 10
 
     # Confirms the void with purchases.voidedpurchases before refunding.
@@ -111,7 +128,11 @@ module Iap
       start = [event - VOIDED_LOOKBACK, 29.days.ago].max
       voided = find_voided(token, start)
       unless voided
-        @note = 'void_not_confirmed'
+        # voidedpurchases can lag the notification. Retry (503) until the
+        # message is VOID_RETRY_WINDOW old, then park it for manual review.
+        raise Iap::Error.new(:void_pending, 'void not yet visible in the Play API') if @published_at > VOID_RETRY_WINDOW.ago
+
+        @note = 'void_unconfirmed'
         return txn
       end
 

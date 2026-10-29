@@ -60,6 +60,14 @@
   </div>
 <% end %>
 
+<% if @needs_review_count.positive? %>
+  <div class="alert alert-warning" id="iap_needs_review">
+    <%= pluralize(@needs_review_count, 'purchase') %> had a Google refund (voided purchase) notification that the Play API never confirmed.
+    Check them in Play Console and revoke if refunded.
+    <%= link_to 'Show them', spree.admin_iap_transactions_path(needs_review: 1) %>
+  </div>
+<% end %>
+
 <% if @transactions.any? %>
   <div class="table-responsive">
     <table class="table" id="listing_iap_transactions">
@@ -84,7 +92,7 @@
             <td><%= t.platform %></td>
             <td><%= t.product_id %></td>
             <td class="text-break"><%= t.transaction_id %></td>
-            <td><span class="badge badge-<%= t.grants_access? ? 'success' : 'secondary' %>"><%= t.effective_status %></span></td>
+            <td><span class="badge badge-<%= t.grants_access? ? 'success' : 'secondary' %>"><%= t.effective_status %></span><%= content_tag(:span, 'needs review', class: 'badge badge-warning ml-1 iap-needs-review') if @review_ids.include?(t.id) %></td>
             <td><%= t.environment %></td>
             <td><%= t.expires_at ? l(t.expires_at, format: :short) : '-' %></td>
             <td><%= t.price ? "#{t.price.round(2)} #{t.currency}" : '-' %></td>
