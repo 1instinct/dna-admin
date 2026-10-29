@@ -24,6 +24,8 @@
           <tr><th>Revoked</th><td><%= @transaction.revoked_at || @transaction.admin_revoked_at || '-' %><%= " (#{@transaction.revocation_reason})" if @transaction.revocation_reason %></td></tr>
           <tr><th>Price</th><td><%= @transaction.price ? "#{@transaction.price.round(2)} #{@transaction.currency}" : '-' %></td></tr>
           <tr><th>Verified</th><td><%= @transaction.verified_at %></td></tr>
+          <tr><th>Store signed</th><td><%= @transaction.store_signed_at || '-' %></td></tr>
+          <tr><th>Account token</th><td class="text-break"><%= @transaction.account_token || '-' %></td></tr>
           <tr><th>Acknowledged</th><td><%= @transaction.platform == 'google' ? (@transaction.acknowledged_at || 'pending') : 'n/a' %></td></tr>
         </table>
       </div>

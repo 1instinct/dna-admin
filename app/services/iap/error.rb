@@ -10,6 +10,8 @@ module Iap
       unknown_product: 422,
       invalid_purchase: 422,
       already_owned_by_other_user: 409,
+      account_token_mismatch: 403,
+      unauthorized: 401,
       store_unreachable: 503,
       store_not_configured: 503
     }.freeze

@@ -36,7 +36,14 @@ module Iap
       if data['signedTransactionInfo'].present?
         verified = @verifier.verify(data['signedTransactionInfo'])
         apply_renewal_info(verified, data['signedRenewalInfo'])
-        notification.iap_transaction = @recorder.upsert(verified, status_override: status_for(payload, verified))
+        # Order by the notification's own signature time: a retried older
+        # notification (e.g. SUBSCRIBED after a REFUND) is stale and ignored.
+        verified.signed_at = Time.zone.at(payload['signedDate'].to_i / 1000.0) if payload['signedDate'].present?
+        notification.iap_transaction = @recorder.upsert(
+          verified,
+          status_override: status_for(payload, verified),
+          clears_revocation: payload['notificationType'] == 'REFUND_REVERSED'
+        )
       end
       notification.update!(processed_at: Time.current, error: nil)
       notification

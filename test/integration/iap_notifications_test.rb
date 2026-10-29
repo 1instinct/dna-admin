@@ -22,12 +22,19 @@ class IapNotificationsTest < ActionDispatch::IntegrationTest
                                      headers: bearer_for(user).merge('Content-Type' => 'application/json')
   end
 
-  def rtdn(data, message_id: SecureRandom.hex(6), query: '')
+  def rtdn(data, message_id: SecureRandom.hex(6), query: '', headers: nil)
+    stub_google_certs
     envelope = {
       message: { data: Base64.strict_encode64(data.to_json), messageId: message_id, publishTime: Time.current.utc.iso8601 },
       subscription: 'projects/example/subscriptions/play-rtdn'
     }
-    post "#{GOOGLE_URL}#{query}", params: envelope.to_json, headers: { 'Content-Type' => 'application/json' }
+    headers ||= { 'Authorization' => "Bearer #{push_token}" }
+    post "#{GOOGLE_URL}#{query}", params: envelope.to_json, headers: headers.merge('Content-Type' => 'application/json')
+  end
+
+  def stub_voided(entries)
+    stub_request(:get, %r{#{Regexp.escape(GOOGLE_API)}/purchases/voidedpurchases\?})
+      .to_return(status: 200, body: { voidedPurchases: entries }.to_json, headers: { 'Content-Type' => 'application/json' })
   end
 
   def google_sub_notification(token, type = 2)
@@ -73,7 +80,9 @@ class IapNotificationsTest < ActionDispatch::IntegrationTest
     assert txn.revoked_at
     refute pro?(@alice)
 
-    post_app_purchase(@alice, apple_jws(refund))
+    old_receipt = apple_jws(signedDate: ms(1.day.ago))
+    post_app_purchase(@alice, old_receipt)
+    assert_response :ok
     assert_equal 'refunded', txn.reload.status
     refute pro?(@alice)
   end
@@ -198,6 +207,7 @@ class IapNotificationsTest < ActionDispatch::IntegrationTest
     post '/api/v1/iap/transactions', params: { platform: 'google', purchase_token: 'g-3', product_id: GOOGLE_PRODUCT }.to_json,
                                      headers: bearer_for(@alice).merge('Content-Type' => 'application/json')
 
+    stub_voided([{ purchaseToken: 'g-3', orderId: 'GPA.0000-0000-0000-00001', voidedTimeMillis: ms(1.minute.ago).to_s, voidedReason: 1 }])
     rtdn({ version: '1.0', packageName: PACKAGE, eventTimeMillis: ms(Time.current).to_s,
            voidedPurchaseNotification: { purchaseToken: 'g-3', orderId: 'GPA.0000-0000-0000-00001', productType: 1, refundType: 1 } })
 
@@ -230,14 +240,10 @@ class IapNotificationsTest < ActionDispatch::IntegrationTest
     assert Spree::IapNotification.find_by(notification_id: 'm-retry').processed_at
   end
 
-  test 'the push endpoint token is enforced when configured; malformed bodies are 400' do
-    Iap.config.google_rtdn_token = 'push-secret'
-    rtdn({ packageName: PACKAGE, testNotification: {} })
-    assert_response :unauthorized
-    rtdn({ packageName: PACKAGE, testNotification: {} }, query: '?token=push-secret')
-    assert_response :ok
-
-    post "#{GOOGLE_URL}?token=push-secret", params: { message: { data: '%%%' } }.to_json, headers: { 'Content-Type' => 'application/json' }
+  test 'malformed bodies are 400' do
+    stub_google_certs
+    post GOOGLE_URL, params: { message: { data: '%%%' } }.to_json,
+                     headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{push_token}" }
     assert_response :bad_request
   end
 end

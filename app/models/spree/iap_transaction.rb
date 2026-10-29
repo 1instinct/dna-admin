@@ -2,7 +2,9 @@ module Spree
   # One store transaction (Apple transaction id / Google purchase token),
   # verified server-side. The signed payload is kept verbatim for audit.
   class IapTransaction < Spree::Base
-    STATUSES = %w[active expired revoked refunded grace billing_retry pending].freeze
+    # unverified: recorded from device data only while the store API is required
+    # but not configured; never grants.
+    STATUSES = %w[active expired revoked refunded grace billing_retry pending unverified].freeze
     GRANTING_STATUSES = %w[active grace].freeze
     ENVIRONMENTS = %w[production sandbox].freeze
 

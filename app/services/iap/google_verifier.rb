@@ -36,7 +36,7 @@ module Iap
         product_id: items.first&.dig('productId'),
         bundle_id: @config.google_package,
         kind: 'subscription',
-        environment: json.key?('testPurchase') ? 'sandbox' : 'production',
+        environment: environment!(json.key?('testPurchase')),
         status: status,
         purchased_at: parse_time(json['startTime']),
         expires_at: expires_at,
@@ -48,7 +48,8 @@ module Iap
         acknowledged: json['acknowledgementState'] == 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED',
         linked_purchase_token: json['linkedPurchaseToken'],
         signed_payload: nil,
-        payload: json
+        payload: json,
+        account_token: json.dig('externalAccountIdentifiers', 'obfuscatedExternalAccountId').presence&.downcase
       )
     end
 
@@ -61,18 +62,27 @@ module Iap
         product_id: json['productId'].presence || sku,
         bundle_id: @config.google_package,
         kind: kind,
-        environment: json['purchaseType'].to_s == '0' ? 'sandbox' : 'production',
+        environment: environment!(json['purchaseType'].to_s == '0'),
         status: PRODUCT_STATES.fetch(json['purchaseState'].to_i, 'pending'),
         purchased_at: json['purchaseTimeMillis'].present? ? Time.zone.at(json['purchaseTimeMillis'].to_i / 1000.0) : nil,
         expires_at: nil,
         order_id: json['orderId'],
         acknowledged: json['acknowledgementState'].to_i == 1,
         signed_payload: nil,
-        payload: json
+        payload: json,
+        account_token: json['obfuscatedExternalAccountId'].presence&.downcase
       )
     end
 
     private
+
+    # License-tester / test purchases count as sandbox and obey IAP_ALLOW_SANDBOX.
+    def environment!(test_purchase)
+      return 'production' unless test_purchase
+      raise Iap::Error.new(:wrong_environment, 'test purchases are not accepted') unless @config.allow_sandbox
+
+      'sandbox'
+    end
 
     def parse_time(value)
       value.present? ? Time.zone.parse(value) : nil

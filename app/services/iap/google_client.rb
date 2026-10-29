@@ -34,6 +34,13 @@ module Iap
       get("purchases/products/#{enc(sku)}/tokens/#{enc(token)}")
     end
 
+    # purchases.voidedpurchases.list (type=1 includes subscriptions), one page.
+    def voided_purchases(start_time:, page_token: nil)
+      query = { startTime: (start_time.to_f * 1000).to_i, type: 1, maxResults: 1000 }
+      query[:token] = page_token if page_token
+      get("purchases/voidedpurchases?#{URI.encode_www_form(query)}")
+    end
+
     def acknowledge(kind:, sku:, token:)
       collection = kind.to_s == 'subscription' ? 'subscriptions' : 'products'
       request(:post, "purchases/#{collection}/#{enc(sku)}/tokens/#{enc(token)}:acknowledge")

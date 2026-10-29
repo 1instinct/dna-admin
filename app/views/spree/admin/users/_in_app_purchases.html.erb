@@ -35,12 +35,13 @@
     <h2 class="h6">Transactions</h2>
     <% if iap_transactions.any? %>
       <table class="table table-sm mb-0">
-        <thead><tr><th>Purchased</th><th>Platform</th><th>Product</th><th>Status</th><th>Expires</th></tr></thead>
+        <thead><tr><th>Purchased</th><th>Platform</th><th>Env</th><th>Product</th><th>Status</th><th>Expires</th></tr></thead>
         <tbody>
           <% iap_transactions.each do |t| %>
             <tr>
               <td><%= link_to(t.purchased_at ? l(t.purchased_at, format: :short) : t.transaction_id.truncate(20), spree.admin_iap_transaction_path(t)) %></td>
-              <td><%= t.platform %><%= ' (sandbox)' if t.environment == 'sandbox' %></td>
+              <td><%= t.platform %></td>
+              <td><%= t.environment %></td>
               <td><%= t.product_id %></td>
               <td><%= t.effective_status %></td>
               <td><%= t.expires_at ? l(t.expires_at, format: :short) : '-' %></td>

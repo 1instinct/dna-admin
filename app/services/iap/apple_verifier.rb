@@ -122,7 +122,9 @@ module Iap
         order_id: p['webOrderLineItemId']&.to_s,
         acknowledged: true,
         signed_payload: jws,
-        payload: p
+        payload: p,
+        signed_at: ms_time(p['signedDate']),
+        account_token: p['appAccountToken'].presence&.downcase
       )
     end
 

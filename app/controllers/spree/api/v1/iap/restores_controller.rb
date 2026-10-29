@@ -4,11 +4,15 @@ module Spree
       module Iap
         # POST /api/v1/iap/restore  { purchases: [{ platform, signed_payload | purchase_token + product_id }] }
         # Records each purchase independently and reports a result per item.
+        # At most MAX_PURCHASES items per call and RATE_LIMIT calls per user
+        # per minute (each item may call a store API).
         class RestoresController < Spree::Api::BaseController
           include Spree::Api::V1::UserAuthentication
           include Spree::Api::V1::IapJson
 
-          MAX_PURCHASES = 100
+          MAX_PURCHASES = 25
+          RATE_LIMIT = 5
+          RATE_PERIOD = 60
 
           before_action :require_api_user!
 
@@ -16,6 +20,10 @@ module Spree
             purchases = Array(params[:purchases])
             if purchases.size > MAX_PURCHASES
               return render_error('too_many_purchases', :unprocessable_entity, "at most #{MAX_PURCHASES} purchases per restore")
+            end
+            unless ::Iap::RateLimiter.allow?("restore:#{api_user.id}", limit: RATE_LIMIT, period: RATE_PERIOD)
+              response.set_header('Retry-After', RATE_PERIOD.to_s)
+              return render_error('rate_limited', :too_many_requests, 'too many restores, try again in a minute')
             end
 
             recorder = ::Iap::Recorder.new

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_29_000001) do
+ActiveRecord::Schema.define(version: 2026_10_29_000002) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -469,6 +469,15 @@ ActiveRecord::Schema.define(version: 2026_10_29_000001) do
     t.index ["test_mode"], name: "index_spree_gateways_on_test_mode"
   end
 
+  create_table "spree_iap_account_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["token"], name: "index_spree_iap_account_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_spree_iap_account_tokens_on_user_id", unique: true
+  end
+
   create_table "spree_iap_audit_logs", force: :cascade do |t|
     t.bigint "iap_transaction_id", null: false
     t.bigint "admin_user_id"
@@ -536,6 +545,9 @@ ActiveRecord::Schema.define(version: 2026_10_29_000001) do
     t.datetime "admin_revoked_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.datetime "store_signed_at"
+    t.string "account_token"
+    t.index ["account_token"], name: "index_spree_iap_transactions_on_account_token"
     t.index ["created_at"], name: "index_spree_iap_transactions_on_created_at"
     t.index ["iap_product_id"], name: "index_spree_iap_transactions_on_iap_product_id"
     t.index ["platform", "original_transaction_id"], name: "index_spree_iap_transactions_on_platform_original"

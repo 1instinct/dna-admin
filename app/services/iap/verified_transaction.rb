@@ -5,7 +5,7 @@ module Iap
     :platform, :transaction_id, :original_transaction_id, :product_id, :bundle_id, :kind,
     :environment, :status, :purchased_at, :expires_at, :grace_expires_at, :revoked_at,
     :revocation_reason, :auto_renew, :price, :currency, :order_id, :acknowledged,
-    :linked_purchase_token, :signed_payload, :payload,
+    :linked_purchase_token, :signed_payload, :payload, :signed_at, :account_token,
     keyword_init: true
   ) do
     def to_attributes

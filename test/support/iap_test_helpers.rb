@@ -8,12 +8,17 @@ module IapTestHelpers
   APPLE_PRODUCT = 'example.pro.monthly'.freeze
   GOOGLE_PRODUCT = 'example_pro_monthly'.freeze
   GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'.freeze
+  PUSH_AUDIENCE = 'https://admin.example.com/api/v1/iap/google/notifications'.freeze
+  PUSH_SERVICE_ACCOUNT = 'pubsub-push@example-project.iam.gserviceaccount.com'.freeze
+  GOOGLE_CERTS_URL = 'https://www.googleapis.com/oauth2/v3/certs'.freeze
   GOOGLE_API = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/#{PACKAGE}".freeze
 
   def self.included(base)
     base.teardown do
       Iap.reset_config!
       Iap::GoogleClient.clear_token_cache!
+      Iap::GooglePushAuthenticator.clear_cache!
+      Iap::RateLimiter.store = nil
     end
   end
 
@@ -28,6 +33,8 @@ module IapTestHelpers
     config.allow_sandbox = true
     config.google_package = PACKAGE
     config.google_service_account_json = google_service_account_json
+    config.google_rtdn_audience = PUSH_AUDIENCE
+    config.google_rtdn_service_account = PUSH_SERVICE_ACCOUNT
     overrides.each { |k, v| config.public_send("#{k}=", v) }
     Iap.config = config
   end
@@ -53,6 +60,27 @@ module IapTestHelpers
       private_key: google_rsa_key.to_pem,
       token_uri: GOOGLE_TOKEN_URL
     }.to_json
+  end
+
+  def push_signing_key
+    @@push_signing_key ||= OpenSSL::PKey::RSA.new(2048)
+  end
+
+  # Stubs Google's JWKS endpoint with our generated push-signing key.
+  def stub_google_certs
+    jwk = JWT::JWK.new(push_signing_key, kid: 'test-push-kid')
+    stub_request(:get, GOOGLE_CERTS_URL)
+      .to_return(status: 200, body: { keys: [jwk.export] }.to_json, headers: { 'Content-Type' => 'application/json' })
+  end
+
+  # An OIDC token as Pub/Sub push sends it.
+  # push_token(claim_overrides) or push_token({}, key: other_rsa_key)
+  def push_token(overrides = {}, opts = {})
+    key = opts[:key] || push_signing_key
+    now = Time.now.to_i
+    claims = { iss: 'https://accounts.google.com', aud: PUSH_AUDIENCE, email: PUSH_SERVICE_ACCOUNT,
+               email_verified: true, sub: '1234567890', iat: now, exp: now + 3600 }.merge(overrides)
+    JWT.encode(claims, key, 'RS256', { kid: 'test-push-kid' })
   end
 
   def ms(time)
@@ -103,7 +131,7 @@ module IapTestHelpers
   end
 
   def apple_notification(type, subtype: nil, transaction: {}, renewal: nil, uuid: SecureRandom.uuid,
-                         bundle_id: BUNDLE_ID, environment: 'Production', chain: iap_chain)
+                         bundle_id: BUNDLE_ID, environment: 'Production', chain: iap_chain, signed_at: Time.current)
     data = {
       appAppleId: 1234567890,
       bundleId: bundle_id,
@@ -117,7 +145,7 @@ module IapTestHelpers
       notificationUUID: uuid,
       data: data,
       version: '2.0',
-      signedDate: ms(Time.current)
+      signedDate: ms(signed_at)
     }
     payload[:subtype] = subtype if subtype
     chain.sign(payload)

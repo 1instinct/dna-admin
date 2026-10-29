@@ -1,20 +1,30 @@
 module Iap
   # Verifies a purchase sent by the app and stores it against the user, or
   # updates a transaction from a store notification. Idempotent on
-  # (platform, transaction id). A purchase already linked to another user is
-  # refused (already_owned_by_other_user) and grants nothing.
+  # (platform, transaction id).
+  #
+  # Ownership: a purchase carrying an account token (appAccountToken /
+  # obfuscatedExternalAccountId) belongs to that token's user; otherwise to the
+  # first account that posted any transaction of the same subscription. Anyone
+  # else gets account_token_mismatch / already_owned_by_other_user and nothing.
+  #
+  # Ordering: store data signed before the newest data already applied is
+  # stale and never changes state. A refund or revocation is cleared only by an
+  # explicit reversal (Apple REFUND_REVERSED).
   class Recorder
     GOOGLE_TYPE_HINTS = {
       'subs' => 'subscription', 'subscription' => 'subscription',
       'inapp' => 'non_consumable', 'non_consumable' => 'non_consumable', 'consumable' => 'consumable'
     }.freeze
+    REVOKED_STATUSES = %w[refunded revoked].freeze
 
     def initialize(apple_verifier: AppleVerifier.new, apple_client: AppleClient.new,
-                   google_client: GoogleClient.new, google_verifier: nil)
+                   google_client: GoogleClient.new, google_verifier: nil, config: Iap.config)
       @apple_verifier = apple_verifier
       @apple_client = apple_client
       @google_client = google_client
-      @google_verifier = google_verifier || GoogleVerifier.new(client: google_client)
+      @google_verifier = google_verifier || GoogleVerifier.new(client: google_client, config: config)
+      @config = config
     end
 
     # payload: apple => { signed_payload: <JWS> }
@@ -28,23 +38,27 @@ module Iap
       end
     end
 
-    # Creates or updates the transaction. user is nil for store notifications;
-    # ownership is then inherited from earlier transactions of the same
-    # original transaction.
-    def upsert(verified, user: nil, status_override: nil, authoritative: true)
+    # Creates or updates the transaction. user is nil for store notifications.
+    #   status_override:   state stated by a store notification
+    #   clears_revocation: the notification reverses a refund/revocation
+    #   unverified:        device-only data that may not grant (see record_apple)
+    def upsert(verified, user: nil, status_override: nil, authoritative: true, clears_revocation: false, unverified: false)
       attempts = 0
       begin
-        txn = Spree::IapTransaction.transaction { write(verified, user, status_override, authoritative) }
+        txn, displaced_user_ids = Spree::IapTransaction.transaction do
+          write(verified, user, status_override, authoritative, clears_revocation, unverified)
+        end
       rescue ActiveRecord::RecordNotUnique
         attempts += 1
         retry if attempts < 2
         raise
       end
       EntitlementResolver.refresh(txn.user) if txn.user
+      Spree.user_class.where(id: displaced_user_ids).find_each { |u| EntitlementResolver.refresh(u) }
       txn
     end
 
-    # Store-side revocation (e.g. Google voided purchase).
+    # Store-side revocation (e.g. a Google voided purchase confirmed by the API).
     def revoke(txn, status:, revoked_at:, reason: nil)
       txn.update!(status: status, revoked_at: revoked_at || Time.current, revocation_reason: reason)
       EntitlementResolver.refresh(txn.user) if txn.user
@@ -81,15 +95,17 @@ module Iap
       raise Iap::Error.new(:invalid_payload, 'signed_payload is required') unless jws.is_a?(String) && jws.present?
 
       verified = @apple_verifier.verify(jws)
-      authoritative = false
-      if @apple_client.configured?
-        fresh = @apple_verifier.verify(@apple_client.transaction_info(verified.transaction_id, environment: verified.environment))
-        raise Iap::Error.new(:invalid_purchase, 'transaction mismatch') unless fresh.transaction_id == verified.transaction_id
-
-        verified = fresh
-        authoritative = true
+      unless @apple_client.configured?
+        # A device JWS proves a purchase happened, not that it still stands (it
+        # may predate a refund). Where the store API is required, record it
+        # without granting until a store notification or API read confirms it.
+        return upsert(verified, user: user, authoritative: false, unverified: @config.require_apple_api)
       end
-      upsert(verified, user: user, authoritative: authoritative)
+
+      fresh = @apple_verifier.verify(@apple_client.transaction_info(verified.transaction_id, environment: verified.environment))
+      raise Iap::Error.new(:invalid_purchase, 'transaction mismatch') unless fresh.transaction_id == verified.transaction_id
+
+      upsert(fresh, user: user)
     end
 
     def record_google(user, payload)
@@ -106,41 +122,76 @@ module Iap
       acknowledge_google(txn, verified)
     end
 
-    def write(verified, user, status_override, authoritative)
+    def write(verified, user, status_override, authoritative, clears_revocation, unverified)
+      original = original_id_for(verified)
+      # Serialize every write for one subscription (all its transaction ids and
+      # linked purchase tokens) so two accounts cannot race two of its ids.
+      advisory_lock("iap:#{verified.platform}:#{original}")
+
       txn = Spree::IapTransaction.lock.find_or_initialize_by(platform: verified.platform, transaction_id: verified.transaction_id)
-      original = original_id_for(verified, txn)
-      owner_id = txn.user_id || owner_of(verified.platform, original)
+      original = txn.original_transaction_id if txn.persisted?
+
+      token_owner_id = Spree::IapAccountToken.owner_id(verified.account_token)
+      if user && verified.account_token.present? && token_owner_id != user.id
+        raise Iap::Error.new(:account_token_mismatch, 'this purchase was made by another account')
+      end
+
+      owner_id = token_owner_id || txn.user_id || owner_of(verified.platform, original)
       if user && owner_id && owner_id != user.id
         raise Iap::Error.new(:already_owned_by_other_user, 'this purchase belongs to another account')
       end
 
+      stale = txn.persisted? && (unverified || older?(verified.signed_at, txn.store_signed_at))
+      apply_state(txn, verified, original, status_override, authoritative, clears_revocation, unverified) unless stale
+      txn.user_id = owner_id || user&.id || txn.user_id
+      txn.save!
+
+      supersede_linked(verified, txn) unless stale
+      displaced_user_ids = []
+      if txn.user_id
+        siblings = Spree::IapTransaction.where(platform: txn.platform, original_transaction_id: original)
+        # Unowned siblings join the owner; with an account token, siblings held
+        # by another account move to the token's owner.
+        siblings = token_owner_id ? siblings.where.not(user_id: txn.user_id).or(siblings.where(user_id: nil)) : siblings.where(user_id: nil)
+        displaced_user_ids = siblings.where.not(user_id: nil).distinct.pluck(:user_id)
+        siblings.update_all(user_id: txn.user_id, updated_at: Time.current)
+      end
+      [txn, displaced_user_ids]
+    end
+
+    def apply_state(txn, verified, original, status_override, authoritative, clears_revocation, unverified)
       previous = txn.persisted? ? txn.status : nil
       attrs = verified.to_attributes.merge(original_transaction_id: original)
       attrs.delete(:auto_renew) if attrs[:auto_renew].nil?
       txn.assign_attributes(attrs)
       txn.grace_expires_at = verified.grace_expires_at if verified.grace_expires_at
-      txn.user_id ||= user&.id || owner_id
+      # Unverified device data must not make a later-arriving store notification look stale.
+      txn.store_signed_at = verified.signed_at if verified.signed_at && !unverified
+      txn.account_token = verified.account_token if verified.account_token.present?
       txn.iap_product = Spree::IapProduct.find_by(platform: txn.platform, product_id: txn.product_id) || txn.iap_product
-      txn.status = resolve_status(previous, txn, verified.status, status_override, authoritative)
+      txn.status = unverified ? 'unverified' : resolve_status(previous, txn, verified.status, status_override, authoritative, clears_revocation)
       txn.verified_at = Time.current
-      txn.save!
+    end
 
-      supersede_linked(verified, txn)
-      if txn.user_id
-        Spree::IapTransaction.where(platform: txn.platform, original_transaction_id: original, user_id: nil)
-                             .update_all(user_id: txn.user_id, updated_at: Time.current)
-      end
-      txn
+    def older?(incoming, current)
+      incoming && current && incoming < current
+    end
+
+    def advisory_lock(key)
+      Spree::IapTransaction.connection.execute(
+        Spree::IapTransaction.sanitize_sql_array(['SELECT pg_advisory_xact_lock(hashtext(?))', key])
+      )
     end
 
     # Google upgrades/resubscribes carry linkedPurchaseToken: the new token
     # continues the old purchase (same owner, same original id).
-    def original_id_for(verified, txn)
+    def original_id_for(verified)
       if verified.linked_purchase_token.present?
         linked = Spree::IapTransaction.find_by(platform: verified.platform, transaction_id: verified.linked_purchase_token)
         return linked.original_transaction_id if linked
       end
-      txn.persisted? ? txn.original_transaction_id : verified.original_transaction_id
+      existing = Spree::IapTransaction.find_by(platform: verified.platform, transaction_id: verified.transaction_id)
+      existing ? existing.original_transaction_id : verified.original_transaction_id
     end
 
     def supersede_linked(verified, txn)
@@ -155,15 +206,18 @@ module Iap
       Spree::IapTransaction.where(platform: platform, original_transaction_id: original).where.not(user_id: nil).pick(:user_id)
     end
 
-    # Notifications state what happened (override). Device-supplied data that
-    # was not re-read from the store never undoes a refund or revocation, and a
-    # lapsed period does not erase a known grace/billing-retry state.
-    def resolve_status(previous, txn, derived, override, authoritative)
+    def resolve_status(previous, txn, derived, override, authoritative, clears_revocation)
       return 'revoked' if txn.admin_revoked_at
+      return override if REVOKED_STATUSES.include?(override)
+      if REVOKED_STATUSES.include?(previous)
+        return previous unless clears_revocation
+
+        return override || derived
+      end
       return override if override
       return derived if previous.nil?
-      return previous if previous == 'refunded' && %w[revoked expired].include?(derived)
-      return previous if !authoritative && %w[refunded revoked].include?(previous)
+      # Transaction data cannot express grace/billing retry; a lapsed period
+      # does not erase a state a notification established.
       return previous if %w[grace billing_retry].include?(previous) && derived == 'expired'
 
       derived

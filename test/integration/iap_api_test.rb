@@ -122,7 +122,7 @@ class IapApiTest < ActionDispatch::IntegrationTest
   end
 
   test 'restore caps the batch size' do
-    purchases = Array.new(101) { { platform: 'apple', signed_payload: 'x' } }
+    purchases = Array.new(26) { { platform: 'apple', signed_payload: 'x' } }
     post '/api/v1/iap/restore', params: { purchases: purchases }.to_json,
                                 headers: bearer_for(@alice).merge('Content-Type' => 'application/json')
     assert_response :unprocessable_entity

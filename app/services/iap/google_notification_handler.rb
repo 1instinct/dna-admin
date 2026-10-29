@@ -17,34 +17,39 @@ module Iap
 
     Result = Struct.new(:notification, :outcome)
 
-    def initialize(recorder: Recorder.new, verifier: GoogleVerifier.new, config: Iap.config)
+    def initialize(recorder: Recorder.new, verifier: nil, client: GoogleClient.new, config: Iap.config)
       @recorder = recorder
-      @verifier = verifier
+      @client = client
+      @verifier = verifier || GoogleVerifier.new(client: client, config: config)
       @config = config
     end
 
+    # Call only after the push request is authenticated (GooglePushAuthenticator).
     def handle(envelope)
       message = envelope.is_a?(Hash) ? (envelope['message'] || {}) : {}
       data = decode(message['data'])
       id = (message['messageId'] || message['message_id']).presence || raise(Iap::Error.new(:invalid_payload, 'messageId missing'))
+
+      # Messages for another app leave no row behind, so they can never
+      # occupy (and suppress) a real message id.
+      return Result.new(nil, :ignored) if @config.google_package.blank? || data['packageName'] != @config.google_package
 
       notification = Spree::IapNotification.find_or_initialize_by(platform: 'google', notification_id: id.to_s)
       return Result.new(notification, :duplicate) if notification.processed_at
 
       type, subtype = describe(data)
       notification.assign_attributes(notification_type: type, subtype: subtype, payload: data)
-
-      if @config.google_package.blank? || data['packageName'] != @config.google_package
-        notification.assign_attributes(processed_at: Time.current, error: 'ignored: package mismatch')
-        notification.save!
-        return Result.new(notification, :ignored)
-      end
-
       notification.save!
+      @note = nil
       notification.iap_transaction = process(data)
-      notification.update!(processed_at: Time.current, error: nil)
+      notification.update!(processed_at: Time.current, error: @note)
       Result.new(notification, :processed)
     rescue Iap::Error => e
+      if e.code == :wrong_environment && notification&.persisted?
+        # Test purchase while sandbox is disallowed: acknowledge, change nothing.
+        notification.update!(processed_at: Time.current, error: 'ignored: sandbox purchase')
+        return Result.new(notification, :ignored)
+      end
       notification.update_columns(error: e.code.to_s, updated_at: Time.current) if notification&.persisted?
       raise
     end
@@ -76,11 +81,11 @@ module Iap
       end
     end
 
+    # State always comes from the Play Developer API, never from the message.
     def process(data)
       if (n = data['subscriptionNotification'])
         verified = @verifier.verify_subscription(n['purchaseToken'].to_s)
-        override = n['notificationType'].to_i == 12 ? 'revoked' : nil
-        txn = @recorder.upsert(verified, status_override: override)
+        txn = @recorder.upsert(verified)
         @recorder.acknowledge_google(txn, verified)
       elsif (n = data['oneTimeProductNotification'])
         sku = n['sku'].to_s
@@ -89,12 +94,42 @@ module Iap
         txn = @recorder.upsert(verified)
         @recorder.acknowledge_google(txn, verified)
       elsif (n = data['voidedPurchaseNotification'])
-        txn = Spree::IapTransaction.find_by(platform: 'google', transaction_id: n['purchaseToken'].to_s)
-        return nil unless txn
-
-        at = data['eventTimeMillis'].present? ? Time.zone.at(data['eventTimeMillis'].to_i / 1000.0) : Time.current
-        @recorder.revoke(txn, status: 'refunded', revoked_at: at, reason: "voided refundType=#{n['refundType']}")
+        process_void(data, n)
       end
+    end
+
+    VOIDED_LOOKBACK = 2.days
+    VOIDED_MAX_PAGES = 10
+
+    # Confirms the void with purchases.voidedpurchases before refunding.
+    def process_void(data, n)
+      token = n['purchaseToken'].to_s
+      txn = Spree::IapTransaction.find_by(platform: 'google', transaction_id: token)
+      return nil unless txn
+
+      event = data['eventTimeMillis'].present? ? Time.zone.at(data['eventTimeMillis'].to_i / 1000.0) : Time.current
+      start = [event - VOIDED_LOOKBACK, 29.days.ago].max
+      voided = find_voided(token, start)
+      unless voided
+        @note = 'void_not_confirmed'
+        return txn
+      end
+
+      at = voided['voidedTimeMillis'].present? ? Time.zone.at(voided['voidedTimeMillis'].to_i / 1000.0) : event
+      @recorder.revoke(txn, status: 'refunded', revoked_at: at, reason: "voided reason=#{voided['voidedReason']}")
+    end
+
+    def find_voided(token, start)
+      page_token = nil
+      VOIDED_MAX_PAGES.times do
+        body = @client.voided_purchases(start_time: start, page_token: page_token)
+        match = Array(body['voidedPurchases']).find { |v| v['purchaseToken'] == token }
+        return match if match
+
+        page_token = body.dig('tokenPagination', 'nextPageToken')
+        break if page_token.blank?
+      end
+      nil
     end
   end
 end

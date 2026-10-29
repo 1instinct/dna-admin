@@ -18,6 +18,7 @@ Spree::Core::Engine.add_routes do
         resources :entitlements, only: :index
         resources :products, only: :index
         post :restore, to: 'restores#create'
+        get :account_token, to: 'account_tokens#show'
         post 'apple/notifications', to: 'apple_notifications#create', as: :apple_notifications
         post 'google/notifications', to: 'google_notifications#create', as: :google_notifications
       end
