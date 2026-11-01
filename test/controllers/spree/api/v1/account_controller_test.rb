@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 # DELETE /api/v1/account: the signed-in user deletes their own account (app-store account
 # deletion). OAuth bearer required. 204 deleted, 401 no/invalid/revoked token, 422 { error } refused.
@@ -124,6 +125,100 @@ class Spree::Api::V1::AccountControllerTest < ActionDispatch::IntegrationTest
     assert_nil deleted.ship_address_id
   end
 
+  # Spree reuses the user's saved address record on new carts, so a cart can share an address
+  # with a completed order.
+  { bill: %i[bill_address], ship: %i[ship_address], both: %i[bill_address ship_address] }.each do |label, slots|
+    test "a cart with line items sharing an address (#{label}) with a completed order is removed" do
+      shared = create_address(@user)
+      completed = create_order(bill_address: shared, ship_address: shared)
+      completed.update_columns(state: "complete", completed_at: Time.current)
+      cart = create_order(slots.map { |slot| [slot, shared] }.to_h)
+      add_line_item(cart)
+
+      delete "/api/v1/account", headers: bearer(@token)
+
+      assert_response :no_content
+      refute Spree::Order.exists?(cart.id), "the cart is destroyed"
+      assert_equal 0, Spree::LineItem.where(order_id: cart.id).count
+      assert Spree::Order.exists?(completed.id)
+      assert Spree::Address.exists?(shared.id), "the completed order's address is kept"
+      assert_nil Spree::Address.find(shared.id).user_id
+      assert_equal shared.id, completed.reload.bill_address_id
+    end
+  end
+
+  test "a cart's own address is removed with the cart" do
+    own = create_address(nil)
+    cart = create_order(bill_address: own, ship_address: own)
+    add_line_item(cart)
+
+    delete "/api/v1/account", headers: bearer(@token)
+
+    assert_response :no_content
+    refute Spree::Order.exists?(cart.id)
+    refute Spree::Address.exists?(own.id)
+  end
+
+  %w[completed pending processing void].each do |state|
+    test "an open cart with a #{state} payment is retained and anonymized" do
+      cart = create_order({})
+      add_line_item(cart)
+      Spree::Payment.create!(order: cart, amount: 10, payment_method: check_method, state: state)
+
+      delete "/api/v1/account", headers: bearer(@token)
+
+      assert_response :no_content
+      assert Spree::Order.exists?(cart.id), "money may have moved: keep the order"
+      assert_equal "deleted-#{@user.id}@invalid", cart.reload.email
+    end
+  end
+
+  test "an open cart with only failed payments is removed" do
+    cart = create_order({})
+    Spree::Payment.create!(order: cart, amount: 10, payment_method: check_method, state: "failed")
+
+    delete "/api/v1/account", headers: bearer(@token)
+
+    assert_response :no_content
+    refute Spree::Order.exists?(cart.id)
+  end
+
+  test "saved checks are soft-deleted; numbers cleared unless a retained payment uses the check" do
+    used = create_check(@user)
+    unused = create_check(@user)
+    completed = create_order({})
+    completed.update_columns(state: "complete", completed_at: Time.current)
+    payment = Spree::Payment.create!(order: completed, amount: 10, payment_method: check_method, state: "completed")
+    payment.update_columns(source_type: "Spree::Check", source_id: used.id)
+
+    delete "/api/v1/account", headers: bearer(@token)
+
+    assert_response :no_content
+    used_row = Spree::Check.find(used.id)
+    assert used_row.deleted_at.present?
+    assert_nil used_row.user_id
+    assert_equal "123456789", used_row.account_number, "a retained payment's source stays intact"
+    unused_row = Spree::Check.find(unused.id)
+    assert unused_row.deleted_at.present?
+    assert_nil unused_row.user_id
+    assert_nil unused_row.account_number
+    assert_nil unused_row.routing_number
+    assert_nil unused_row.account_holder_name
+  end
+
+  test "an unexpected database error is a 500 and rolls everything back" do
+    favorite = Favorite.create!(user: @user, variant: create_product.master)
+    Spree::Order.stub(:incomplete, -> { raise ActiveRecord::StatementInvalid, "boom" }) do
+      delete "/api/v1/account", headers: bearer(@token)
+    end
+
+    assert_response :internal_server_error
+    assert JSON.parse(response.body)["error"].present?
+    assert Spree.user_class.exists?(@user.id)
+    assert Favorite.exists?(favorite.id), "content deleted before the error is restored"
+    refute token_record(@token).revoked?, "token revocation is rolled back"
+  end
+
   test "401 without a token" do
     delete "/api/v1/account"
     assert_response :unauthorized
@@ -227,8 +322,37 @@ class Spree::Api::V1::AccountControllerTest < ActionDispatch::IntegrationTest
                            city: "Town", zipcode: "12345", phone: "555-0100", country: country)
   end
 
+  def bogus_gateway
+    @bogus_gateway ||= Spree::Gateway::Bogus.create!(name: "Bogus #{SecureRandom.hex(3)}")
+  end
+
+  def create_order(attrs)
+    store = default_store
+    Spree::Order.create!({ user: @user, email: @email, store: store, currency: store.default_currency }.merge(attrs))
+  end
+
+  # Sourceless payment method, so payments need no card.
+  def check_method
+    @check_method ||= Spree::PaymentMethod::Check.create!(name: "Check #{SecureRandom.hex(3)}")
+  end
+
+  def add_line_item(order)
+    product = create_product
+    product.update_column(:available_on, 1.day.ago)
+    variant = product.master
+    variant.update_column(:track_inventory, false)
+    Spree::LineItem.create!(order: order, variant: variant, quantity: 1, price: 10,
+                            currency: order.currency)
+  end
+
+  def create_check(user)
+    Spree::Check.create!(user: user, payment_method: bogus_gateway, account_holder_name: "Pat Leaver",
+                         account_holder_type: "Individual", account_number: "123456789",
+                         routing_number: "021000021")
+  end
+
   def create_credit_card(user)
-    gateway = Spree::Gateway::Bogus.create!(name: "Bogus #{SecureRandom.hex(3)}")
+    gateway = bogus_gateway
     Spree::CreditCard.create!(user: user, payment_method: gateway, name: "Pat Leaver", month: 12,
                               year: Time.current.year + 2, cc_type: "visa", last_digits: "1111",
                               gateway_payment_profile_id: "BGS-#{SecureRandom.hex(3)}")

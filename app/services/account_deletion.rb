@@ -29,8 +29,9 @@ class AccountDeletion
     avatar_url banner_url website city birthday
   ].freeze
 
-  # Payment states that mean money may have moved; an open order with one of these is retained.
-  MONEY_PAYMENT_STATES = %w[processing pending completed].freeze
+  # Payment states that mean money may have moved (a void had an authorization at the gateway);
+  # an open order with one of these is retained.
+  MONEY_PAYMENT_STATES = %w[processing pending completed void].freeze
 
   def self.call(user)
     new(user).call
@@ -87,7 +88,13 @@ class AccountDeletion
     Spree::Order.incomplete.where(user_id: user.id).includes(:payments).find_each do |order|
       next if order.payments.any? { |payment| MONEY_PAYMENT_STATES.include?(payment.state) }
 
+      # Spree reuses the user's saved address on new carts, so a cart may share an address with
+      # a retained order; Order's `dependent: :destroy` on its addresses would then fail. Detach
+      # them first and remove the ones nothing else uses.
+      address_ids = [order.bill_address_id, order.ship_address_id].compact.uniq
+      order.update_columns(bill_address_id: nil, ship_address_id: nil)
       order.destroy!
+      Spree::Address.where(id: address_ids).find_each(&:destroy)
     end
   end
 
@@ -108,8 +115,28 @@ class AccountDeletion
   # Credit cards are paranoid: payments on retained orders keep their source.
   def remove_payment_sources
     Spree::CreditCard.where(user_id: user.id).find_each(&:destroy!)
+    remove_checks
+  end
+
+  CHECK_DETAIL_COLUMNS = %w[
+    account_holder_name account_number routing_number last_digits
+    gateway_customer_profile_id gateway_payment_profile_id
+  ].freeze
+
+  # Spree::Check (spree_gateway) is not paranoid and retained payments may use one as their
+  # source, so checks are soft-deleted by hand; account details are cleared only on checks no
+  # remaining payment uses.
+  def remove_checks
     check_class = 'Spree::Check'.safe_constantize
-    check_class&.where(user_id: user.id)&.find_each(&:destroy!)
+    return unless check_class
+
+    checks = check_class.where(user_id: user.id)
+    used_ids = Spree::Payment.where(source_type: check_class.name, source_id: checks.select(:id)).pluck(:source_id)
+    details = (CHECK_DETAIL_COLUMNS & check_class.column_names).index_with(nil)
+    checks.where.not(id: used_ids).update_all(details) if details.any?
+    soft_delete = { user_id: nil, updated_at: now }
+    soft_delete[:deleted_at] = now if check_class.column_names.include?('deleted_at')
+    checks.update_all(soft_delete)
   end
 
   def anonymize_and_soft_delete_user
