@@ -69,6 +69,30 @@ class Spree::Api::V1::ReportsControllerTest < ActionDispatch::IntegrationTest
     ModerationMailer.singleton_class.send(:remove_method, :new_report)
   end
 
+  test 'a refused SMTP connection is logged even with raise_delivery_errors off, as in production' do
+    closed = TCPServer.new('127.0.0.1', 0)
+    port = closed.addr[1]
+    closed.close
+    old = [ActionMailer::Base.delivery_method, ActionMailer::Base.smtp_settings, ActionMailer::Base.raise_delivery_errors]
+    ActionMailer::Base.delivery_method = :smtp
+    ActionMailer::Base.smtp_settings = { address: '127.0.0.1', port: port }
+    ActionMailer::Base.raise_delivery_errors = false
+    io = StringIO.new
+    old_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+
+    report!
+
+    assert_response :created
+    report_id = json['id']
+    assert Spree::ContentReport.exists?(report_id)
+    assert_includes io.string, "report #{report_id} email failed: Errno::ECONNREFUSED"
+    assert_equal false, ActionMailer::Base.raise_delivery_errors, 'the global setting is untouched'
+  ensure
+    Rails.logger = old_logger
+    ActionMailer::Base.delivery_method, ActionMailer::Base.smtp_settings, ActionMailer::Base.raise_delivery_errors = old
+  end
+
   test 'no email when MODERATION_EMAIL is unset, report still stored' do
     Profiles.config.moderation_email = nil
     perform_enqueued_jobs { report! }

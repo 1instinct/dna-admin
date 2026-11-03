@@ -7,8 +7,11 @@ class ModerationMailer < ApplicationMailer
     @reporter_handle = report.reporter&.profile&.handle
     @admin_path = "#{Spree.admin_path.chomp('/')}/content_reports/#{report.id}"
     from = Spree::Store.default&.mail_from_address.presence
-    mail(**{ to: Profiles.config.moderation_email,
-             subject: "New report ##{report.id}: profile @#{@snapshot['handle']} (#{report.reason})",
-             from: from }.compact)
+    message = mail(**{ to: Profiles.config.moderation_email,
+                       subject: "New report ##{report.id}: profile @#{@snapshot['handle']} (#{report.reason})",
+                       from: from }.compact)
+    # This mail only, whatever the app's global setting: the caller logs a failed delivery.
+    message.raise_delivery_errors = true
+    message
   end
 end
