@@ -1,0 +1,40 @@
+<% profile = user.respond_to?(:profile) ? user.profile : nil %>
+<div data-hook="admin_user_profile_panel" id="admin_user_profile_panel" class="card mb-3">
+  <div class="card-header">
+    <h1 class="card-title mb-0 h5">Profile</h1>
+  </div>
+  <div class="card-body">
+    <% if profile %>
+      <dl>
+        <dt>Handle</dt><dd><%= profile.handle ? "@#{profile.handle}" : '(none)' %></dd>
+        <dt>Name</dt><dd><%= profile.name %></dd>
+        <dt>Bio</dt><dd><%= profile.bio %></dd>
+        <dt>Website</dt><dd><%= profile.website %></dd>
+        <dt>Visibility</dt><dd><%= profile.visibility %></dd>
+        <dt>Photo</dt><dd><%= profile.avatar.attached? ? 'yes' : 'no' %></dd>
+        <dt>Status</dt>
+        <dd><%= profile.hidden? ? "hidden since #{l(profile.hidden_at, format: :short)} (#{profile.hidden_reason})" : 'visible' %></dd>
+      </dl>
+      <div class="form-actions">
+        <% if profile.hidden? %>
+          <%= button_to 'Unhide profile', spree.unhide_admin_user_profile_path(profile), method: :post, class: 'btn btn-light d-inline-block', form_class: 'd-inline-block' %>
+        <% else %>
+          <%= button_to 'Hide profile', spree.hide_admin_user_profile_path(profile), method: :post, class: 'btn btn-warning', form_class: 'd-inline-block' %>
+        <% end %>
+        <%= link_to 'Reports about this profile', spree.admin_content_reports_path(status: 'all', profile_id: profile.id), class: 'btn btn-light' %>
+      </div>
+    <% else %>
+      <p>No public profile.</p>
+    <% end %>
+
+    <div class="form-actions mt-3">
+      <% if user.locked_at %>
+        <span class="mr-2">Account locked since <%= l(user.locked_at, format: :short) %>.</span>
+        <%= button_to 'Unlock account', spree.admin_user_account_lock_path(user), method: :delete, class: 'btn btn-light', form_class: 'd-inline-block' %>
+      <% elsif !user.admin? %>
+        <%= button_to 'Lock account', spree.admin_user_account_lock_path(user), method: :post, class: 'btn btn-danger', form_class: 'd-inline-block',
+                      data: { confirm: 'Lock this account? They will be signed out everywhere.' } %>
+      <% end %>
+    </div>
+  </div>
+</div>

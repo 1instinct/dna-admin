@@ -1,0 +1,44 @@
+<% content_for :page_title do %>
+  Content reports
+<% end %>
+
+<div class="mb-3">
+  <% %w[open actioned dismissed all].each do |status| %>
+    <%= link_to status.capitalize, spree.admin_content_reports_path(status: status, profile_id: params[:profile_id]),
+                class: "btn btn-sm #{@status == status ? 'btn-primary' : 'btn-light'}" %>
+  <% end %>
+</div>
+
+<% if @reports.any? %>
+  <div class="table-responsive">
+    <table class="table" id="content_reports">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Reported</th>
+          <th>Reason</th>
+          <th>Reporter</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @reports.each do |report| %>
+          <tr id="content_report_<%= report.id %>">
+            <td><%= report.id %></td>
+            <td>profile @<%= report.snapshot['handle'] %></td>
+            <td><%= report.reason %></td>
+            <td><%= report.reporter&.profile&.handle ? "@#{report.reporter.profile.handle}" : (report.reporter_id ? "user #{report.reporter_id}" : 'deleted user') %></td>
+            <td><%= report.status %></td>
+            <td><%= l(report.created_at, format: :short) %></td>
+            <td class="actions text-right"><%= link_to 'Review', spree.admin_content_report_path(report), class: 'btn btn-sm btn-light' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @reports %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No <%= @status == 'all' ? '' : @status %> reports.</div>
+<% end %>

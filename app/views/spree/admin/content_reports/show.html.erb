@@ -1,0 +1,74 @@
+<% content_for :page_title do %>
+  <%= link_to 'Content reports', spree.admin_content_reports_path %> &raquo; #<%= @report.id %>
+<% end %>
+
+<div class="row">
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Report</h1></div>
+      <div class="card-body">
+        <dl>
+          <dt>Status</dt><dd><%= @report.status %></dd>
+          <dt>Reason</dt><dd><%= @report.reason %></dd>
+          <dt>Details</dt><dd><%= @report.details.presence || '(none)' %></dd>
+          <dt>Reporter</dt>
+          <dd>
+            <% if @report.reporter %>
+              <%= link_to(@report.reporter.profile&.handle ? "@#{@report.reporter.profile.handle}" : "user #{@report.reporter_id}",
+                          spree.edit_admin_user_path(@report.reporter)) %>
+            <% else %>
+              deleted user
+            <% end %>
+          </dd>
+          <dt>Created</dt><dd><%= l(@report.created_at, format: :long) %></dd>
+          <% if @report.resolved_at %>
+            <dt>Resolved</dt>
+            <dd><%= l(@report.resolved_at, format: :long) %> by <%= @report.resolved_by&.email || 'unknown' %></dd>
+            <dt>Note</dt><dd><%= @report.resolution_note %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Profile at report time</h1></div>
+      <div class="card-body">
+        <dl>
+          <dt>Handle</dt><dd>@<%= @report.snapshot['handle'] %></dd>
+          <dt>Name</dt><dd><%= @report.snapshot['name'] %></dd>
+          <dt>Bio</dt><dd><%= @report.snapshot['bio'] %></dd>
+          <dt>Website</dt><dd><%= @report.snapshot['website'] %></dd>
+          <dt>Links</dt><dd><%= (@report.snapshot['links'] || {}).map { |k, v| "#{k}: #{v}" }.join(', ') %></dd>
+          <dt>Photo</dt><dd><%= @report.snapshot['avatar'] ? 'yes' : 'no' %></dd>
+        </dl>
+        <% if @profile %>
+          <p class="mb-0">
+            Now: @<%= @profile.handle %><%= ' (hidden)' if @profile.hidden? %>,
+            photo <%= @profile.avatar.attached? ? 'yes' : 'no' %>,
+            account <%= @profile.user&.locked_at ? 'locked' : 'active' %>.
+            <%= link_to 'User page', spree.edit_admin_user_path(@profile.user_id) %>
+          </p>
+        <% else %>
+          <p class="mb-0">The profile no longer exists.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header"><h1 class="card-title mb-0 h5">Resolve</h1></div>
+  <div class="card-body">
+    <% [['Dismiss', :dismiss, 'btn-light'], ['Hide profile', :hide_profile, 'btn-warning'],
+        ['Remove photo', :remove_photo, 'btn-warning'], ['Clear bio', :clear_bio, 'btn-warning'],
+        ['Lock account', :lock_account, 'btn-danger']].each do |label, action, css| %>
+      <%= form_tag spree.public_send("#{action}_admin_content_report_path", @report),
+                   method: :post, class: 'd-inline-block mr-2 mb-2' do %>
+        <%= text_field_tag :resolution_note, nil, placeholder: 'Note (optional)', class: 'form-control form-control-sm d-inline-block w-auto' %>
+        <%= submit_tag label, class: "btn btn-sm #{css}" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -56,6 +56,26 @@ Spree::Core::Engine.add_routes do
         get :children
       end
     end
+
+    # Profile moderation.
+    resources :content_reports, only: [:index, :show] do
+      member do
+        post :dismiss
+        post :hide_profile
+        post :remove_photo
+        post :clear_bio
+        post :lock_account
+      end
+    end
+    resources :user_profiles, only: [] do
+      member do
+        post :hide
+        post :unhide
+      end
+    end
+    resources :users, only: [] do
+      resource :account_lock, only: [:create, :destroy]
+    end
   end
   namespace :admin do
     resources :menu_items, except: :show do
