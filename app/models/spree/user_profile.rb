@@ -27,6 +27,7 @@ module Spree
     validates :visibility, inclusion: { in: VISIBILITIES }
     validates :name, length: { maximum: NAME_MAX }
     validates :bio, length: { maximum: BIO_MAX }
+    validate :validate_no_null_bytes
     validate :validate_handle
     validate :validate_words
     validate :validate_website
@@ -40,11 +41,14 @@ module Spree
                  .joins(:user).where(Spree::User.table_name => { deleted_at: nil, locked_at: nil })
     }
 
-    def self.find_by_handle(handle)
+    # Blank or NUL-bearing input matches nothing (Postgres can't take NUL in a query).
+    scope :by_handle, lambda { |handle|
       normalized = Profiles::HandlePolicy.normalize(handle)
-      return if normalized.empty?
+      normalized.empty? || normalized.include?("\0") ? none : where('lower(handle) = ?', normalized)
+    }
 
-      where('lower(handle) = ?', normalized).first
+    def self.find_by_handle(handle)
+      by_handle(handle).first
     end
 
     def public_visibility?
@@ -81,6 +85,12 @@ module Spree
       self.website = website.to_s.strip.presence
       self.links = {} if links.blank?
       self.visibility = visibility.to_s.strip.downcase.presence || 'public'
+    end
+
+    def validate_no_null_bytes
+      %i[name bio website].each do |field|
+        errors.add(field, 'contains invalid characters') if public_send(field).to_s.include?("\0")
+      end
     end
 
     def validate_handle
@@ -126,7 +136,7 @@ module Spree
       end
       unknown = links.keys.map(&:to_s) - Profiles.config.links_keys
       errors.add(:links, "has unknown keys: #{unknown.join(', ')}") if unknown.any?
-      bad = links.values.reject { |v| v.is_a?(String) && v.length <= LINK_VALUE_MAX }
+      bad = links.values.reject { |v| v.is_a?(String) && v.length <= LINK_VALUE_MAX && !v.include?("\0") }
       errors.add(:links, "values must be text of at most #{LINK_VALUE_MAX} characters") if bad.any?
     end
 

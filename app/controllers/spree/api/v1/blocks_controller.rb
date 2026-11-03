@@ -44,7 +44,7 @@ module Spree
         # Any live user's profile (hidden ones included, so people can block them too).
         def blockable_profile(handle)
           Spree::UserProfile.with_handle.joins(:user).where(Spree::User.table_name => { deleted_at: nil })
-                            .where('lower(handle) = ?', Profiles::HandlePolicy.normalize(handle)).first
+                            .by_handle(handle).first
         end
       end
     end
