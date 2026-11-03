@@ -4,14 +4,20 @@ module Profiles
   #
   #   Profiles::RateLimit.allow?(user, :follow) # counts this attempt; false once over the limit
   #
+  # Fails open: a counter error never takes the action down, and an unsaved user isn't counted.
   # Counters are one atomic upsert in Postgres, so they hold across dynos and restarts, need no
   # extra service and keep the table at one row per user and action.
   module RateLimit
     module_function
 
     def allow?(user, action, now: Time.current)
+      return true unless user&.persisted?
+
       rule = Profiles.config.rate_limits.fetch(action)
       hit(user.id, action, rule[:window], now) <= rule[:limit]
+    rescue ActiveRecord::ActiveRecordError => e
+      Rails.logger.error("[profiles] rate limit check failed: #{e.class}")
+      true
     end
 
     def hit(user_id, action, window, now)
