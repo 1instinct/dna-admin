@@ -10,7 +10,7 @@ module Profiles
     attr_writer :reserved_handles, :blocked_terms, :moderation_email
     attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :report_limit,
                   :report_window, :avatar_max_bytes, :avatar_content_types, :avatar_size,
-                  :avatar_variants, :moderation_dir, :favorites_limit
+                  :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback
 
     def initialize
       @extra_reserved_handles = []
@@ -29,6 +29,9 @@ module Profiles
       }
       @moderation_dir = Rails.root.join('config', 'moderation')
       @favorites_limit = 24
+      # Optional ->(user) { url } used for the avatar when none is attached (e.g. an app's legacy
+      # avatar URL column). Returns the same URL for every size.
+      @avatar_fallback = nil
     end
 
     # Lowercase handles nobody may take.
