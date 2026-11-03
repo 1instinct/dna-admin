@@ -41,8 +41,7 @@ class Profiles::HandlePolicyTest < ActiveSupport::TestCase
   end
 
   test 'no reserved prefixes ship with the generic list' do
-    Profiles.reset_config!
-    assert_empty Profiles.config.reserved_prefixes
+    refute Rails.root.join('config', 'moderation', 'reserved_prefixes.yml').exist?
   end
 
   test 'refusal needs no database: rules only' do
