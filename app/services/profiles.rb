@@ -70,8 +70,12 @@ module Profiles
     end
 
     def avatar_url_allowed?(url)
+      avatar_url_https?(url) && avatar_url_hosts.include?(URI.parse(url.to_s).host.downcase)
+    end
+
+    def avatar_url_https?(url)
       uri = URI.parse(url.to_s)
-      uri.scheme == 'https' && uri.userinfo.nil? && avatar_url_hosts.include?(uri.host.to_s.downcase)
+      uri.scheme == 'https' && uri.host.present? && uri.userinfo.nil?
     rescue URI::InvalidURIError
       false
     end

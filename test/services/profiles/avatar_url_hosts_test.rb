@@ -47,6 +47,21 @@ class Profiles::AvatarUrlHostsTest < ActiveSupport::TestCase
     assert_nil Profiles::Presenter.new(@profile).avatar
   end
 
+  test "the owner's own view shows a fallback on any https host; others don't" do
+    Profiles.config.avatar_fallback = ->(_user) { 'https://elsewhere.example/a.png' }
+    presenter = Profiles::Presenter.new(@profile)
+
+    assert_equal({ small: 'https://elsewhere.example/a.png', large: 'https://elsewhere.example/a.png' },
+                 presenter.own_json[:avatar])
+    assert_nil presenter.public_json[:avatar]
+    assert_nil presenter.identity_json[:avatar]
+  end
+
+  test "the owner's own view drops a fallback that isn't https" do
+    Profiles.config.avatar_fallback = ->(_user) { 'http://elsewhere.example/a.png' }
+    assert_nil Profiles::Presenter.new(@profile).own_json[:avatar]
+  end
+
   test 'the presenter serves a fallback on an allowed host for every size' do
     allow_hosts('cdn.example')
     Profiles.config.avatar_fallback = ->(_user) { 'https://cdn.example/a.png' }

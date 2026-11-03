@@ -44,7 +44,7 @@ module Spree
         end
 
         def destroy_avatar
-          Profiles::Moderation.remove_photo(profile) if profile.persisted?
+          Profiles::Moderation.remove_photo(profile)
           render_own
         end
 

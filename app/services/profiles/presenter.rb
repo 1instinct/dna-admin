@@ -1,5 +1,7 @@
 module Profiles
-  # JSON for profiles. Never includes email, real names, user ids or addresses.
+  # JSON for profiles. Never includes email, real names, user ids or addresses. An external avatar
+  # URL is shown to others only from an allowed host, since that host sees the viewer's IP; the
+  # owner's own view shows it from any https host, because only their own device loads it.
   #
   #   Profiles::Presenter.new(profile, viewer: user_or_nil, base_url: request.base_url)
   #     .public_json   # what anyone sees (private profiles: handle, name, avatar, visibility, viewer)
@@ -44,7 +46,7 @@ module Profiles
         name: profile.name,
         bio: profile.bio,
         website: profile.website,
-        avatar: avatar,
+        avatar: own_avatar,
         links: profile.links || {},
         is_creator: creator?,
         joined: joined,
@@ -60,15 +62,30 @@ module Profiles
     end
 
     def avatar
-      if profile.avatar.attached? && profile.avatar.blob.persisted?
-        Profiles.config.avatar_variants.keys.index_with { |size| variant_url(profile.avatar_variant(size)) }
-      else
-        fallback = Profiles.config.avatar_fallback&.call(user)
-        Profiles.config.avatar_variants.keys.index_with { fallback } if Profiles.config.avatar_url_allowed?(fallback)
-      end
+      uploaded_avatar || (external_avatar if Profiles.config.avatar_url_allowed?(external_avatar_url))
+    end
+
+    def own_avatar
+      uploaded_avatar || (external_avatar if Profiles.config.avatar_url_https?(external_avatar_url))
     end
 
     private
+
+    def uploaded_avatar
+      return unless profile.avatar.attached? && profile.avatar.blob.persisted?
+
+      Profiles.config.avatar_variants.keys.index_with { |size| variant_url(profile.avatar_variant(size)) }
+    end
+
+    def external_avatar_url
+      Profiles.config.avatar_fallback&.call(user)
+    end
+
+    # The same URL for every size.
+    def external_avatar
+      url = external_avatar_url
+      Profiles.config.avatar_variants.keys.index_with { url }
+    end
 
     def private_json
       {
