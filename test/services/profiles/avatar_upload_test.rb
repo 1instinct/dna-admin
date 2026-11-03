@@ -27,8 +27,9 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
     @profile = create(:user_profile, handle: 'bomb_target')
   end
 
-  test 'dimensions come from the header: a PNG with no pixel data at all still reports its size' do
-    file = bytes_upload(png_header(30_000, 30_000) + png_chunk('IEND', ''.b), 'image/png', 'huge.png')
+  test 'dimensions come from the header: a PNG with no usable pixel data still reports its size' do
+    png = png_header(30_000, 30_000) + png_chunk('IDAT', Zlib.deflate('')) + png_chunk('IEND', ''.b)
+    file = bytes_upload(png, 'image/png', 'huge.png')
 
     assert_equal [30_000, 30_000], Profiles::AvatarUpload.new(@profile, file).send(:header_dimensions)
   end
@@ -37,15 +38,17 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
     file = bytes_upload(png_bomb(5000, 5000), 'image/png', 'bomb.png')
     assert_operator file.size, :<, 1.megabyte
 
-    processed = false
-    trace = TracePoint.new(:call) { |tp| processed = true if tp.method_id == :call && tp.defined_class == ImageProcessing::Pipeline }
-    error = trace.enable do
-      assert_raises(Profiles::AvatarUpload::Error) { Profiles::AvatarUpload.call(@profile, file) }
-    end
+    upload = Profiles::AvatarUpload.new(@profile, file)
+    assert_equal [5000, 5000], upload.send(:header_dimensions)
+    processor = ImageProcessing::MiniMagick
+    processor.define_singleton_method(:source) { |*| raise 'decoded the image' }
+
+    error = assert_raises(Profiles::AvatarUpload::Error) { upload.call }
 
     assert_equal 422, error.status
-    refute processed
     refute @profile.reload.avatar.attached?
+  ensure
+    processor&.singleton_class&.send(:remove_method, :source)
   end
 
   test 'the pixel limit is about 16 megapixels' do
@@ -58,6 +61,14 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
     blob = @profile.reload.avatar.blob
     assert_equal 'image/jpeg', blob.content_type
     assert_equal 'avatar.jpg', blob.filename.to_s
+  end
+
+  test 'a large photo just under the limit still processes within the resource limits' do
+    file = bytes_upload(png_bomb(3900, 3900), 'image/png', 'big.png')
+
+    Profiles::AvatarUpload.call(@profile, file)
+
+    assert @profile.reload.avatar.attached?
   end
 
   test 'every ImageMagick command carries explicit resource limits' do
@@ -75,12 +86,14 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
 
     Profiles::AvatarUpload.call(@profile, fixture_upload('avatar.png', 'image/png'))
 
-    assert_operator commands.size, :>=, 2, 'identify and convert'
-    commands.each do |command|
-      assert_includes command, '-limit', command.first
-      assert_includes command, 'memory', command.first
+    # Active Storage then analyses the stored copy, which is our own 1024 px JPEG.
+    on_upload = commands.reject { |command| command.join(' ').include?('ActiveStorage-') }
+    assert_operator on_upload.size, :>=, 2, 'identify and convert'
+    on_upload.each do |command|
+      assert_includes command, '-limit', command.join(' ')
+      assert_includes command, 'memory', command.join(' ')
     end
-    assert_includes commands.first, '-ping'
+    assert_includes on_upload.first, '-ping'
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     MiniMagick::Shell.class_eval do

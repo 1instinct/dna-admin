@@ -19,7 +19,11 @@ module Profiles
       end
     end
 
-    MAX_PIXELS = 50_000_000
+    # Refused before anything decodes the image (read from the file header).
+    MAX_PIXELS = 16_000_000
+    # Passed on every ImageMagick command, so a crafted file can't exhaust a dyno. Past memory and
+    # map ImageMagick spills to disk, then fails; rescued below as an unreadable image.
+    MAGICK_LIMITS = { memory: '128MiB', map: '256MiB', disk: '512MiB', time: '30' }.freeze
 
     def self.call(profile, upload)
       new(profile, upload).call
@@ -64,13 +68,14 @@ module Profiles
     end
 
     def process!
-      image = MiniMagick::Image.new(path)
-      width, height = image.dimensions
+      width, height = header_dimensions
       raise Error.new("avatar couldn't be read as an image", 422) if width.to_i * height.to_i > MAX_PIXELS
 
       size = @config.avatar_size
       ImageProcessing::MiniMagick
         .source(path)
+        .loader(page: 0)
+        .limits(MAGICK_LIMITS)
         .resize_to_fill(size, size)
         .strip
         .convert('jpg')
@@ -79,6 +84,18 @@ module Profiles
     rescue MiniMagick::Error, MiniMagick::Invalid, ImageProcessing::Error => e
       Rails.logger.info("[profiles] avatar processing failed: #{e.class}")
       raise Error.new("avatar couldn't be read as an image", 422)
+    end
+
+    # Width and height of the first frame. -ping reads the header and stops, where a plain
+    # identify (MiniMagick::Image#dimensions) decodes every pixel first.
+    def header_dimensions
+      output = MiniMagick::Tool::Identify.new do |identify|
+        MAGICK_LIMITS.each { |resource, value| identify.limit(resource.to_s, value) }
+        identify.ping
+        identify.format('%w %h')
+        identify << "#{path}[0]"
+      end
+      output.split.first(2).map(&:to_i)
     end
 
     def path
