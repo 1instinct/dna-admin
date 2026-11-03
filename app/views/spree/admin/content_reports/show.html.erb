@@ -41,7 +41,7 @@
           <dt>Bio</dt><dd><%= @report.snapshot['bio'] %></dd>
           <dt>Website</dt><dd><%= @report.snapshot['website'] %></dd>
           <dt>Links</dt><dd><%= (@report.snapshot['links'] || {}).map { |k, v| "#{k}: #{v}" }.join(', ') %></dd>
-          <dt>Photo</dt><dd><%= @report.snapshot['avatar'] ? 'yes' : 'no' %></dd>
+          <dt>Photo</dt><dd><%= @report.snapshot['avatar'] ? 'yes' : 'no' %><% if @report.snapshot['avatar_url'] %> (external URL, not loaded here: <%= @report.snapshot['avatar_url'] %>)<% end %></dd>
         </dl>
         <% if @profile %>
           <p class="mb-0">

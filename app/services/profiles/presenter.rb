@@ -62,8 +62,9 @@ module Profiles
     def avatar
       if profile.avatar.attached? && profile.avatar.blob.persisted?
         Profiles.config.avatar_variants.keys.index_with { |size| variant_url(profile.avatar_variant(size)) }
-      elsif (fallback = Profiles.config.avatar_fallback&.call(user)).present?
-        Profiles.config.avatar_variants.keys.index_with { fallback }
+      else
+        fallback = Profiles.config.avatar_fallback&.call(user)
+        Profiles.config.avatar_variants.keys.index_with { fallback } if Profiles.config.avatar_url_allowed?(fallback)
       end
     end
 

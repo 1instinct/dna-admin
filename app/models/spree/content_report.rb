@@ -16,6 +16,7 @@ module Spree
     validates :reason, inclusion: { in: REASONS }
     validates :status, inclusion: { in: STATUSES }
     validates :details, length: { maximum: DETAILS_MAX }
+    validate :details_without_null_bytes
     validate :within_rate_limit, on: :create
 
     scope :open_first, -> { order(Arel.sql("CASE WHEN status = 'open' THEN 0 ELSE 1 END"), created_at: :desc) }
@@ -27,6 +28,7 @@ module Spree
     end
 
     def self.profile_snapshot(profile)
+      legacy_avatar_url = profile.user&.has_attribute?(:avatar_url) ? profile.user.avatar_url.presence : nil
       {
         'handle' => profile.handle,
         'name' => profile.name,
@@ -34,8 +36,9 @@ module Spree
         'website' => profile.website,
         'links' => profile.links,
         'visibility' => profile.visibility,
-        'avatar' => profile.avatar.attached?,
-        'avatar_blob_id' => profile.avatar.attached? ? profile.avatar.blob.id : nil
+        'avatar' => profile.avatar.attached? || legacy_avatar_url.present?,
+        'avatar_blob_id' => profile.avatar.attached? ? profile.avatar.blob.id : nil,
+        'avatar_url' => legacy_avatar_url
       }
     end
 
@@ -48,6 +51,10 @@ module Spree
     end
 
     private
+
+    def details_without_null_bytes
+      errors.add(:details, 'contains invalid characters') if details.to_s.include?("\0")
+    end
 
     def within_rate_limit
       return unless reporter_id
