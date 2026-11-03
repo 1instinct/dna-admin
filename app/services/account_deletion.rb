@@ -92,6 +92,7 @@ class AccountDeletion
   # Reports the user filed stay for moderation, without the reporter or their free text.
   def delete_profile_data
     Spree::UserBlock.involving(user).delete_all
+    Spree::ProfileRateCounter.where(user_id: user.id).delete_all
     Spree::ContentReport.where(reporter_id: user.id).update_all(reporter_id: nil, details: nil, updated_at: now)
     Spree::UserProfile.where(user_id: user.id).find_each do |profile|
       Spree::ContentReport.about_profile(profile).delete_all

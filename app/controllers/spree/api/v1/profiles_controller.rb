@@ -6,9 +6,10 @@ module Spree
       #   GET    /api/v1/profiles/:handle                auth optional (a valid bearer adds viewer state;
       #                                                  an invalid one is 401). 404 when missing, hidden,
       #                                                  deleted, locked, or a block exists either way.
-      #   GET    /api/v1/profiles/handle_available?handle=  bearer. { available, reason }
+      #   GET    /api/v1/profiles/handle_available?handle=  bearer. { available, reason }; 429 over the limit
       #   POST   /api/v1/profiles/:handle/follow         bearer. { following, followers_count }
-      #   DELETE /api/v1/profiles/:handle/follow         bearer. 403 blocked, 404 missing, 422 self
+      #   DELETE /api/v1/profiles/:handle/follow         bearer. 403 blocked, 404 missing, 422 self,
+      #                                                  429 over the limit
       class ProfilesController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
@@ -19,6 +20,8 @@ module Spree
         skip_before_action :authenticate_user, only: :show
         before_action :reject_bad_credentials, only: :show
         before_action :require_bearer_user, except: :show
+        before_action -> { enforce_rate_limit(:follow) }, only: %i[follow unfollow]
+        before_action -> { enforce_rate_limit(:handle_available) }, only: :handle_available
         before_action :load_follow_target, only: %i[follow unfollow]
 
         def show

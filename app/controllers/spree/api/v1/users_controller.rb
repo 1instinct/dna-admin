@@ -389,6 +389,8 @@ module Spree
         end
         
         def follow
+          return follow_limit_reached unless Profiles::RateLimit.allow?(@current_api_user, :follow)
+
           user_to_follow = Spree::User.find_by_id(params[:id])
           unless user_to_follow
             return error_model(404, "User not found")
@@ -420,6 +422,8 @@ module Spree
         end
         
         def unfollow
+          return follow_limit_reached unless Profiles::RateLimit.allow?(@current_api_user, :follow)
+
           user_to_unfollow = Spree::User.find_by_id(params[:id])
           unless user_to_unfollow
             return error_model(404, "User not found")
@@ -436,6 +440,10 @@ module Spree
           else
             error_model(400, "Not following this user")
           end
+        end
+
+        def follow_limit_reached
+          error_model(429, "Too many requests. Try again later.")
         end
 
         def user_params

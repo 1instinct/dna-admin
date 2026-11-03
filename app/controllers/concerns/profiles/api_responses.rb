@@ -24,6 +24,12 @@ module Profiles
       current_api_user&.persisted? ? current_api_user : nil
     end
 
+    def enforce_rate_limit(action)
+      return if Profiles::RateLimit.allow?(current_api_user, action)
+
+      render_error('Too many requests. Try again later.', :too_many_requests)
+    end
+
     def render_error(message, status, fields: nil)
       body = { error: message }
       body[:fields] = fields if fields

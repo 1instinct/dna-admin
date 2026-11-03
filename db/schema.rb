@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_03_120200) do
+ActiveRecord::Schema.define(version: 2026_11_03_120300) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -862,6 +862,14 @@ ActiveRecord::Schema.define(version: 2026_11_03_120200) do
     t.index ["product_id", "taxon_id"], name: "index_spree_products_taxons_on_product_id_and_taxon_id", unique: true
     t.index ["product_id"], name: "index_spree_products_taxons_on_product_id"
     t.index ["taxon_id"], name: "index_spree_products_taxons_on_taxon_id"
+  end
+
+  create_table "spree_profile_rate_counters", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "action", null: false
+    t.datetime "window_started_at", null: false
+    t.integer "hits", default: 0, null: false
+    t.index ["user_id", "action"], name: "index_spree_profile_rate_counters_on_user_id_and_action", unique: true
   end
 
   create_table "spree_promotion_action_line_items", id: :serial, force: :cascade do |t|

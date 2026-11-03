@@ -10,7 +10,8 @@ module Profiles
     attr_writer :reserved_handles, :blocked_terms, :moderation_email
     attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :report_limit,
                   :report_window, :avatar_max_bytes, :avatar_content_types, :avatar_size,
-                  :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback
+                  :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback,
+                  :rate_limits
 
     def initialize
       @extra_reserved_handles = []
@@ -32,6 +33,14 @@ module Profiles
       # Optional ->(user) { url } used for the avatar when none is attached (e.g. an app's legacy
       # avatar URL column). Returns the same URL for every size.
       @avatar_fallback = nil
+      # Per-user limits, see Profiles::RateLimit. follow covers follow and unfollow, block covers
+      # block and unblock. Past a limit the endpoint answers 429.
+      @rate_limits = {
+        follow: { limit: 120, window: 1.hour },
+        block: { limit: 60, window: 1.hour },
+        handle_available: { limit: 60, window: 1.minute },
+        avatar: { limit: 20, window: 24.hours }
+      }
     end
 
     # Lowercase handles nobody may take.

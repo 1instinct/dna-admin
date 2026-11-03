@@ -7,7 +7,7 @@ module Spree
       #   PATCH  /api/v1/profile          { profile: { handle, name, bio, website, visibility } }
       #                                   200 own profile | 422 { error, fields }
       #   PUT    /api/v1/profile/avatar   multipart `avatar` (jpeg/png/webp <= 5 MB)
-      #                                   200 own profile | 413 | 415 | 422
+      #                                   200 own profile | 413 | 415 | 422 | 429
       #   DELETE /api/v1/profile/avatar   200 own profile
       class ProfileController < Spree::Api::BaseController
         include Profiles::ApiResponses
@@ -15,6 +15,7 @@ module Spree
         PERMITTED = %i[handle name bio website visibility].freeze
 
         before_action :require_bearer_user
+        before_action -> { enforce_rate_limit(:avatar) }, only: :update_avatar
 
         def show
           render_own
