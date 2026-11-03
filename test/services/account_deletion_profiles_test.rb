@@ -27,6 +27,7 @@ class AccountDeletionProfilesTest < ActiveSupport::TestCase
 
   test 'a failed purge does not fail the deletion and logs no personal data' do
     @profile.avatar.attach(fixture_upload('avatar.png', 'image/png'))
+    key = @profile.avatar.blob.key
     io = StringIO.new
     old_logger = Rails.logger
     Rails.logger = ActiveSupport::Logger.new(io)
@@ -39,6 +40,7 @@ class AccountDeletionProfilesTest < ActiveSupport::TestCase
 
     refute Spree::UserProfile.exists?(@profile.id)
     assert_includes io.string, 'avatar purge failed: IOError'
+    assert_includes io.string, "blob_key=#{key}", 'so the orphaned file can be traced'
     refute_includes io.string, @user.email
   ensure
     Rails.logger = old_logger

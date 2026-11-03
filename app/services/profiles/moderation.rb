@@ -20,9 +20,12 @@ module Profiles
     def remove_photo(profile)
       user = profile.user
       user.update_columns(avatar_url: nil, updated_at: Time.current) if user&.has_attribute?(:avatar_url) && user.avatar_url.present?
-      profile.avatar.purge if profile.avatar.attached?
+      return unless profile.avatar.attached?
+
+      key = profile.avatar.blob.key
+      profile.avatar.purge
     rescue StandardError => e
-      Rails.logger.error("[profiles] profile_id=#{profile.id} photo purge failed: #{e.class}")
+      Rails.logger.error("[profiles] profile_id=#{profile.id} blob_key=#{key} photo purge failed: #{e.class}")
     end
 
     def clear_bio(profile)

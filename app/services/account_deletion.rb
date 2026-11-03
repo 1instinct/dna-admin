@@ -186,7 +186,8 @@ class AccountDeletion
     avatar_blobs.each do |blob|
       blob.purge
     rescue StandardError => e
-      Rails.logger.error("[account_deletion] user_id=#{user.id} avatar purge failed: #{e.class}")
+      # The blob row may already be gone, so the key is the only trace of the orphaned file.
+      Rails.logger.error("[account_deletion] user_id=#{user.id} blob_key=#{blob.key} avatar purge failed: #{e.class}")
     end
   end
 end
