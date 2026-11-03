@@ -396,6 +396,11 @@ module Spree
             return error_model(404, "User not found")
           end
           
+          # Same rule as the visible profile scope: hidden or locked targets don't exist here.
+          if user_to_follow.account_locked? || user_to_follow.profile&.hidden?
+            return error_model(404, "User not found")
+          end
+
           if @current_api_user.id == user_to_follow.id
             return error_model(400, "Cannot follow yourself")
           end
