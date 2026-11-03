@@ -30,12 +30,27 @@ module Profiles
       current = profile&.persisted? ? profile.handle_in_database : nil
       return :ok if current.present? && current == handle
 
-      return :reserved if Profiles.config.reserved_handles.include?(handle)
-      return :not_allowed unless ContentFilter.allowed?(handle, mode: :handle)
+      refused = refusal(handle)
+      return refused if refused
       return :taken if taken?(handle, user)
       return :cooldown if current.present? && profile.handle_changeable_at(now)
 
       :ok
+    end
+
+    # What the rules alone say about a normalized handle, without touching the database:
+    # :invalid, :reserved, :not_allowed or nil.
+    def refusal(handle)
+      return :invalid unless valid_format?(handle)
+      return :reserved if reserved?(handle)
+      return :not_allowed unless ContentFilter.allowed?(handle, mode: :handle)
+
+      nil
+    end
+
+    def reserved?(handle)
+      Profiles.config.reserved_handles.include?(handle) ||
+        Profiles.config.reserved_prefixes.any? { |prefix| handle.start_with?(prefix) }
     end
 
     def taken?(handle, user)

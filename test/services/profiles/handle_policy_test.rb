@@ -25,6 +25,35 @@ class Profiles::HandlePolicyTest < ActiveSupport::TestCase
     end
   end
 
+  test 'routes that sit next to handles are reserved in the shipped list' do
+    Profiles.reset_config!
+    %w[handle_available category tag].each { |h| assert_equal :reserved, Profiles::HandlePolicy.check(h, user: nil), h }
+  end
+
+  test 'reserved prefixes refuse any handle starting with them' do
+    Profiles.config.reserved_prefixes = %w[acme]
+    assert_equal :reserved, Profiles::HandlePolicy.check('acme', user: nil)
+    assert_equal :reserved, Profiles::HandlePolicy.check('acme_official', user: nil)
+    assert_equal :reserved, Profiles::HandlePolicy.check('Acme2', user: nil)
+    assert_equal :ok, Profiles::HandlePolicy.check('not_acme', user: nil)
+  ensure
+    Profiles.reset_config!
+  end
+
+  test 'no reserved prefixes ship with the generic list' do
+    Profiles.reset_config!
+    assert_empty Profiles.config.reserved_prefixes
+  end
+
+  test 'refusal needs no database: rules only' do
+    with_moderation_lists do
+      assert_equal :invalid, Profiles::HandlePolicy.refusal('a__b')
+      assert_equal :reserved, Profiles::HandlePolicy.refusal('admin')
+      assert_equal :not_allowed, Profiles::HandlePolicy.refusal('xbadwordx')
+      assert_nil Profiles::HandlePolicy.refusal('fine_name')
+    end
+  end
+
   test 'reserved handles' do
     assert_equal :reserved, check('admin')
     assert_equal :reserved, check('Support')

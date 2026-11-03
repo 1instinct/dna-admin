@@ -16,6 +16,7 @@
 - blog
 - blocked
 - cart
+- category
 - checkout
 - community
 - contact
@@ -31,6 +32,7 @@
 - followers
 - following
 - guidelines
+- handle_available
 - help
 - home
 - inbox
@@ -84,6 +86,7 @@
 - support
 - sysadmin
 - system
+- tag
 - terms
 - undefined
 - user
