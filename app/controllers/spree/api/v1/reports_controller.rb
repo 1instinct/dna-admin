@@ -5,7 +5,8 @@ module Spree
       #
       # 201 { id }; 404 unknown, hidden or blocked-either-way target; 422 { error, fields } for an
       # unknown type or reason, details > 500 or reporting yourself; 429 after 20 reports in 24 h.
-      # Emails the moderation inbox (MODERATION_EMAIL) when one is configured.
+      # Emails the moderation inbox (MODERATION_EMAIL) when one is configured, inline so a dyno
+      # restart can't lose it. A mail failure never fails the report; it stays in the admin.
       class ReportsController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
@@ -43,7 +44,7 @@ module Spree
         def notify(report)
           return Rails.logger.warn('[profiles] MODERATION_EMAIL is not set; report not emailed') unless Profiles.config.moderation_email
 
-          ModerationMailer.new_report(report).deliver_later
+          ModerationMailer.new_report(report).deliver_now
         rescue StandardError => e
           Rails.logger.error("[profiles] report #{report.id} email failed: #{e.class}")
         end

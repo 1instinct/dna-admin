@@ -76,9 +76,12 @@ class Spree::Admin::ContentReportsControllerTest < ActionDispatch::IntegrationTe
 
   test 'remove photo' do
     @profile.avatar.attach(fixture_upload('avatar.png', 'image/png'))
+    blob = @profile.reload.avatar.blob
     sign_in(@admin)
     post "/admin/content_reports/#{@report.id}/remove_photo", params: { resolution_note: 'nsfw' }
     refute @profile.reload.avatar.attached?
+    refute ActiveStorage::Blob.exists?(blob.id), 'purged at once, not by a job a restart can lose'
+    refute blob.service.exist?(blob.key)
     assert_actioned
   end
 

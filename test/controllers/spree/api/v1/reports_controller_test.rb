@@ -29,9 +29,7 @@ class Spree::Api::V1::ReportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'creates a report with a snapshot and emails the moderation inbox' do
-    perform_enqueued_jobs do
-      report!
-    end
+    assert_no_enqueued_jobs { report! }
     assert_response :created
     report = Spree::ContentReport.find(json['id'])
     assert_equal({ 'id' => report.id }, json)
@@ -50,6 +48,25 @@ class Spree::Api::V1::ReportsControllerTest < ActionDispatch::IntegrationTest
     body = mail.body.encoded
     assert_includes body, 'spam spam'
     refute_includes body, 'target-secret@example.com'
+  end
+
+  test 'a mail failure keeps the report, answers 201 and logs no personal data' do
+    io = StringIO.new
+    old_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    ModerationMailer.define_singleton_method(:new_report) do |_report|
+      raise Net::SMTPFatalError, 'smtp down for target-secret@example.com'
+    end
+
+    report!
+
+    assert_response :created
+    assert Spree::ContentReport.exists?(json['id'])
+    assert_includes io.string, 'email failed: Net::SMTPFatalError'
+    refute_includes io.string, 'target-secret@example.com'
+  ensure
+    Rails.logger = old_logger
+    ModerationMailer.singleton_class.send(:remove_method, :new_report)
   end
 
   test 'no email when MODERATION_EMAIL is unset, report still stored' do

@@ -43,7 +43,7 @@ module Spree
         end
 
         def destroy_avatar
-          profile.avatar.purge_later if profile.persisted? && profile.avatar.attached?
+          Profiles::Moderation.remove_photo(profile) if profile.persisted?
           render_own
         end
 

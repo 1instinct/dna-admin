@@ -163,16 +163,20 @@ class Spree::Api::V1::ProfileControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-  test 'DELETE avatar removes it and enqueues the blob purge' do
+  test 'DELETE avatar removes it and its blob at once' do
     put '/api/v1/profile/avatar', headers: @headers, params: { avatar: fixture_upload('avatar.png', 'image/png') }
     assert_response :success
 
-    assert_enqueued_with(job: ActiveStorage::PurgeJob) do
-      delete '/api/v1/profile/avatar', headers: @headers
-    end
+    blob = @user.reload.profile.avatar.blob
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs { delete '/api/v1/profile/avatar', headers: @headers }
+
     assert_response :success
     assert_nil json['avatar']
     refute @user.reload.profile.avatar.attached?
+    refute ActiveStorage::Blob.exists?(blob.id)
+    refute blob.service.exist?(blob.key)
   end
 
   test 'DELETE avatar with none is still 200' do

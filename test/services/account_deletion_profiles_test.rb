@@ -12,17 +12,40 @@ class AccountDeletionProfilesTest < ActiveSupport::TestCase
     @other_profile = create(:user_profile, user: @other, handle: 'stayer')
   end
 
-  test 'profile row is destroyed and the avatar purge is enqueued' do
+  test 'profile row and avatar are removed before the call returns, with no job left to lose' do
     @profile.avatar.attach(fixture_upload('avatar.png', 'image/png'))
-    blob_id = @profile.avatar.blob.id
+    blob = @profile.avatar.blob
+    clear_enqueued_jobs
 
-    assert_enqueued_with(job: ActiveStorage::PurgeJob) do
-      AccountDeletion.call(@user)
-    end
+    assert_no_enqueued_jobs { AccountDeletion.call(@user) }
+
     refute Spree::UserProfile.exists?(@profile.id)
     refute ActiveStorage::Attachment.where(record_type: 'Spree::UserProfile', record_id: @profile.id).exists?
-    perform_enqueued_jobs
-    refute ActiveStorage::Blob.exists?(blob_id)
+    refute ActiveStorage::Blob.exists?(blob.id)
+    refute blob.service.exist?(blob.key), 'the stored file is gone'
+  end
+
+  test 'a failed purge does not fail the deletion and logs no personal data' do
+    @profile.avatar.attach(fixture_upload('avatar.png', 'image/png'))
+    io = StringIO.new
+    old_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    ActiveStorage::Blob.class_eval do
+      alias_method :__purge, :purge
+      define_method(:purge) { raise IOError, 'storage down' }
+    end
+
+    assert AccountDeletion.call(@user)
+
+    refute Spree::UserProfile.exists?(@profile.id)
+    assert_includes io.string, 'avatar purge failed: IOError'
+    refute_includes io.string, @user.email
+  ensure
+    Rails.logger = old_logger
+    ActiveStorage::Blob.class_eval do
+      alias_method :purge, :__purge
+      remove_method :__purge
+    end
   end
 
   test 'the handle is free again afterwards' do
@@ -41,10 +64,10 @@ class AccountDeletionProfilesTest < ActiveSupport::TestCase
     assert_equal [kept.id], Spree::UserBlock.pluck(:id)
   end
 
-  test 'reports about the profile are deleted; reports by the user are kept with reporter_id nil' do
+  test 'reports about the profile are deleted; reports by the user keep the target but lose reporter and details' do
     about = Spree::ContentReport.for_profile(@profile, reporter: @other, reason: 'spam')
     about.save!
-    by = Spree::ContentReport.for_profile(@other_profile, reporter: @user, reason: 'hate')
+    by = Spree::ContentReport.for_profile(@other_profile, reporter: @user, reason: 'hate', details: 'call me on 555')
     by.save!
 
     AccountDeletion.call(@user)
@@ -52,6 +75,8 @@ class AccountDeletionProfilesTest < ActiveSupport::TestCase
     refute Spree::ContentReport.exists?(about.id)
     assert Spree::ContentReport.exists?(by.id)
     assert_nil by.reload.reporter_id
+    assert_nil by.details, 'free text can hold personal data'
+    assert_equal 'hate', by.reason
     assert_equal 'stayer', by.snapshot['handle']
   end
 
