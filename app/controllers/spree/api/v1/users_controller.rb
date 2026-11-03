@@ -254,6 +254,9 @@ module Spree
           unless user
             return error_model(404, "User not found")
           end
+          if @current_api_user&.persisted? && Spree::UserBlock.between?(@current_api_user, user)
+            return error_model(404, "User not found")
+          end
           
           # Get public favorites with product details
           public_favorites = user.favorites.public_favorites.includes(variant: :product).recent.map do |fav|
@@ -388,6 +391,10 @@ module Spree
           
           if @current_api_user.id == user_to_follow.id
             return error_model(400, "Cannot follow yourself")
+          end
+
+          if Spree::UserBlock.between?(@current_api_user, user_to_follow)
+            return error_model(403, "Cannot follow this user")
           end
           
           # Check if already following
