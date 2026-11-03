@@ -50,13 +50,15 @@ module Spree
       end
 
       # A user OAuth token (`Authorization: Bearer`, from /spree_oauth/token) wins over
-      # the X-Spree-Token / ?token= api key when both are sent.
+      # the X-Spree-Token / ?token= api key when both are sent. A locked account's credentials
+      # count as invalid either way.
       def load_user
-        @current_api_user = if bearer_token.present?
-                              user_from_bearer_token
-                            else
-                              Spree.user_class.find_by(spree_api_key: api_key.to_s)
-                            end
+        user = if bearer_token.present?
+                 user_from_bearer_token
+               else
+                 Spree.user_class.find_by(spree_api_key: api_key.to_s)
+               end
+        @current_api_user = user&.account_locked? ? nil : user
       end
 
       def bearer_token

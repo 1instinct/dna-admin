@@ -137,6 +137,11 @@ module Spree
           if !@user.present? || !@user.valid_password?(params[:user][:password])
             error_model(401, Spree.t('user.error.email_password_unmatch'))
             return
+          elsif @user.account_locked?
+            # After the password check, so the lock isn't revealed to anyone else. A lock clears
+            # the api key, so issuing one here would undo it.
+            error_model(403, "This account is locked")
+            return
           else
             @user.generate_spree_api_key! if @user.spree_api_key.blank?
             response_data = {
