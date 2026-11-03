@@ -97,6 +97,24 @@ Spree::Core::Engine.add_routes do
       resources :pages, only: [:index, :show], controller: 'pages', param: :slug
       # The signed-in user deletes their own account (OAuth bearer required).
       resource :account, only: [:destroy], controller: 'account', defaults: { format: 'json' }
+      # Public profiles, follows, blocks and reports.
+      defaults format: 'json' do
+        resource :profile, only: [:show, :update], controller: 'profile' do
+          put :avatar, action: :update_avatar
+          delete :avatar, action: :destroy_avatar
+        end
+        resources :profiles, only: [:show], param: :handle do
+          collection do
+            get :handle_available
+          end
+          member do
+            post :follow
+            delete :follow, action: :unfollow
+          end
+        end
+        resources :blocks, only: [:index, :create, :destroy], param: :handle
+        resources :reports, only: [:create]
+      end
       resources :contacts
       resources :messages
       resources :threads
