@@ -10,7 +10,7 @@ class Spree::Api::V1::BearerAuthTest < ActionDispatch::IntegrationTest
     @other.generate_spree_api_key!
 
     shipping_category = Spree::ShippingCategory.create!(name: "bearer-#{SecureRandom.hex(4)}")
-    product = Spree::Product.new(name: "Bearer Test", price: 10, shipping_category: shipping_category)
+    product = Spree::Product.new(name: "Bearer Test", price: 10, available_on: 1.day.ago, shipping_category: shipping_category)
     product.stores << Spree::Store.default if product.respond_to?(:stores) && Spree::Store.default.persisted?
     product.save!
     @favorite = Favorite.create!(user: @user, variant: product.master)
