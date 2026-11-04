@@ -12,11 +12,12 @@
     <div class="card-body">
       <div class="form-group">
         <div data-hook="poster" class="col-12 col-lg-3 text-center">
-          <% if @product_video.poster.attached? && @product_video.poster.variable? %>
+          <%# After a rejected upload the attachment holds the new, unsaved blob: no preview for it. %>
+          <% if @product_video.poster.attached? && @product_video.poster.blob.persisted? && @product_video.poster.variable? %>
             <%= f.label Spree.t(:poster, default: 'Poster') %>
             <%= image_tag(main_app.url_for(@product_video.poster.variant(resize: '240x240>'))) %>
           <% end %>
-          <% if @product_video.video.attached? %>
+          <% if @product_video.video.attached? && @product_video.video.blob.persisted? %>
             <p class="mt-2"><%= link_to Spree.t(:view_video, default: 'View video'), main_app.rails_blob_url(@product_video.video) %></p>
           <% end %>
         </div>

@@ -72,6 +72,24 @@ class Spree::Admin::ProductVideosControllerTest < ActionDispatch::IntegrationTes
     assert video.video.attached?
   end
 
+  # The rejected files are new, unsaved blobs: the edit page must not try to link or preview them.
+  test 'update with invalid replacement files re-renders the form with errors' do
+    login_as(@admin, scope: :spree_user)
+    video = media_video(@product)
+    patch "#{@base}/#{video.id}", params: { product_video: {
+      video: media_upload(GIF_BYTES, 'not-a-video.gif', 'image/gif'),
+      poster: media_upload(GIF_BYTES, 'poster.gif', 'image/gif')
+    } }
+    assert_response :success
+    assert_includes response.body, 'must be an MP4 or WebM video'
+    assert_includes response.body, 'must be a JPEG, PNG or WebP image'
+    # No preview or link points at a rejected file that was never stored.
+    refute_match %r{/rails/active_storage/[^"]*(poster|not-a-video)\.gif}, response.body
+    video.reload
+    assert_equal 'video/mp4', video.video.content_type
+    assert_equal 'image/png', video.poster.content_type
+  end
+
   test 'admin destroys a video' do
     login_as(@admin, scope: :spree_user)
     video = media_video(@product)
