@@ -46,6 +46,22 @@ class Spree::UserProfileTest < ActiveSupport::TestCase
     end
   end
 
+  test 'an admin owner may save a reserved handle; a member may not' do
+    with_moderation_lists do
+      Profiles.config.reserved_prefixes = %w[acme]
+      admin = make_admin(create(:user))
+      assert create(:user_profile, user: admin, handle: 'acme').persisted?
+
+      member = build(:user_profile, handle: 'acme_two')
+      refute member.valid?
+      assert_includes member.errors[:handle], 'is reserved'
+
+      other_admin = build(:user_profile, user: make_admin(create(:user)), handle: 'ACME')
+      refute other_admin.valid?
+      assert_includes other_admin.errors[:handle], 'is taken'
+    end
+  end
+
   test 'handle cooldown: 14 days after a change, first set free' do
     profile = create(:user_profile, handle: nil)
     profile.update!(handle: 'first')
