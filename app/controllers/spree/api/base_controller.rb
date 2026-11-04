@@ -49,16 +49,40 @@ module Spree
         headers['Content-Type'] = content_type
       end
 
+      # A user OAuth token (`Authorization: Bearer`, from /spree_oauth/token) wins over
+      # the X-Spree-Token / ?token= api key when both are sent.
       def load_user
-        @current_api_user = Spree.user_class.find_by(spree_api_key: api_key.to_s)
+        @current_api_user = if bearer_token.present?
+                              user_from_bearer_token
+                            else
+                              Spree.user_class.find_by(spree_api_key: api_key.to_s)
+                            end
+      end
+
+      def bearer_token
+        return @bearer_token if defined?(@bearer_token)
+
+        @bearer_token = Doorkeeper::OAuth::Token.from_bearer_authorization(request)
+      end
+
+      # Valid, unexpired and unrevoked tokens only.
+      def user_from_bearer_token
+        token = Doorkeeper::OAuth::Token.authenticate(request, :from_bearer_authorization)
+        return unless token&.accessible? && token.resource_owner_id
+
+        Spree.user_class.find_by(id: token.resource_owner_id)
+      end
+
+      def api_credentials_present?
+        api_key.present? || bearer_token.present?
       end
 
       def authenticate_user
         return if @current_api_user
 
-        if requires_authentication? && api_key.blank? && order_token.blank?
+        if requires_authentication? && !api_credentials_present? && order_token.blank?
           must_specify_api_key and return
-        elsif order_token.blank? && (requires_authentication? || api_key.present?)
+        elsif order_token.blank? && (requires_authentication? || api_credentials_present?)
           invalid_api_key and return
         else
           # An anonymous user

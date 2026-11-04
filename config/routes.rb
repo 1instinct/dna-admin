@@ -16,6 +16,10 @@ Spree::Core::Engine.add_routes do
         get :conversation
         get :conversations
       end
+      collection do
+        get :conversation
+        get :conversations
+      end
       resources :message_support, only: [:index]
     end 
 
@@ -48,6 +52,13 @@ Spree::Core::Engine.add_routes do
     resources :menu_locations do
       resources :menu_items
     end
+    resources :menu_items, except: :show do
+      member do
+        get :children
+      end
+    end
+  end
+  namespace :admin do
     resources :menu_items, except: :show do
       member do
         get :children

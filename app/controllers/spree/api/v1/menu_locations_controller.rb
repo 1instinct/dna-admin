@@ -91,7 +91,6 @@ class Spree::Api::V1::MenuLocationsController < Spree::Api::BaseController
     singular_success_model(200, Spree.t('menu_location.success.index'), response_data)
   end
 
-
   swagger_path "/menu_locations/{id}" do
     operation :get do
       key :summary, "Show Menu Location"
