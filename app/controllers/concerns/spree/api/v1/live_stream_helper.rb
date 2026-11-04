@@ -7,14 +7,17 @@ module Spree::Api::V1::LiveStreamHelper
       title: live_stream&.title || "",
       description: live_stream&.description || "",
       stream_url: live_stream&.stream_url || "",
-      stream_key: live_stream&.stream_key || "",
+      # The stream key lets anyone broadcast as this stream, and this payload is
+      # public (a web proxy can serve it with a server key). Keep it out.
+      stream_key: "",
       stream_id: live_stream&.stream_id || "",
       playback_ids: live_stream&.playback_ids || [],
       status: live_stream&.status || "",
       start_date: to_timestamp(live_stream&.start_date) || "",
       is_active: live_stream&.is_active || true,
       product_ids: live_stream&.product_ids || [],
-      contact_ids: live_stream&.contact_ids || [],
+      # Watchers are other people's contact records; not public.
+      contact_ids: [],
       actor: user_detail(live_stream&.actor)
     }
     return live_stream

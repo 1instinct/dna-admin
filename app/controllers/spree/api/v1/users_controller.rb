@@ -271,10 +271,12 @@ module Spree
           is_following = @current_api_user.present? ? UserFollow.following?(@current_api_user, user) : false
           
           profile_data = {
+            # Public profile: anyone can read it. Never put email, billing names,
+            # phone or addresses here. The empty keys stay for older web clients.
             id: user.id,
-            email: user.email,
-            first_name: user.bill_address&.firstname || "",
-            last_name: user.bill_address&.lastname || "",
+            email: "",
+            first_name: "",
+            last_name: "",
             followers_count: user.followers.count,
             following_count: user.followings.count,
             is_following: is_following,
