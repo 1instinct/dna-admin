@@ -89,6 +89,40 @@ class StorefrontProductMediaTest < ActionDispatch::IntegrationTest
     assert included('image').any?
   end
 
+  test 'a listing does not include videos of unavailable products' do
+    hidden = media_product(name: 'Hidden Device', available_on: nil)
+    hidden_video = media_video(hidden, alt: 'hidden clip')
+    shown_video = media_video(@product, alt: 'shown clip')
+
+    get '/api/v2/storefront/products?include=videos'
+    assert_response :success
+    refute_includes media_json['data'].map { |p| p['id'] }, hidden.id.to_s
+    ids = included('product_video').map { |v| v['id'] }
+    assert_includes ids, shown_video.id.to_s
+    refute_includes ids, hidden_video.id.to_s
+  end
+
+  # Videos and their attachments are preloaded: the query count doesn't grow with products.
+  test 'include=videos on a listing does not query per product' do
+    3.times do
+      product = media_product
+      2.times { media_video(product) }
+    end
+    media_video(@product)
+
+    sql = []
+    callback = ->(*, payload) { sql << payload[:sql] unless payload[:name] == 'SCHEMA' }
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      get '/api/v2/storefront/products?include=videos&per_page=50'
+    end
+    assert_response :success
+    assert_equal 7, included('product_video').size
+    assert_equal 1, sql.count { |q| q.include?('FROM "spree_product_videos"') }
+    # One preload each for the video and poster attachments, and one for their blobs.
+    assert_operator sql.count { |q| q.include?('FROM "active_storage_attachments"') }, :<=, 2
+    assert_operator sql.count { |q| q.include?('FROM "active_storage_blobs"') }, :<=, 2
+  end
+
   test 'a product without videos has an empty videos relationship' do
     get "/api/v2/storefront/products/#{@product.slug}?include=videos"
     assert_response :success
