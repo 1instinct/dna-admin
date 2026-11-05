@@ -80,10 +80,14 @@ class EntitlementResolverTest < ActiveSupport::TestCase
   end
 
   test 'no transaction of a subscription an admin revoked grants' do
+    later = txn # a later row in the same chain that is still active
+    EntitlementResolver.refresh(@user)
+    assert pro?(@user)
+
     txn(status: 'revoked', admin_revoked_at: 1.hour.ago, expires_at: 1.day.ago)
-    txn # a later row in the same chain that is still active
     EntitlementResolver.refresh(@user)
 
+    assert_equal 'active', later.reload.status
     refute pro?(@user)
     refute entitlement_for(@user).active
   end
