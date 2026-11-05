@@ -36,16 +36,6 @@ class Spree::ContentReportTest < ActiveSupport::TestCase
     assert_equal false, snap['avatar']
   end
 
-  test 'the 21st report by one reporter in 24 hours is invalid' do
-    20.times { create(:content_report, reporter: @reporter, reportable: @profile) }
-    report = build(:content_report, reporter: @reporter, reportable: @profile)
-    refute report.valid?
-    assert report.rate_limited?
-
-    Spree::ContentReport.where(reporter_id: @reporter.id).update_all(created_at: 25.hours.ago)
-    assert build(:content_report, reporter: @reporter, reportable: @profile).valid?
-  end
-
   test 'resolve! records resolver, time and note' do
     admin = create(:user)
     report = create(:content_report, reporter: @reporter, reportable: @profile)

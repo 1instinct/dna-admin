@@ -11,17 +11,14 @@
 module Profiles
   class Config
     attr_writer :reserved_handles, :reserved_prefixes, :blocked_terms, :moderation_email, :avatar_url_hosts
-    attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :report_limit,
-                  :report_window, :avatar_max_bytes, :avatar_content_types, :avatar_size,
-                  :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback,
-                  :rate_limits
+    attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :avatar_max_bytes,
+                  :avatar_content_types, :avatar_size, :avatar_variants, :moderation_dir,
+                  :favorites_limit, :avatar_fallback, :rate_limits
 
     def initialize
       @extra_reserved_handles = []
       @links_keys = %w[instagram tiktok youtube soundcloud bandcamp]
       @handle_cooldown = 14.days
-      @report_limit = 20
-      @report_window = 24.hours
       @avatar_max_bytes = 5.megabytes
       @avatar_content_types = %w[image/jpeg image/png image/webp]
       # The stored avatar is re-encoded to this square JPEG on upload (EXIF stripped), so no
@@ -37,12 +34,14 @@ module Profiles
       # avatar URL column). Returns the same URL for every size, when its host is allowed.
       @avatar_fallback = nil
       # Per-user limits, see Profiles::RateLimit. follow covers follow and unfollow, block covers
-      # block and unblock. Past a limit the endpoint answers 429.
+      # block and unblock, report counts reports that pass validation. Past a limit the endpoint
+      # answers 429.
       @rate_limits = {
         follow: { limit: 120, window: 1.hour },
         block: { limit: 60, window: 1.hour },
         handle_available: { limit: 60, window: 1.minute },
-        avatar: { limit: 20, window: 24.hours }
+        avatar: { limit: 20, window: 24.hours },
+        report: { limit: 20, window: 24.hours }
       }
     end
 

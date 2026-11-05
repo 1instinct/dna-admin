@@ -29,11 +29,15 @@ module Spree
 
           report = Spree::ContentReport.for_profile(profile, reporter: current_api_user, reason: params[:reason],
                                                              details: params[:details])
+          return render_record_errors(report, 'Report could not be sent') unless report.valid?
+          # Counted with the shared atomic counter, so parallel requests can't pass the limit.
+          unless Profiles::RateLimit.allow?(current_api_user, :report)
+            return render_error('Too many reports. Try again later.', :too_many_requests)
+          end
+
           if report.save
             notify(report)
             render json: { id: report.id }, status: :created
-          elsif report.rate_limited?
-            render_error(report.errors[:base].first, :too_many_requests)
           else
             render_record_errors(report, 'Report could not be sent')
           end

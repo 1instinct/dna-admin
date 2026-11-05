@@ -111,6 +111,26 @@ class Spree::Api::V1::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 20, Spree::ContentReport.count
   end
 
+  test 'the report limit is a shared counter: deleted reports still count, it resets after 24 hours' do
+    20.times { report! }
+    Spree::ContentReport.delete_all
+    report!
+    assert_response :too_many_requests
+
+    Spree::ProfileRateCounter.where(user_id: @reporter.id).update_all(window_started_at: 25.hours.ago)
+    report!
+    assert_response :created
+  end
+
+  test 'refused reports do not use up the limit' do
+    20.times do
+      report!(reason: 'boring')
+      assert_response :unprocessable_entity
+    end
+    report!
+    assert_response :created
+  end
+
   test '404 for an unknown handle' do
     report!(handle: 'nobody')
     assert_response :not_found
