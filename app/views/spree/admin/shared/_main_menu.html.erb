@@ -52,24 +52,6 @@
     </ul>
   <% end %>
 
-  <% if can? :admin, Message %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
-      <%= tab :messages, icon: 'message.svg', url: conversations_admin_messages_path %>
-    </ul>
-  <% end %>
-
-  <% if can? :admin, HomepageSection %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarHomepage">
-      <%= tab :homepage_sections, icon: 'page.svg', url: admin_homepage_sections_path %>
-    </ul>
-  <% end %>
-
-  <% if can? :admin, ContentAsset %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarContentAssets">
-      <%= tab :content_assets, icon: 'page.svg', url: admin_content_assets_path %>
-    </ul>
-  <% end %>
-
   <% if can? :admin, Contact %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarContact">
       <%= tab :contacts, icon: 'contact.svg', url: admin_contacts_path %>
@@ -77,8 +59,14 @@
   <% end %>
 
   <% if can? :admin, Message %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarMessage">
-      <%= tab :messages, icon: 'message.svg', url: admin_messages_path %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarMessages">
+      <%= main_menu_tree Spree.t(:messages), icon: "message.svg", sub_menu: "message", url: "#sidebar-messages" %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, HomepageSection %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarHomepage">
+      <%= tab :homepage_sections, icon: 'page.svg', url: admin_homepage_sections_path %>
     </ul>
   <% end %>
 
@@ -97,12 +85,6 @@
   <% if can? :admin, current_store %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarConfiguration">
       <%= main_menu_tree Spree.t(:configurations), icon: "settings.svg", sub_menu: "configuration", url: "#sidebar-configuration" %>
-    </ul>
-  <% end %>
-
-  <% if Spree.user_class && can?(:admin, Spree.user_class) %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarUsermenu">
-      <%= tab "Menu Navigator", url: new_admin_menu_item_path, icon: 'users.svg' %>
     </ul>
   <% end %>
 </nav>

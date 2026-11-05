@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 class Spree::Admin::ThemeControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
@@ -48,5 +49,37 @@ class Spree::Admin::ThemeControllerTest < ActionDispatch::IntegrationTest
     put admin_theme_path, params: { admin_theme: { logo: file } }
     assert_redirected_to admin_theme_path
     assert AdminTheme.first.logo.attached?
+  end
+
+  test "GET show renders with logo and favicon attached" do
+    theme = AdminTheme.current
+    theme.logo.attach(fixture_file_upload("test/fixtures/files/test-image.png", "image/png"))
+    theme.favicon.attach(fixture_file_upload("test/fixtures/files/test-image.png", "image/png"))
+    theme.save!
+    AdminTheme.bust_cache!
+
+    get admin_theme_path
+    assert_response :ok
+    assert_select "input[type=checkbox][name='admin_theme[remove_logo]']"
+    assert_select "input[type=checkbox][name='admin_theme[remove_favicon]']"
+    assert_select "img.admin-logo"
+  end
+
+  test "PUT update with remove_logo purges the logo" do
+    theme = AdminTheme.current
+    theme.logo.attach(fixture_file_upload("test/fixtures/files/test-image.png", "image/png"))
+    theme.save!
+
+    put admin_theme_path, params: { admin_theme: { brand_name: 'Kept', remove_logo: '1' } }
+    assert_redirected_to admin_theme_path
+    assert_not AdminTheme.first.logo.attached?
+  end
+
+  test "admin pages render with default theme when admin_themes table is missing" do
+    AdminTheme.stub(:table_exists?, false) do
+      get admin_homepage_sections_path
+    end
+    assert_response :ok
+    assert_includes response.body, "--admin-primary: #6366f1"
   end
 end

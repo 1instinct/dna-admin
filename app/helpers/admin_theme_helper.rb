@@ -1,10 +1,10 @@
 module AdminThemeHelper
+  # Returns the custom CSS marked html_safe for output inside a <style> tag,
+  # or an empty string if it fails the model's guard (which rejects any "<",
+  # so "</style" can never appear in the output).
   def sanitize_css(css)
-    return '' if css.blank?
-    AdminTheme::DANGEROUS_CSS_PATTERNS.each do |pattern|
-      css = css.gsub(pattern, '')
-    end
-    css
+    return '' if css.blank? || AdminTheme.unsafe_css?(css)
+    css.html_safe
   end
 
   def theme_font_url(font_family)
