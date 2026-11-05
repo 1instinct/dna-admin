@@ -2,7 +2,8 @@
 #
 # Deleted:    OAuth access tokens and grants (revoked), the user's own content (favorites,
 #             follows, messages, live stream likes, avatar), saved addresses no order uses,
-#             saved payment sources, and open carts that never took a payment.
+#             saved payment sources no remaining payment uses, and open carts that never took
+#             a payment. Sources a remaining payment uses are detached from the user instead.
 # Anonymized: the user row (email -> deleted-<id>@invalid, login/profile/tokens/IPs cleared,
 #             password scrambled), then soft-deleted (acts_as_paranoid). The original email can
 #             sign up again.
@@ -112,10 +113,31 @@ class AccountDeletion
     end
   end
 
-  # Credit cards are paranoid: payments on retained orders keep their source.
   def remove_payment_sources
-    Spree::CreditCard.where(user_id: user.id).find_each(&:destroy!)
+    remove_credit_cards
     remove_checks
+  end
+
+  # Cleared on every saved card: the cardholder.
+  CARD_HOLDER_COLUMNS = %w[name].freeze
+  # Also cleared on cards no payment uses, which are then soft-deleted (acts_as_paranoid).
+  CARD_DETAIL_COLUMNS = %w[last_digits gateway_customer_profile_id gateway_payment_profile_id].freeze
+
+  # Spree::Payment's polymorphic source doesn't see soft-deleted cards, so a card that a remaining
+  # payment uses is only detached from the user and keeps what the gateway needs to capture, void
+  # or refund (profile ids, last digits, type, expiry). Cards nothing uses are cleared and
+  # soft-deleted.
+  def remove_credit_cards
+    cards = Spree::CreditCard.where(user_id: user.id)
+    used_ids = Spree::Payment.where(source_type: Spree::CreditCard.name, source_id: cards.select(:id)).pluck(:source_id)
+    detach = (CARD_HOLDER_COLUMNS & Spree::CreditCard.column_names).index_with(nil).
+             merge('user_id' => nil, 'default' => false, 'updated_at' => now)
+    cards.where(id: used_ids).update_all(detach)
+    cleared = detach.merge((CARD_DETAIL_COLUMNS & Spree::CreditCard.column_names).index_with(nil))
+    cards.where.not(id: used_ids).find_each do |card|
+      card.update_columns(cleared)
+      card.destroy!
+    end
   end
 
   CHECK_DETAIL_COLUMNS = %w[
