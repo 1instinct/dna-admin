@@ -259,10 +259,29 @@ module Spree
           unless user
             return error_model(404, "User not found")
           end
+          # Same rule as the visible profile scope: hidden or locked users don't exist here.
+          if user.account_locked? || user.profile&.hidden?
+            return error_model(404, "User not found")
+          end
           if @current_api_user&.persisted? && Spree::UserBlock.between?(@current_api_user, user)
             return error_model(404, "User not found")
           end
-          
+
+          # Check if current user is following this profile
+          is_following = @current_api_user.present? ? UserFollow.following?(@current_api_user, user) : false
+
+          # A private profile shows others no favorites or counts.
+          viewer_is_owner = @current_api_user&.persisted? && @current_api_user.id == user.id
+          if user.profile && !user.profile.public_visibility? && !viewer_is_owner
+            return singular_success_model(200, "User profile retrieved successfully", {
+              id: user.id,
+              email: "",
+              first_name: "",
+              last_name: "",
+              is_following: is_following
+            })
+          end
+
           # Get public favorites with product details
           public_favorites = user.favorites.public_favorites.joins(variant: :product).merge(Spree::Product.publicly_visible).includes(variant: :product).recent.map do |fav|
             {
@@ -274,10 +293,7 @@ module Spree
               price: fav.variant&.price&.to_s
             }
           end
-          
-          # Check if current user is following this profile
-          is_following = @current_api_user.present? ? UserFollow.following?(@current_api_user, user) : false
-          
+
           profile_data = {
             # Public profile: anyone can read it. Never put email, billing names,
             # phone or addresses here. The empty keys stay for older web clients.
