@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_11_065155) do
+ActiveRecord::Schema.define(version: 2026_11_04_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -812,6 +812,15 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.index ["property_id"], name: "index_spree_product_properties_on_property_id"
   end
 
+  create_table "spree_product_videos", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.integer "position"
+    t.string "alt"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["product_id"], name: "index_spree_product_videos_on_product_id"
+  end
+
   create_table "spree_products", id: :serial, force: :cascade do |t|
     t.string "name", default: "", null: false
     t.text "description"
@@ -1559,4 +1568,5 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
 end

@@ -256,7 +256,7 @@ module Spree
           end
           
           # Get public favorites with product details
-          public_favorites = user.favorites.public_favorites.includes(variant: :product).recent.map do |fav|
+          public_favorites = user.favorites.public_favorites.joins(variant: :product).merge(Spree::Product.publicly_visible).includes(variant: :product).recent.map do |fav|
             {
               id: fav.id,
               variant_id: fav.variant_id,
