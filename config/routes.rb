@@ -11,6 +11,8 @@ end
 
 Spree::Core::Engine.add_routes do
   namespace :admin, path: Spree.admin_path do
+    resource :theme, only: [:show, :update], controller: 'theme'
+
     resources :messages do      
       collection do
         get :conversation
@@ -40,8 +42,19 @@ Spree::Core::Engine.add_routes do
         patch :toggle_visibility
       end
     end
-    
+
+    resources :content_assets, except: [:show]
+
     resources :contacts
+
+    resources :products, only: [] do
+      resources :product_videos, except: :show do
+        collection do
+          post :update_positions
+        end
+      end
+    end
+
     resources :threads do
       member do
         get :conversation
@@ -74,6 +87,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :homepage_sections
+      resources :content_assets, only: [:index, :show, :create, :update, :destroy]
       resources :favorites, only: [:index, :destroy] do
         collection do
           post :toggle

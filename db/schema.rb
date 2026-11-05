@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_11_065155) do
+ActiveRecord::Schema.define(version: 2026_11_04_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -62,6 +62,25 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "admin_themes", force: :cascade do |t|
+    t.string "brand_name", default: "Admin"
+    t.string "primary_color", default: "#6366f1"
+    t.string "secondary_color", default: "#8b5cf6"
+    t.string "surface_color", default: "#1a1a2e"
+    t.string "background_color", default: "#0f0f1a"
+    t.string "text_color", default: "#e2e8f0"
+    t.string "sidebar_color", default: "#16162a"
+    t.string "border_radius", default: "8px"
+    t.string "font_family", default: "Inter, system-ui, sans-serif"
+    t.string "color_mode", default: "system"
+    t.boolean "enable_animations", default: true
+    t.text "custom_css"
+    t.integer "singleton_guard", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["singleton_guard"], name: "index_admin_themes_on_singleton_guard", unique: true
+  end
+
   create_table "contacts", force: :cascade do |t|
     t.integer "actor_id"
     t.string "full_name"
@@ -70,6 +89,18 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.text "ip"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "content_assets", force: :cascade do |t|
+    t.string "alt_text", limit: 255
+    t.string "tag", limit: 100
+    t.string "original_filename", default: "", null: false
+    t.string "content_type", default: "", null: false
+    t.integer "byte_size", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["created_at"], name: "index_content_assets_on_created_at"
+    t.index ["tag"], name: "index_content_assets_on_tag"
   end
 
   create_table "favorites", force: :cascade do |t|
@@ -812,6 +843,15 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.index ["property_id"], name: "index_spree_product_properties_on_property_id"
   end
 
+  create_table "spree_product_videos", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.integer "position"
+    t.string "alt"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["product_id"], name: "index_spree_product_videos_on_product_id"
+  end
+
   create_table "spree_products", id: :serial, force: :cascade do |t|
     t.string "name", default: "", null: false
     t.text "description"
@@ -878,7 +918,6 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
     t.boolean "used", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "code"
   end
 
   create_table "spree_promotion_rule_taxons", id: :serial, force: :cascade do |t|
@@ -1560,4 +1599,5 @@ ActiveRecord::Schema.define(version: 2026_01_11_065155) do
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
 end
