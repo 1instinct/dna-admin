@@ -2,6 +2,8 @@ require 'test_helper'
 require 'minitest/mock'
 
 class AdminThemeTest < ActiveSupport::TestCase
+  include FactoryBot::Syntax::Methods
+
   setup do
     AdminTheme.delete_all
     Rails.cache.clear

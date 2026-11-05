@@ -8,7 +8,7 @@ class Spree::Admin::ThemeControllerTest < ActionDispatch::IntegrationTest
   setup do
     AdminTheme.delete_all
     Rails.cache.clear
-    @admin = create(:spree_user)
+    @admin = Spree.user_class.create!(email: "theme-admin-#{SecureRandom.hex(4)}@example.com", password: 'password123')
     @admin.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
     sign_in @admin, scope: :spree_user
   end
