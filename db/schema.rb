@@ -62,6 +62,25 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "admin_themes", force: :cascade do |t|
+    t.string "brand_name", default: "Admin"
+    t.string "primary_color", default: "#6366f1"
+    t.string "secondary_color", default: "#8b5cf6"
+    t.string "surface_color", default: "#1a1a2e"
+    t.string "background_color", default: "#0f0f1a"
+    t.string "text_color", default: "#e2e8f0"
+    t.string "sidebar_color", default: "#16162a"
+    t.string "border_radius", default: "8px"
+    t.string "font_family", default: "Inter, system-ui, sans-serif"
+    t.string "color_mode", default: "system"
+    t.boolean "enable_animations", default: true
+    t.text "custom_css"
+    t.integer "singleton_guard", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["singleton_guard"], name: "index_admin_themes_on_singleton_guard", unique: true
+  end
+
   create_table "contacts", force: :cascade do |t|
     t.integer "actor_id"
     t.string "full_name"

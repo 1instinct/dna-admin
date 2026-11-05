@@ -11,6 +11,8 @@ end
 
 Spree::Core::Engine.add_routes do
   namespace :admin, path: Spree.admin_path do
+    resource :theme, only: [:show, :update], controller: 'theme'
+
     resources :messages do      
       collection do
         get :conversation
