@@ -141,8 +141,13 @@ module Iap
         raise Iap::Error.new(:already_owned_by_other_user, 'this purchase belongs to another account')
       end
 
+      # An admin revocation covers the whole subscription: renewals and
+      # linked-token upgrades (new rows in the chain) inherit it.
+      txn.admin_revoked_at ||= chain_admin_revoked_at(verified.platform, original)
+
       stale = txn.persisted? && (unverified || older?(verified.signed_at, txn.store_signed_at))
       apply_state(txn, verified, original, status_override, authoritative, clears_revocation, unverified) unless stale
+      txn.status = 'revoked' if txn.admin_revoked_at
       txn.user_id = owner_id || user&.id || txn.user_id
       txn.save!
 
@@ -200,6 +205,10 @@ module Iap
       Spree::IapTransaction.where(platform: txn.platform, transaction_id: verified.linked_purchase_token)
                            .where.not(id: txn.id).where(status: Spree::IapTransaction::GRANTING_STATUSES)
                            .update_all(status: 'expired', updated_at: Time.current)
+    end
+
+    def chain_admin_revoked_at(platform, original)
+      Spree::IapTransaction.where(platform: platform, original_transaction_id: original).where.not(admin_revoked_at: nil).minimum(:admin_revoked_at)
     end
 
     def owner_of(platform, original)

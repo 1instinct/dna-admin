@@ -36,7 +36,16 @@ module Spree
       return false if revoked_at || admin_revoked_at
 
       ends = access_ends_at
-      ends.nil? || ends > at
+      # Only one-time products may grant without an end. A subscription with
+      # no expiry (e.g. an Apple non-renewing subscription, which carries no
+      # expiresDate) never grants rather than granting forever.
+      return !subscription? if ends.nil?
+
+      ends > at
+    end
+
+    def subscription?
+      iap_product&.kind == 'subscription' || payload.to_h['type'].to_s.end_with?('Subscription')
     end
 
     # Status as of now: a stored "active" whose period has ended reads "expired".

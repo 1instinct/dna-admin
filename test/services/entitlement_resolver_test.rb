@@ -73,6 +73,44 @@ class EntitlementResolverTest < ActiveSupport::TestCase
     assert pro?(@user)
   end
 
+  test 'a subscription without an expiry never grants' do
+    txn(expires_at: nil)
+    EntitlementResolver.refresh(@user)
+    refute pro?(@user)
+  end
+
+  test 'no transaction of a subscription an admin revoked grants' do
+    txn(status: 'revoked', admin_revoked_at: 1.hour.ago, expires_at: 1.day.ago)
+    txn # a later row in the same chain that is still active
+    EntitlementResolver.refresh(@user)
+
+    refute pro?(@user)
+    refute entitlement_for(@user).active
+  end
+
+  test 'transactions are read after the per-user lock is taken' do
+    txn
+    queries = []
+    callback = ->(*, payload) { queries << payload[:sql] }
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { EntitlementResolver.refresh(@user) }
+
+    lock_at = queries.index { |sql| sql.include?('pg_advisory_xact_lock') }
+    read_at = queries.index { |sql| sql =~ /FROM "spree_iap_transactions"/ }
+    assert lock_at, 'expected an advisory lock'
+    assert read_at, 'expected the transactions to be read'
+    assert_operator lock_at, :<, read_at
+  end
+
+  test 'a refund recorded between two refreshes is reflected' do
+    t = txn
+    EntitlementResolver.refresh(@user)
+    assert pro?(@user)
+
+    t.update!(status: 'refunded', revoked_at: Time.current)
+    EntitlementResolver.refresh(@user)
+    refute pro?(@user)
+  end
+
   test 'consumables and products without an entitlement key grant nothing' do
     coins = iap_product(product_id: 'example.coins', kind: 'consumable', entitlement: 'pro')
     txn(iap_product: coins, product_id: coins.product_id, expires_at: nil)

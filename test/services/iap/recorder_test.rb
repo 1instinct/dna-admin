@@ -123,6 +123,30 @@ class Iap::RecorderTest < ActiveSupport::TestCase
     refute pro?(@alice)
   end
 
+  test 'an admin revocation sticks across an Apple renewal (DID_RENEW creates a new transaction)' do
+    txn = record(@alice)
+    Iap::AdminRevocation.new(txn, admin: create_user, note: 'chargeback').call
+
+    renewal = apple_notification('DID_RENEW', transaction: { transactionId: '2000000002', purchased_at: Time.current })
+    renewed = Iap::AppleNotificationHandler.new.handle(renewal).iap_transaction
+
+    refute_equal txn.id, renewed.id
+    assert_equal 'revoked', renewed.status
+    assert renewed.admin_revoked_at
+    refute pro?(@alice)
+    refute entitlement_for(@alice).active
+  end
+
+  test 'an Apple non-renewing subscription without an expiry does not grant forever' do
+    iap_product(product_id: 'example.pro.season')
+    txn = record(@alice, 'apple', signed_payload: apple_jws(productId: 'example.pro.season',
+                                                            type: 'Non-Renewing Subscription', expiresDate: nil))
+
+    assert_nil txn.expires_at
+    refute txn.grants_access?
+    refute pro?(@alice)
+  end
+
   # --- Google ----------------------------------------------------------------
 
   def google_payload(token = 'gtoken-1', sku = GOOGLE_PRODUCT)
@@ -203,6 +227,31 @@ class Iap::RecorderTest < ActiveSupport::TestCase
     assert_equal old.original_transaction_id, fresh.original_transaction_id
     assert_equal 'expired', old.reload.status
     assert pro?(@alice)
+  end
+
+  test 'an admin revocation sticks across a Google renewal and a linkedPurchaseToken resubscribe' do
+    iap_product(platform: 'google', product_id: GOOGLE_PRODUCT)
+    stub_google_token
+    ack_state = { acknowledgementState: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED' }
+    stub_google_subscription('old', google_subscription_json(ack_state))
+    old = record(@alice, 'google', google_payload('old'))
+    Iap::AdminRevocation.new(old, admin: create_user, note: 'chargeback').call
+
+    # Renewal: same token, a later expiry.
+    stub_google_subscription('old', google_subscription_json(ack_state.merge(
+      lineItems: [{ productId: GOOGLE_PRODUCT, expiryTime: 59.days.from_now.utc.iso8601 }]
+    )))
+    assert_equal 'revoked', record(@alice, 'google', google_payload('old')).status
+    refute pro?(@alice)
+
+    # Upgrade / resubscribe: a new token linked to the revoked one.
+    stub_google_subscription('new', google_subscription_json(ack_state.merge(linkedPurchaseToken: 'old')))
+    fresh = record(@alice, 'google', google_payload('new'))
+
+    assert_equal old.original_transaction_id, fresh.original_transaction_id
+    assert_equal 'revoked', fresh.status
+    assert fresh.admin_revoked_at
+    refute pro?(@alice)
   end
 
   test 'Google one-time products are verified with the products API' do
