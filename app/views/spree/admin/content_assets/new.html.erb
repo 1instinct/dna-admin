@@ -1,0 +1,15 @@
+<% content_for :page_title do %>
+  <%= link_to Spree.t('admin.content_assets.title'), admin_content_assets_path %> /
+  <%= Spree.t('admin.content_assets.new') %>
+<% end %>
+
+<%= form_for @content_asset, url: admin_content_assets_path,
+      html: { multipart: true, class: 'form-horizontal' } do |f| %>
+  <%= render 'form', f: f %>
+
+  <div class="form-actions">
+    <%= button Spree.t(:create), 'save.svg' %>
+    <span class="or"><%= Spree.t(:or) %></span>
+    <%= link_to Spree.t(:cancel), admin_content_assets_path, class: 'btn btn-default' %>
+  </div>
+<% end %>

@@ -91,6 +91,18 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "content_assets", force: :cascade do |t|
+    t.string "alt_text", limit: 255
+    t.string "tag", limit: 100
+    t.string "original_filename", default: "", null: false
+    t.string "content_type", default: "", null: false
+    t.integer "byte_size", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["created_at"], name: "index_content_assets_on_created_at"
+    t.index ["tag"], name: "index_content_assets_on_tag"
+  end
+
   create_table "favorites", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "variant_id", null: false

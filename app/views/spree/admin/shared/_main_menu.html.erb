@@ -70,6 +70,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, ContentAsset %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarContentAssets">
+      <%= tab :content_assets, icon: 'page.svg', url: admin_content_assets_path %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, ThreadTable %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarThreadTable">
       <%= tab :threads, icon: 'thread.svg', url: admin_threads_path %>

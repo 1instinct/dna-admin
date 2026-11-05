@@ -42,7 +42,9 @@ Spree::Core::Engine.add_routes do
         patch :toggle_visibility
       end
     end
-    
+
+    resources :content_assets, except: [:show]
+
     resources :contacts
 
     resources :products, only: [] do
@@ -85,6 +87,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :homepage_sections
+      resources :content_assets, only: [:index, :show, :create, :update, :destroy]
       resources :favorites, only: [:index, :destroy] do
         collection do
           post :toggle
