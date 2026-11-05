@@ -35,6 +35,22 @@ class ContentAssetTest < ActiveSupport::TestCase
     assert @asset.errors[:file].any?
   end
 
+  test "invalid with SVG (variants can't be made from it)" do
+    @asset.file.attach(
+      io: StringIO.new('<svg xmlns="http://www.w3.org/2000/svg"></svg>'),
+      filename: "logo.svg",
+      content_type: "image/svg+xml"
+    )
+    assert_not @asset.valid?
+    assert @asset.errors[:file].any?
+  end
+
+  test "original_url and variant_url are proxy paths" do
+    asset = create(:content_asset)
+    assert_match %r{\A/rails/active_storage/blobs/proxy/}, asset.original_url
+    assert_match %r{\A/rails/active_storage/representations/proxy/}, asset.variant_url(:small)
+  end
+
   test "alt_text limited to 255 characters" do
     @asset.alt_text = "a" * 256
     assert_not @asset.valid?

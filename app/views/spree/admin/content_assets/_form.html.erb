@@ -5,10 +5,10 @@
     <fieldset class="no-border-top">
       <div class="form-group">
         <%= f.label :file, Spree.t('admin.content_assets.file') %>
-        <%= f.file_field :file, class: 'form-control-file', accept: 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml' %>
+        <%= f.file_field :file, class: 'form-control-file', accept: 'image/png,image/jpeg,image/webp,image/gif' %>
         <% if @content_asset.file.attached? %>
           <div style="margin-top: 8px;">
-            <%= image_tag main_app.rails_blob_path(@content_asset.file, disposition: 'inline'),
+            <%= image_tag main_app.rails_storage_proxy_path(@content_asset.file, disposition: 'inline'),
                   style: "max-width: 300px; border-radius: 4px;",
                   alt: @content_asset.alt_text %>
           </div>

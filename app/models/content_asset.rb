@@ -23,8 +23,9 @@ class ContentAsset < Spree::Base
     portrait:   { resize_to_fill: [900, 1600] },
   }.freeze
 
+  # No SVG: Rails 6.1 can't make variants of it (ActiveStorage::InvariableError).
   ALLOWED_CONTENT_TYPES = %w[
-    image/png image/jpeg image/webp image/gif image/svg+xml
+    image/png image/jpeg image/webp image/gif
   ].freeze
 
   MAX_FILE_SIZE = 10.megabytes
@@ -89,7 +90,7 @@ class ContentAsset < Spree::Base
     return unless file.attached?
 
     unless file.blob.content_type.in?(ALLOWED_CONTENT_TYPES)
-      errors.add(:file, "must be an image (PNG, JPEG, WebP, GIF, or SVG)")
+      errors.add(:file, "must be an image (PNG, JPEG, WebP, or GIF)")
     end
 
     if file.blob.byte_size > MAX_FILE_SIZE
