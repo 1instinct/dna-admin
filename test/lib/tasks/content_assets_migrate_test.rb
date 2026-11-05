@@ -3,6 +3,8 @@ require 'rake'
 require 'minitest/mock'
 
 class ContentAssetsMigrateTaskTest < ActiveSupport::TestCase
+  include FactoryBot::Syntax::Methods
+
   setup do
     Rails.application.load_tasks unless Rake::Task.task_defined?('content_assets:migrate_existing')
     @task = Rake::Task['content_assets:migrate_existing']

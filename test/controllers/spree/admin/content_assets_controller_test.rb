@@ -1,11 +1,12 @@
 require 'test_helper'
 
 class Spree::Admin::ContentAssetsControllerTest < ActionDispatch::IntegrationTest
+  include FactoryBot::Syntax::Methods
   include Spree::Core::Engine.routes.url_helpers
   include Devise::Test::IntegrationHelpers
 
   setup do
-    @admin = create(:spree_user)
+    @admin = Spree::User.create!(email: "content-assets-#{SecureRandom.hex(4)}@example.com", password: "password123")
     @admin.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
     @admin.generate_spree_api_key!
     @asset = create(:content_asset, tag: "homepage", alt_text: "Test image")

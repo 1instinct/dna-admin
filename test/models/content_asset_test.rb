@@ -1,6 +1,8 @@
 require 'test_helper'
 
 class ContentAssetTest < ActiveSupport::TestCase
+  include FactoryBot::Syntax::Methods
+
   setup do
     @asset = build(:content_asset)
   end

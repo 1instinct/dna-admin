@@ -1,8 +1,10 @@
 require 'test_helper'
 
 class Spree::Api::V1::ContentAssetsControllerTest < ActionDispatch::IntegrationTest
+  include FactoryBot::Syntax::Methods
+
   setup do
-    @admin = create(:spree_user)
+    @admin = Spree::User.create!(email: "content-assets-#{SecureRandom.hex(4)}@example.com", password: "password123")
     @admin.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
     @admin.generate_spree_api_key!
     @asset = create(:content_asset, tag: "homepage", alt_text: "Hero banner")
@@ -101,7 +103,7 @@ class Spree::Api::V1::ContentAssetsControllerTest < ActionDispatch::IntegrationT
   end
 
   test "non-admin users cannot create, update or destroy" do
-    customer = create(:spree_user)
+    customer = Spree::User.create!(email: "content-assets-#{SecureRandom.hex(4)}@example.com", password: "password123")
     customer.generate_spree_api_key!
     headers = { "X-Spree-Token" => customer.spree_api_key }
     file = fixture_file_upload("test/fixtures/files/test-image.png", "image/png")
