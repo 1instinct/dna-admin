@@ -1,0 +1,12 @@
+<% content_for :page_title do %>
+  <%= link_to 'IAP Products', spree.admin_iap_products_path %> &raquo; New
+<% end %>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @object } %>
+
+<%= form_for [:admin, @object], url: spree.admin_iap_products_path do |f| %>
+  <fieldset>
+    <%= render partial: 'form', locals: { f: f } %>
+    <%= render partial: 'spree/admin/shared/new_resource_links' %>
+  </fieldset>
+<% end %>
