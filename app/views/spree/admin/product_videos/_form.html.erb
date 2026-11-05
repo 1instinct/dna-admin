@@ -1,0 +1,28 @@
+<div data-hook="admin_product_video_form_fields" class="row">
+  <div class="col-12 col-md-6">
+    <div data-hook="video_file" class="form-group">
+      <%= f.label :video, Spree.t(:video_file, default: 'Video (MP4 or WebM, up to 50 MB)') %>
+      <%= f.file_field :video, accept: Spree::ProductVideo::VIDEO_TYPES.join(',') %>
+    </div>
+    <div data-hook="poster_file" class="form-group">
+      <%= f.label :poster, Spree.t(:poster_file, default: 'Poster (JPEG, PNG or WebP, up to 10 MB)') %>
+      <%= f.file_field :poster, accept: Spree::ProductVideo::POSTER_TYPES.join(',') %>
+    </div>
+  </div>
+  <div data-hook="alt_text" class="col-12 col-md-6">
+    <div class="form-group">
+      <%= f.label :alt, Spree.t(:alt_text) %>
+      <%= f.text_area :alt, rows: 4, class: 'form-control' %>
+    </div>
+  </div>
+  <div data-hook="product_video_help" class="col-12">
+    <div class="alert alert-info">
+      <ul class="mb-0">
+        <li>MP4 (H.264) plays everywhere. <strong>WebM does not play on iOS</strong>, so a WebM video also needs an MP4 version.</li>
+        <li>Keep videos shown in product grids under 15 MB. They play muted and looped.</li>
+        <li>The poster is required: it is shown until the video plays, and wherever video can't play. Use the video's first frame.</li>
+        <li>Uploads go through the server. A large file on a slow connection can time out before it finishes.</li>
+      </ul>
+    </div>
+  </div>
+</div>

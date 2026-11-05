@@ -43,6 +43,15 @@ Spree::Core::Engine.add_routes do
     end
     
     resources :contacts
+
+    resources :products, only: [] do
+      resources :product_videos, except: :show do
+        collection do
+          post :update_positions
+        end
+      end
+    end
+
     resources :threads do
       member do
         get :conversation
