@@ -1,0 +1,32 @@
+en:
+  spree:
+    content_asset:
+      title: Content Assets
+      success:
+        index: "Content assets retrieved successfully"
+        show: "Content asset fetched successfully."
+        create: "Content asset uploaded successfully."
+        update: "Content asset updated successfully."
+        delete: "Content asset deleted successfully."
+      error:
+        not_found: "Content asset not found."
+        upload_failed: "Failed to upload content asset."
+    admin:
+      content_assets:
+        title: "Content Assets"
+        new: "Upload Image"
+        edit: "Edit Content Asset"
+        alt_text: "Alt Text"
+        tag: "Tag"
+        file: "Image File"
+        search: "Search by filename or alt text..."
+        filter_by_tag: "Filter by tag"
+        all_tags: "All Tags"
+        no_assets: "No content assets yet. Upload your first image."
+        confirm_delete: "Are you sure you want to delete this image?"
+        pick_image: "Choose Image"
+        upload_new: "Upload New"
+        select: "Select"
+        clear: "Clear"
+        close: "Close"
+        drop_files: "Drop files here or click to upload"

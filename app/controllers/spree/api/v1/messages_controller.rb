@@ -2,7 +2,9 @@ class Spree::Api::V1::MessagesController < Spree::Api::BaseController
   include Swagger::Blocks
   include Response
   include Spree::Api::V1::GlobalHelper
-  before_action :authenticate_user, :except => [:create, :update, :index, :destroy, :show]
+  # Messages are private conversations: admin only, except create.
+  before_action :authenticate_user, :except => [:create]
+  before_action :require_api_admin, :except => [:create]
   swagger_path "/messages/" do
     operation :post do
       key :summary, "Create Message"
