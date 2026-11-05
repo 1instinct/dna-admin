@@ -109,6 +109,8 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :pages, only: [:index, :show], controller: 'pages', param: :slug
+      # The signed-in user deletes their own account (OAuth bearer required).
+      resource :account, only: [:destroy], controller: 'account', defaults: { format: 'json' }
       resources :contacts
       resources :messages
       resources :threads
