@@ -8,6 +8,11 @@ WebMock.disable_net_connect!(allow_localhost: true)
 
 Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |f| require f }
 
+# config/initializers/active_storage.rb points every environment at S3; tests use local disk.
+ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(:test)
+
+Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |f| require f }
+
 class ActiveSupport::TestCase
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all

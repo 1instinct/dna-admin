@@ -1,7 +1,7 @@
 module Spree
   module Api
     module V1
-      class StoreController < ::Spree::Api::V1::BaseController
+      class StoreController < Spree::Api::BaseController
         def show
           store = Spree::Store.default || Spree::Store.first
           render json: {

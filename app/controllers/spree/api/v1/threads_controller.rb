@@ -2,7 +2,10 @@ class Spree::Api::V1::ThreadsController < Spree::Api::BaseController
   include Swagger::Blocks
   include Response
   include Spree::Api::V1::GlobalHelper
-  before_action :authenticate_user, :except => [:index, :destroy, :show]
+  # Threads group private messages (destroying one cascades to its messages and
+  # streams): admin only for reads and deletes.
+  before_action :authenticate_user
+  before_action :require_api_admin, :only => [:index, :show, :destroy]
 
   swagger_path "/threads/" do
     operation :get do

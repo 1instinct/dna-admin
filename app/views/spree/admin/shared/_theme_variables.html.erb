@@ -1,0 +1,84 @@
+<% theme = AdminTheme.current %>
+
+<% font_url = theme_font_url(theme.font_family) %>
+<% if font_url %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="<%= font_url %>" rel="stylesheet">
+<% end %>
+
+<style>
+  :root {
+    --admin-primary: <%= theme.primary_color %>;
+    --admin-primary-hover: <%= theme.secondary_color %>;
+    --admin-secondary: <%= theme.secondary_color %>;
+    --admin-font: <%= theme.font_family %>;
+    --admin-radius: <%= theme.border_radius %>;
+
+    --admin-bg: <%= theme.background_color %>;
+    --admin-surface: <%= theme.surface_color %>;
+    --admin-surface-raised: #232340;
+    --admin-sidebar: <%= theme.sidebar_color %>;
+    --admin-text: <%= theme.text_color %>;
+    --admin-text-muted: #94a3b8;
+    --admin-border: rgba(255,255,255,0.08);
+    --admin-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --admin-glow: 0 0 20px <%= theme.primary_color %>26;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --admin-bg: #f8fafc;
+      --admin-surface: #ffffff;
+      --admin-surface-raised: #f1f5f9;
+      --admin-sidebar: #ffffff;
+      --admin-text: #1e293b;
+      --admin-text-muted: #64748b;
+      --admin-border: rgba(0,0,0,0.08);
+      --admin-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --admin-glow: 0 0 20px <%= theme.primary_color %>14;
+    }
+  }
+
+  [data-theme="dark"] {
+    --admin-bg: <%= theme.background_color %>;
+    --admin-surface: <%= theme.surface_color %>;
+    --admin-surface-raised: #232340;
+    --admin-sidebar: <%= theme.sidebar_color %>;
+    --admin-text: <%= theme.text_color %>;
+    --admin-text-muted: #94a3b8;
+    --admin-border: rgba(255,255,255,0.08);
+    --admin-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --admin-glow: 0 0 20px <%= theme.primary_color %>26;
+  }
+
+  [data-theme="light"] {
+    --admin-bg: #f8fafc;
+    --admin-surface: #ffffff;
+    --admin-surface-raised: #f1f5f9;
+    --admin-sidebar: #ffffff;
+    --admin-text: #1e293b;
+    --admin-text-muted: #64748b;
+    --admin-border: rgba(0,0,0,0.08);
+    --admin-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --admin-glow: 0 0 20px <%= theme.primary_color %>14;
+  }
+</style>
+
+<% if theme.custom_css.present? %>
+  <style><%= sanitize_css(theme.custom_css) %></style>
+<% end %>
+
+<script>
+  (function() {
+    var mode = '<%= theme.color_mode %>';
+    if (mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (mode === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    <% unless theme.enable_animations %>
+      document.documentElement.setAttribute('data-reduce-motion', '');
+    <% end %>
+  })();
+</script>
