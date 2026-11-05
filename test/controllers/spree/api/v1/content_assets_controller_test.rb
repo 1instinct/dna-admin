@@ -99,4 +99,65 @@ class Spree::Api::V1::ContentAssetsControllerTest < ActionDispatch::IntegrationT
     delete "/api/v1/content_assets/#{@asset.id}"
     assert_response :unauthorized
   end
+
+  test "non-admin users cannot create, update or destroy" do
+    customer = create(:spree_user)
+    customer.generate_spree_api_key!
+    headers = { "X-Spree-Token" => customer.spree_api_key }
+    file = fixture_file_upload("test/fixtures/files/test-image.png", "image/png")
+
+    assert_no_difference "ContentAsset.count" do
+      post "/api/v1/content_assets", params: { file: file, alt_text: "Sneaky" }, headers: headers
+    end
+    assert_response :unauthorized
+
+    put "/api/v1/content_assets/#{@asset.id}", params: { alt_text: "Hijacked" }, headers: headers
+    assert_response :unauthorized
+
+    assert_no_difference "ContentAsset.count" do
+      delete "/api/v1/content_assets/#{@asset.id}", headers: headers
+    end
+    assert_response :unauthorized
+    assert_equal "Hero banner", @asset.reload.alt_text
+  end
+
+  test "guests with an order token cannot create, update or destroy" do
+    order = Spree::Order.create!(store: Spree::Store.default, currency: "USD")
+    headers = { "X-Spree-Order-Token" => order.token }
+    params = { order_id: order.number }
+    file = fixture_file_upload("test/fixtures/files/test-image.png", "image/png")
+
+    assert_no_difference "ContentAsset.count" do
+      post "/api/v1/content_assets", params: params.merge(file: file, alt_text: "Sneaky"), headers: headers
+    end
+    assert_response :unauthorized
+
+    put "/api/v1/content_assets/#{@asset.id}", params: params.merge(alt_text: "Hijacked"), headers: headers
+    assert_response :unauthorized
+
+    assert_no_difference "ContentAsset.count" do
+      delete "/api/v1/content_assets/#{@asset.id}", params: params, headers: headers
+    end
+    assert_response :unauthorized
+    assert_equal "Hero banner", @asset.reload.alt_text
+  end
+
+  test "POST create rejects SVG" do
+    file = Rack::Test::UploadedFile.new(
+      StringIO.new('<svg xmlns="http://www.w3.org/2000/svg"></svg>'), "image/svg+xml", original_filename: "logo.svg"
+    )
+    assert_no_difference "ContentAsset.count" do
+      post "/api/v1/content_assets",
+        params: { file: file, alt_text: "Logo" },
+        headers: { "X-Spree-Token" => @admin.spree_api_key }
+    end
+    assert_equal 400, JSON.parse(response.body)["response_code"]
+  end
+
+  test "URLs are proxy paths" do
+    get "/api/v1/content_assets/#{@asset.id}"
+    urls = JSON.parse(response.body)["response_data"]["urls"]
+    assert_match %r{\A/rails/active_storage/blobs/proxy/}, urls["original"]
+    assert_match %r{\A/rails/active_storage/representations/proxy/}, urls["small"]
+  end
 end
