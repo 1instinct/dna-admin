@@ -30,11 +30,16 @@
           card.setAttribute('data-asset-url', asset.urls.original || '');
           card.setAttribute('data-modal-id', modalId);
           card.style.cssText = 'cursor:pointer;border:2px solid transparent;border-radius:4px;overflow:hidden;background:#f8f9fa;';
-          card.innerHTML =
-            '<img src="' + thumb + '" style="width:100%;height:100px;object-fit:cover;" alt="' + (asset.alt_text || '') + '">' +
-            '<div style="padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-              (asset.original_filename || '') +
-            '</div>';
+          // Built with setAttribute/textContent: alt_text and filename are user input.
+          var img = document.createElement('img');
+          img.setAttribute('src', thumb);
+          img.setAttribute('alt', asset.alt_text || '');
+          img.style.cssText = 'width:100%;height:100px;object-fit:cover;';
+          var label = document.createElement('div');
+          label.style.cssText = 'padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+          label.textContent = asset.original_filename || '';
+          card.appendChild(img);
+          card.appendChild(label);
           card.addEventListener('click', function() {
             grid.querySelectorAll('.content-asset-thumb').forEach(function(el) {
               el.style.borderColor = 'transparent';
@@ -101,7 +106,11 @@
       }
       var preview = document.getElementById('preview_' + targetFieldId);
       if (preview) {
-        preview.innerHTML = '<img src="' + url + '" style="max-width:60px;max-height:40px;margin-left:8px;border-radius:4px;">';
+        var previewImg = document.createElement('img');
+        previewImg.setAttribute('src', url);
+        previewImg.style.cssText = 'max-width:60px;max-height:40px;margin-left:8px;border-radius:4px;';
+        preview.innerHTML = '';
+        preview.appendChild(previewImg);
       }
     }
     $('#' + modalId).modal('hide');
