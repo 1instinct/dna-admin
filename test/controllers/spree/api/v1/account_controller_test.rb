@@ -166,6 +166,23 @@ class Spree::Api::V1::AccountControllerTest < ActionDispatch::IntegrationTest
     assert to_void.reload.void?
   end
 
+  test "a loyalty points payment on a retained order still validates and voids after deletion" do
+    @user.update_column(:loyalty_points_balance, 1000)
+    completed = create_order({})
+    completed.update_columns(state: "complete", completed_at: Time.current)
+    loyalty = Spree::PaymentMethod::LoyaltyPoints.create!(name: "Loyalty #{SecureRandom.hex(3)}")
+    payment = Spree::Payment.create!(order: completed, amount: 10, payment_method: loyalty, state: "completed")
+
+    delete "/api/v1/account", headers: bearer(@token)
+    assert_response :no_content
+
+    payment = Spree::Payment.find(payment.id)
+    assert_nil payment.order.user, "sanity: the order's user is soft-deleted"
+    assert payment.valid?, payment.errors.full_messages.to_sentence
+    payment.void!
+    assert payment.reload.void?
+  end
+
   # Spree reuses the user's saved address record on new carts, so a cart can share an address
   # with a completed order.
   { bill: %i[bill_address], ship: %i[ship_address], both: %i[bill_address ship_address] }.each do |label, slots|
