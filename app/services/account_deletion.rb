@@ -1,14 +1,17 @@
 # Deletes a customer's account at their own request (app-store account deletion).
 #
 # Deleted:    OAuth access tokens and grants (revoked), the user's own content (favorites,
-#             follows, messages, live stream likes, avatar), saved addresses no order uses,
-#             saved payment sources no remaining payment uses, and open carts that never took
-#             a payment. Sources a remaining payment uses are detached from the user instead.
+#             follows, messages, live stream likes, avatar), the public profile and its photo,
+#             blocks either way, reports about the user's profile, saved addresses no order
+#             uses, saved payment sources no remaining payment uses, and open carts that never
+#             took a payment. Sources a remaining payment uses are detached from the user instead.
 # Anonymized: the user row (email -> deleted-<id>@invalid, login/profile/tokens/IPs cleared,
 #             password scrambled), then soft-deleted (acts_as_paranoid). The original email can
 #             sign up again.
 # Retained:   orders that completed or took a payment, with their addresses, payments and
-#             shipments (email anonymized), store credit and loyalty points, for accounting.
+#             shipments (email anonymized), store credit and loyalty points, for accounting;
+#             reports the user filed, with reporter_id and the free-text details cleared
+#             (moderation record: reason and target snapshot stay).
 #
 # Refused (AccountDeletion::Refused, with a message for the user) for admin accounts.
 class AccountDeletion
@@ -59,7 +62,7 @@ class AccountDeletion
       anonymize_and_soft_delete_user
     end
 
-    purge_avatar
+    purge_avatars
     Rails.logger.info("[account_deletion] user_id=#{user.id} deleted_at=#{now.utc.iso8601}")
     true
   end
@@ -81,8 +84,29 @@ class AccountDeletion
     UserFollow.where(follower_id: user.id).or(UserFollow.where(following_id: user.id)).delete_all
     LiveStreamLike.where(user_id: user.id).delete_all
     Message.where(sender: user).or(Message.where(receiver: user)).delete_all
+    delete_profile_data
     # In-app purchase receipts are payment records: when that module lands, keep them for
     # accounting and detach or anonymize them here rather than deleting.
+  end
+
+  # Profile row (its photo is purged after commit), blocks either way, reports about the profile.
+  # Reports the user filed stay for moderation, without the reporter or their free text.
+  def delete_profile_data
+    Spree::UserBlock.involving(user).delete_all
+    Spree::ProfileRateCounter.where(user_id: user.id).delete_all
+    Spree::ContentReport.where(reporter_id: user.id).update_all(reporter_id: nil, details: nil, updated_at: now)
+    Spree::UserProfile.where(user_id: user.id).find_each do |profile|
+      Spree::ContentReport.about_profile(profile).delete_all
+      if profile.avatar.attached?
+        avatar_blobs << profile.avatar.blob
+        profile.avatar.detach
+      end
+      profile.destroy!
+    end
+  end
+
+  def avatar_blobs
+    @avatar_blobs ||= []
   end
 
   def remove_open_carts
@@ -177,11 +201,15 @@ class AccountDeletion
     user.update_columns(attrs)
   end
 
-  def purge_avatar
-    return unless user.respond_to?(:avatar) && user.avatar.respond_to?(:attached?) && user.avatar.attached?
-
-    user.avatar.purge_later
-  rescue StandardError => e
-    Rails.logger.error("[account_deletion] user_id=#{user.id} avatar purge failed: #{e.class}")
+  # Inline, after commit: queued jobs don't survive a dyno restart, and the account is already
+  # deleted by now, so a storage failure is logged rather than raised.
+  def purge_avatars
+    avatar_blobs << user.avatar.blob if user.respond_to?(:avatar) && user.avatar.respond_to?(:attached?) && user.avatar.attached?
+    avatar_blobs.each do |blob|
+      blob.purge
+    rescue StandardError => e
+      # The blob row may already be gone, so the key is the only trace of the orphaned file.
+      Rails.logger.error("[account_deletion] user_id=#{user.id} blob_key=#{blob.key} avatar purge failed: #{e.class}")
+    end
   end
 end

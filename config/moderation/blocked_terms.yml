@@ -1,0 +1,27 @@
+# Terms refused in handles (matched anywhere, underscores ignored) and in names and bios (whole
+# words). Lowercase. Keep entries long enough not to hit ordinary words as substrings of handles
+# (e.g. no "ass", "pedo" or "wank": they would block "bass", "torpedo", "swanky"). Apps append with config/moderation/<app>_blocked_terms.yml.
+- bitch
+- bukkake
+- chink
+- cunt
+- faggot
+- fuck
+- gangbang
+- hitler
+- jizz
+- kike
+- motherfucker
+- nazi
+- nigga
+- nigger
+- paedo
+- pedophile
+- porn
+- retard
+- shit
+- slut
+- tranny
+- twat
+- wetback
+- whore

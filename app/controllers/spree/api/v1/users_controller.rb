@@ -137,6 +137,11 @@ module Spree
           if !@user.present? || !@user.valid_password?(params[:user][:password])
             error_model(401, Spree.t('user.error.email_password_unmatch'))
             return
+          elsif @user.account_locked?
+            # After the password check, so the lock isn't revealed to anyone else. A lock clears
+            # the api key, so issuing one here would undo it.
+            error_model(403, "This account is locked")
+            return
           else
             @user.generate_spree_api_key! if @user.spree_api_key.blank?
             response_data = {
@@ -254,7 +259,29 @@ module Spree
           unless user
             return error_model(404, "User not found")
           end
-          
+          # Same rule as the visible profile scope: hidden or locked users don't exist here.
+          if user.account_locked? || user.profile&.hidden?
+            return error_model(404, "User not found")
+          end
+          if @current_api_user&.persisted? && Spree::UserBlock.between?(@current_api_user, user)
+            return error_model(404, "User not found")
+          end
+
+          # Check if current user is following this profile
+          is_following = @current_api_user.present? ? UserFollow.following?(@current_api_user, user) : false
+
+          # A private profile shows others no favorites or counts.
+          viewer_is_owner = @current_api_user&.persisted? && @current_api_user.id == user.id
+          if user.profile && !user.profile.public_visibility? && !viewer_is_owner
+            return singular_success_model(200, "User profile retrieved successfully", {
+              id: user.id,
+              email: "",
+              first_name: "",
+              last_name: "",
+              is_following: is_following
+            })
+          end
+
           # Get public favorites with product details
           public_favorites = user.favorites.public_favorites.joins(variant: :product).merge(Spree::Product.publicly_visible).includes(variant: :product).recent.map do |fav|
             {
@@ -266,10 +293,7 @@ module Spree
               price: fav.variant&.price&.to_s
             }
           end
-          
-          # Check if current user is following this profile
-          is_following = @current_api_user.present? ? UserFollow.following?(@current_api_user, user) : false
-          
+
           profile_data = {
             # Public profile: anyone can read it. Never put email, billing names,
             # phone or addresses here. The empty keys stay for older web clients.
@@ -383,13 +407,25 @@ module Spree
         end
         
         def follow
+          return follow_needs_user unless @current_api_user&.persisted?
+          return follow_limit_reached unless Profiles::RateLimit.allow?(@current_api_user, :follow)
+
           user_to_follow = Spree::User.find_by_id(params[:id])
           unless user_to_follow
             return error_model(404, "User not found")
           end
           
+          # Same rule as the visible profile scope: hidden or locked targets don't exist here.
+          if user_to_follow.account_locked? || user_to_follow.profile&.hidden?
+            return error_model(404, "User not found")
+          end
+
           if @current_api_user.id == user_to_follow.id
             return error_model(400, "Cannot follow yourself")
+          end
+
+          if Spree::UserBlock.between?(@current_api_user, user_to_follow)
+            return error_model(403, "Cannot follow this user")
           end
           
           # Check if already following
@@ -410,6 +446,9 @@ module Spree
         end
         
         def unfollow
+          return follow_needs_user unless @current_api_user&.persisted?
+          return follow_limit_reached unless Profiles::RateLimit.allow?(@current_api_user, :follow)
+
           user_to_unfollow = Spree::User.find_by_id(params[:id])
           unless user_to_unfollow
             return error_model(404, "User not found")
@@ -426,6 +465,15 @@ module Spree
           else
             error_model(400, "Not following this user")
           end
+        end
+
+        # A guest order token authenticates as an unsaved user, who can't follow anyone.
+        def follow_needs_user
+          error_model(401, "Sign in to follow users")
+        end
+
+        def follow_limit_reached
+          error_model(429, "Too many requests. Try again later.")
         end
 
         def user_params

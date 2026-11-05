@@ -405,6 +405,24 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.index ["start_date"], name: "index_spree_commissions_on_start_date"
   end
 
+  create_table "spree_content_reports", force: :cascade do |t|
+    t.integer "reporter_id"
+    t.string "reportable_type", null: false
+    t.bigint "reportable_id", null: false
+    t.string "reason", null: false
+    t.text "details"
+    t.jsonb "snapshot", default: {}, null: false
+    t.string "status", default: "open", null: false
+    t.integer "resolved_by_id"
+    t.datetime "resolved_at"
+    t.text "resolution_note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["reportable_type", "reportable_id"], name: "index_spree_content_reports_on_reportable"
+    t.index ["reporter_id", "created_at"], name: "index_spree_content_reports_on_reporter_id_and_created_at"
+    t.index ["status", "created_at"], name: "index_spree_content_reports_on_status_and_created_at"
+  end
+
   create_table "spree_countries", id: :serial, force: :cascade do |t|
     t.string "iso_name"
     t.string "iso", null: false
@@ -984,6 +1002,14 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.index ["product_id", "taxon_id"], name: "index_spree_products_taxons_on_product_id_and_taxon_id", unique: true
     t.index ["product_id"], name: "index_spree_products_taxons_on_product_id"
     t.index ["taxon_id"], name: "index_spree_products_taxons_on_taxon_id"
+  end
+
+  create_table "spree_profile_rate_counters", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "action", null: false
+    t.datetime "window_started_at", null: false
+    t.integer "hits", default: 0, null: false
+    t.index ["user_id", "action"], name: "index_spree_profile_rate_counters_on_user_id_and_action", unique: true
   end
 
   create_table "spree_promotion_action_line_items", id: :serial, force: :cascade do |t|
@@ -1585,6 +1611,31 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.index ["active"], name: "index_spree_trackers_on_active"
   end
 
+  create_table "spree_user_blocks", force: :cascade do |t|
+    t.integer "blocker_id", null: false
+    t.integer "blocked_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blocked_id"], name: "index_spree_user_blocks_on_blocked_id"
+    t.index ["blocker_id", "blocked_id"], name: "index_spree_user_blocks_on_blocker_id_and_blocked_id", unique: true
+  end
+
+  create_table "spree_user_profiles", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "handle"
+    t.string "name", limit: 40
+    t.text "bio"
+    t.string "website", limit: 200
+    t.jsonb "links", default: {}, null: false
+    t.string "visibility", default: "public", null: false
+    t.datetime "handle_changed_at"
+    t.datetime "hidden_at"
+    t.string "hidden_reason"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index "lower((handle)::text)", name: "index_spree_user_profiles_on_lower_handle", unique: true
+    t.index ["user_id"], name: "index_spree_user_profiles_on_user_id", unique: true
+  end
+
   create_table "spree_users", id: :serial, force: :cascade do |t|
     t.string "encrypted_password", limit: 128
     t.string "password_salt", limit: 128
@@ -1697,7 +1748,12 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
   add_foreign_key "live_streams", "spree_users", column: "actor_id"
   add_foreign_key "live_streams", "thread_tables"
   add_foreign_key "messages", "thread_tables"
+  add_foreign_key "spree_content_reports", "spree_users", column: "reporter_id", on_delete: :nullify
+  add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
+  add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"
+  add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
+  add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"
 end

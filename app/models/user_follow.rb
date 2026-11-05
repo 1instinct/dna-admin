@@ -6,6 +6,7 @@ class UserFollow < Spree::Base
   validates :following_id, presence: true
   validates :follower_id, uniqueness: { scope: :following_id, message: "already following this user" }
   validate :cannot_follow_self
+  validate :not_blocked
   
   # Ransackable attributes for search
   self.whitelisted_ransackable_attributes = %w[follower_id following_id created_at]
@@ -34,6 +35,12 @@ class UserFollow < Spree::Base
   
   private
   
+  def not_blocked
+    if follower && following && Spree::UserBlock.between?(follower, following)
+      errors.add(:following_id, "can't be followed")
+    end
+  end
+
   def cannot_follow_self
     if follower_id == following_id
       errors.add(:following_id, "cannot follow yourself")
