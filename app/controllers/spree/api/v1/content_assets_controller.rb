@@ -1,7 +1,10 @@
 class Spree::Api::V1::ContentAssetsController < Spree::Api::BaseController
   include Response
+  include Spree::Api::V1::GlobalHelper
 
+  # Reads are public; uploads, edits and deletes are admin only.
   before_action :authenticate_user, except: [:index, :show]
+  before_action :require_api_admin, except: [:index, :show]
   before_action :set_content_asset, only: [:show, :update, :destroy]
 
   def index
