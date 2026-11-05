@@ -1,0 +1,35 @@
+<% content_for :page_title do %>
+  <%= link_to 'IAP Orders', spree.admin_iap_transactions_path %> &raquo; IAP Products
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to 'New IAP product', spree.new_admin_iap_product_path, class: 'btn-success', icon: 'add.svg' %>
+<% end %>
+
+<% if @collection.any? %>
+  <div class="table-responsive">
+    <table class="table" id="listing_iap_products">
+      <thead>
+        <tr><th>Platform</th><th>Product id</th><th>Name</th><th>Kind</th><th>Entitlement</th><th>Active</th><th class="actions"></th></tr>
+      </thead>
+      <tbody>
+        <% @collection.each do |p| %>
+          <tr id="iap_product_<%= p.id %>">
+            <td><%= p.platform %></td>
+            <td><%= p.product_id %></td>
+            <td><%= p.name %></td>
+            <td><%= p.kind %></td>
+            <td><%= p.entitlement.presence || '-' %></td>
+            <td><%= p.active ? 'yes' : 'no' %></td>
+            <td class="actions text-right">
+              <%= link_to_edit_url spree.edit_admin_iap_product_path(p), no_text: true %>
+              <%= link_to_delete p, no_text: true, url: spree.admin_iap_product_path(p) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="alert alert-info no-objects-found">No IAP products yet. Add the store product ids your app sells.</div>
+<% end %>

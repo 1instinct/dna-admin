@@ -1,0 +1,108 @@
+<% content_for :page_title do %>
+  IAP Orders
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to 'IAP Products', spree.admin_iap_products_path, class: 'btn-outline-secondary', icon: 'products.svg' %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_iap_transactions_filter">
+    <%= form_tag spree.admin_iap_transactions_path, method: :get do %>
+      <div class="row">
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :platform, 'Platform' %>
+            <%= select_tag :platform, options_for_select(Spree::IapProduct::PLATFORMS, params[:platform]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select(Spree::IapTransaction::STATUSES, params[:status]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :environment, 'Environment' %>
+            <%= select_tag :environment, options_for_select(Spree::IapTransaction::ENVIRONMENTS, params[:environment]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :product_id, 'Product id' %>
+            <%= text_field_tag :product_id, params[:product_id], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :email, 'User email' %>
+            <%= text_field_tag :email, params[:email], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :from, 'Purchased from' %>
+            <%= date_field_tag :from, params[:from], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :to, 'Purchased to' %>
+            <%= date_field_tag :to, params[:to], class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @needs_review_count.positive? %>
+  <div class="alert alert-warning" id="iap_needs_review">
+    <%= pluralize(@needs_review_count, 'purchase') %> had a Google refund (voided purchase) notification that the Play API never confirmed.
+    Check them in Play Console and revoke if refunded.
+    <%= link_to 'Show them', spree.admin_iap_transactions_path(needs_review: 1) %>
+  </div>
+<% end %>
+
+<% if @transactions.any? %>
+  <div class="table-responsive">
+    <table class="table" id="listing_iap_transactions">
+      <thead>
+        <tr>
+          <th>Purchased</th>
+          <th>User</th>
+          <th>Platform</th>
+          <th>Product</th>
+          <th>Transaction id</th>
+          <th>Status</th>
+          <th>Env</th>
+          <th>Expires</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @transactions.each do |t| %>
+          <tr id="iap_transaction_<%= t.id %>">
+            <td><%= link_to(t.purchased_at ? l(t.purchased_at, format: :short) : '-', spree.admin_iap_transaction_path(t)) %></td>
+            <td><%= t.user ? link_to(t.user.email, spree.edit_admin_user_path(t.user)) : content_tag(:span, 'unlinked', class: 'text-muted') %></td>
+            <td><%= t.platform %></td>
+            <td><%= t.product_id %></td>
+            <td class="text-break"><%= t.transaction_id %></td>
+            <td><span class="badge badge-<%= t.grants_access? ? 'success' : 'secondary' %>"><%= t.effective_status %></span><%= content_tag(:span, 'needs review', class: 'badge badge-warning ml-1 iap-needs-review') if @review_ids.include?(t.id) %></td>
+            <td><%= t.environment %></td>
+            <td><%= t.expires_at ? l(t.expires_at, format: :short) : '-' %></td>
+            <td><%= t.price ? "#{t.price.round(2)} #{t.currency}" : '-' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="alert alert-info no-objects-found">No in-app purchases found.</div>
+<% end %>
+
+<%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @transactions } %>

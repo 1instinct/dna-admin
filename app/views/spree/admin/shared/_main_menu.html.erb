@@ -16,6 +16,15 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, Spree::IapTransaction %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarIapOrders">
+      <%# Built by hand: the tab helper titleizes labels ("Iap Orders"). %>
+      <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if %w[iap_transactions iap_products].include?(controller_name) %>">
+        <%= link_to_with_icon 'list.svg', 'IAP Orders', spree.admin_iap_transactions_path, class: 'w-100 p-3 d-flex align-items-center' %>
+      </li>
+    </ul>
+  <% end %>
+
   <% if can?(:admin, Spree::ReturnAuthorization) || can?(:admin, Spree::CustomerReturn) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarReturn">
       <%= main_menu_tree Spree.t(:returns), icon: "returns.svg", sub_menu: "returns", url: "#sidebar-returns" %>
