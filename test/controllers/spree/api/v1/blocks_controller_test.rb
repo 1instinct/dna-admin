@@ -63,6 +63,37 @@ class Spree::Api::V1::BlocksControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, 'them-secret@example.com'
   end
 
+  test 'create and index show only the handle when the target blocked me' do
+    Spree::UserBlock.block!(@them, @me)
+
+    post '/api/v1/blocks', params: { handle: 'them' }, headers: @headers, as: :json
+    assert_response :created
+    assert_equal({ 'handle' => 'them', 'name' => nil, 'avatar' => nil }, json)
+    assert @me.blocking?(@them)
+
+    get '/api/v1/blocks', headers: @headers
+    assert_equal [{ 'handle' => 'them', 'name' => nil, 'avatar' => nil }], json
+  end
+
+  test 'create and index show only the handle for a hidden profile or a locked account' do
+    locked = create(:user)
+    create(:user_profile, user: locked, handle: 'locked_one', name: 'Locked')
+    Profiles::Moderation.lock(locked)
+    Profiles::Moderation.hide(@them.profile)
+
+    %w[them locked_one].each do |handle|
+      post '/api/v1/blocks', params: { handle: handle }, headers: @headers, as: :json
+      assert_response :created
+      assert_equal({ 'handle' => handle, 'name' => nil, 'avatar' => nil }, json)
+    end
+
+    get '/api/v1/blocks', headers: @headers
+    assert_equal [{ 'handle' => 'locked_one', 'name' => nil, 'avatar' => nil },
+                  { 'handle' => 'them', 'name' => nil, 'avatar' => nil }], json
+    refute_includes response.body, 'Locked'
+    refute_includes response.body, '"Them"'
+  end
+
   test 'destroy removes my block: 204' do
     Spree::UserBlock.block!(@me, @them)
     delete '/api/v1/blocks/them', headers: @headers
