@@ -10,8 +10,35 @@ Rails.application.routes.draw do
 end
 
 Spree::Core::Engine.add_routes do
+  # In-app purchases (App Store / Google Play): app API, store notifications, admin.
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      namespace :iap do
+        resources :transactions, only: %i[index show create]
+        resources :entitlements, only: :index
+        resources :products, only: :index
+        post :restore, to: 'restores#create'
+        get :account_token, to: 'account_tokens#show'
+        post 'apple/notifications', to: 'apple_notifications#create', as: :apple_notifications
+        post 'google/notifications', to: 'google_notifications#create', as: :google_notifications
+      end
+    end
+  end
+
   namespace :admin, path: Spree.admin_path do
-    resources :messages do      
+    resources :iap_transactions, only: %i[index show] do
+      member { post :revoke }
+    end
+    resources :iap_products, except: :show
+    resources :entitlements, only: [] do
+      member { post :revoke }
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resource :theme, only: [:show, :update], controller: 'theme'
+
+    resources :messages do
       collection do
         get :conversation
         get :conversations
@@ -40,8 +67,19 @@ Spree::Core::Engine.add_routes do
         patch :toggle_visibility
       end
     end
-    
+
+    resources :content_assets, except: [:show]
+
     resources :contacts
+
+    resources :products, only: [] do
+      resources :product_videos, except: :show do
+        collection do
+          post :update_positions
+        end
+      end
+    end
+
     resources :threads do
       member do
         get :conversation
@@ -94,6 +132,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :homepage_sections
+      resources :content_assets, only: [:index, :show, :create, :update, :destroy]
       resources :favorites, only: [:index, :destroy] do
         collection do
           post :toggle

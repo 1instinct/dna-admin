@@ -120,9 +120,67 @@ class Spree::Api::V1::AccountControllerTest < ActionDispatch::IntegrationTest
     refute Spree::Address.exists?(spare_address.id), "addresses no order uses are destroyed"
     refute Spree::Order.exists?(cart.id), "an open cart without payments is destroyed"
     assert_nil Spree::CreditCard.find_by(id: card.id), "saved cards are destroyed"
+    card_row = Spree::CreditCard.with_deleted.find(card.id)
+    assert card_row.deleted_at.present?, "unused cards are soft-deleted"
+    assert_nil card_row.user_id
+    assert_nil card_row.name
+    assert_nil card_row.last_digits
+    assert_nil card_row.gateway_customer_profile_id
+    assert_nil card_row.gateway_payment_profile_id
     deleted = Spree.user_class.with_deleted.find(@user.id)
     assert_nil deleted.bill_address_id
     assert_nil deleted.ship_address_id
+  end
+
+  test "a saved card a retained payment uses is detached, not deleted, and the payment still processes" do
+    card = create_credit_card(@user)
+    card.update_columns(default: true, gateway_customer_profile_id: "BGS-cust")
+    completed = create_order({})
+    completed.update_columns(state: "complete", completed_at: Time.current)
+    to_capture = Spree::Payment.create!(order: completed, amount: 10, payment_method: bogus_gateway, source: card,
+                                        state: "pending", response_code: "12345")
+    to_void = Spree::Payment.create!(order: completed, amount: 5, payment_method: bogus_gateway, source: card,
+                                     state: "pending", response_code: "12345")
+
+    delete "/api/v1/account", headers: bearer(@token)
+    assert_response :no_content
+
+    card_row = Spree::CreditCard.find_by(id: card.id)
+    assert card_row, "the card is not soft-deleted"
+    assert_nil card_row.user_id
+    refute card_row.default
+    assert_nil card_row.name, "the cardholder name is cleared"
+    assert_equal "1111", card_row.last_digits
+    assert_equal "visa", card_row.cc_type
+    assert_equal "BGS-cust", card_row.gateway_customer_profile_id
+    assert_equal card.gateway_payment_profile_id, card_row.gateway_payment_profile_id
+
+    to_capture.reload
+    assert_equal card.id, to_capture.source&.id, "the payment keeps its source"
+    assert to_capture.valid?, to_capture.errors.full_messages.to_sentence
+    to_capture.capture!
+    assert to_capture.reload.completed?
+    to_void = Spree::Payment.find(to_void.id)
+    assert to_void.source.present?
+    to_void.void_transaction!
+    assert to_void.reload.void?
+  end
+
+  test "a loyalty points payment on a retained order still validates and voids after deletion" do
+    @user.update_column(:loyalty_points_balance, 1000)
+    completed = create_order({})
+    completed.update_columns(state: "complete", completed_at: Time.current)
+    loyalty = Spree::PaymentMethod::LoyaltyPoints.create!(name: "Loyalty #{SecureRandom.hex(3)}")
+    payment = Spree::Payment.create!(order: completed, amount: 10, payment_method: loyalty, state: "completed")
+
+    delete "/api/v1/account", headers: bearer(@token)
+    assert_response :no_content
+
+    payment = Spree::Payment.find(payment.id)
+    assert_nil payment.order.user, "sanity: the order's user is soft-deleted"
+    assert payment.valid?, payment.errors.full_messages.to_sentence
+    payment.void!
+    assert payment.reload.void?
   end
 
   # Spree reuses the user's saved address record on new carts, so a cart can share an address

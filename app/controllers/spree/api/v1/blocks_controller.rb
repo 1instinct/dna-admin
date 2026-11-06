@@ -7,6 +7,7 @@ module Spree
       #   POST   /api/v1/blocks { handle } 201 { handle, name, avatar } (idempotent); 404 unknown; 422 self
       #   DELETE /api/v1/blocks/:handle   204; 404 when the user has no such block
       #   POST and DELETE answer 429 over the limit.
+      #   name and avatar are null when the profile is hidden or locked, or its owner blocked the caller.
       class BlocksController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
@@ -16,7 +17,8 @@ module Spree
         def index
           blocks = Spree::UserBlock.where(blocker_id: current_api_user.id).order(created_at: :desc, id: :desc)
           profiles = Spree::UserProfile.where(user_id: blocks.map(&:blocked_id)).index_by(&:user_id)
-          list = blocks.map { |block| profiles[block.blocked_id] }.compact.map { |p| presenter(p).identity_json }
+          shown = shown_profile_ids(profiles.values)
+          list = blocks.map { |block| profiles[block.blocked_id] }.compact.map { |p| block_json(p, shown) }
           render json: list
         end
 
@@ -27,7 +29,7 @@ module Spree
           return render_error("You can't block yourself", :unprocessable_entity) if profile.user_id == current_api_user.id
 
           Spree::UserBlock.block!(current_api_user, profile.user)
-          render json: presenter(profile).identity_json, status: :created
+          render json: block_json(profile, shown_profile_ids([profile])), status: :created
         end
 
         def destroy
@@ -45,6 +47,24 @@ module Spree
         def blockable_profile(handle)
           Spree::UserProfile.with_handle.joins(:user).where(Spree::User.table_name => { deleted_at: nil })
                             .by_handle(handle).first
+        end
+
+        # Name and avatar only for profiles the caller could see anyway (GET /profiles/:handle
+        # aside from the caller's own block): visible, and the owner hasn't blocked the caller.
+        # Otherwise only the handle, which the caller already knows.
+        def block_json(profile, shown_ids)
+          return presenter(profile).identity_json if shown_ids.include?(profile.id)
+
+          { handle: profile.handle, name: nil, avatar: nil }
+        end
+
+        def shown_profile_ids(profiles)
+          return Set.new if profiles.empty?
+
+          blocking_me = Spree::UserBlock.where(blocker_id: profiles.map(&:user_id), blocked_id: current_api_user.id)
+                                        .pluck(:blocker_id)
+          Set.new(Spree::UserProfile.visible.where(id: profiles.map(&:id))
+                                    .where.not(user_id: blocking_me).pluck(:id))
         end
       end
     end

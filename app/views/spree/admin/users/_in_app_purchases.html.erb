@@ -1,0 +1,56 @@
+<% iap_transactions = Spree::IapTransaction.where(user_id: user.id).includes(:iap_product).newest_first.limit(50) %>
+<% iap_entitlements = Spree::Entitlement.where(user_id: user.id).order(:key) %>
+<div id="admin_user_in_app_purchases" class="card mb-3" data-hook="admin_user_in_app_purchases">
+  <div class="card-header">
+    <h1 class="card-title mb-0 h5">In-app purchases</h1>
+  </div>
+  <div class="card-body">
+    <h2 class="h6">Entitlements</h2>
+    <% if iap_entitlements.any? %>
+      <table class="table table-sm">
+        <thead><tr><th>Key</th><th>State</th><th>Since</th><th>Until</th><th></th></tr></thead>
+        <tbody>
+          <% iap_entitlements.each do |e| %>
+            <tr class="iap-entitlement">
+              <td><strong><%= e.key %></strong></td>
+              <td><%= e.current? ? 'active' : 'inactive' %></td>
+              <td><%= e.starts_at ? l(e.starts_at, format: :short) : '-' %></td>
+              <td><%= e.expires_at ? l(e.expires_at, format: :short) : (e.current? ? 'no expiry' : '-') %></td>
+              <td class="text-right">
+                <% if e.current? %>
+                  <%= form_tag spree.revoke_admin_entitlement_path(e), method: :post, class: 'form-inline justify-content-end' do %>
+                    <%= text_field_tag :note, nil, placeholder: 'Reason', required: true, class: 'form-control form-control-sm mr-2' %>
+                    <%= button 'Revoke', nil, 'submit', class: 'btn-sm btn-danger', data: { confirm: "Revoke #{e.key}?" } %>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="text-muted">None.</p>
+    <% end %>
+
+    <h2 class="h6">Transactions</h2>
+    <% if iap_transactions.any? %>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Purchased</th><th>Platform</th><th>Env</th><th>Product</th><th>Status</th><th>Expires</th></tr></thead>
+        <tbody>
+          <% iap_transactions.each do |t| %>
+            <tr>
+              <td><%= link_to(t.purchased_at ? l(t.purchased_at, format: :short) : t.transaction_id.truncate(20), spree.admin_iap_transaction_path(t)) %></td>
+              <td><%= t.platform %></td>
+              <td><%= t.environment %></td>
+              <td><%= t.product_id %></td>
+              <td><%= t.effective_status %></td>
+              <td><%= t.expires_at ? l(t.expires_at, format: :short) : '-' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="text-muted mb-0">No in-app purchases.</p>
+    <% end %>
+  </div>
+</div>

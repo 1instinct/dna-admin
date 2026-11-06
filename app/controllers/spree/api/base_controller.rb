@@ -136,6 +136,11 @@ module Spree
         Spree::Api::Config[:requires_authentication]
       end
 
+      # Admins see the whole catalog on the API; anyone else only what's on sale.
+      def catalog_admin?
+        @current_user_roles.include?('admin')
+      end
+
       def not_found
         render 'spree/api/errors/not_found', status: 404 and return
       end

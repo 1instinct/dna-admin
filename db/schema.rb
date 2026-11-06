@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_03_120300) do
+ActiveRecord::Schema.define(version: 2026_11_04_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -62,6 +62,25 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "admin_themes", force: :cascade do |t|
+    t.string "brand_name", default: "Admin"
+    t.string "primary_color", default: "#6366f1"
+    t.string "secondary_color", default: "#8b5cf6"
+    t.string "surface_color", default: "#1a1a2e"
+    t.string "background_color", default: "#0f0f1a"
+    t.string "text_color", default: "#e2e8f0"
+    t.string "sidebar_color", default: "#16162a"
+    t.string "border_radius", default: "8px"
+    t.string "font_family", default: "Inter, system-ui, sans-serif"
+    t.string "color_mode", default: "system"
+    t.boolean "enable_animations", default: true
+    t.text "custom_css"
+    t.integer "singleton_guard", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["singleton_guard"], name: "index_admin_themes_on_singleton_guard", unique: true
+  end
+
   create_table "contacts", force: :cascade do |t|
     t.integer "actor_id"
     t.string "full_name"
@@ -70,6 +89,18 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.text "ip"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "content_assets", force: :cascade do |t|
+    t.string "alt_text", limit: 255
+    t.string "tag", limit: 100
+    t.string "original_filename", default: "", null: false
+    t.string "content_type", default: "", null: false
+    t.integer "byte_size", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["created_at"], name: "index_content_assets_on_created_at"
+    t.index ["tag"], name: "index_content_assets_on_tag"
   end
 
   create_table "favorites", force: :cascade do |t|
@@ -459,6 +490,19 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.index ["variant_id"], name: "index_spree_digitals_on_variant_id"
   end
 
+  create_table "spree_entitlements", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "key", null: false
+    t.bigint "iap_transaction_id"
+    t.datetime "starts_at"
+    t.datetime "expires_at"
+    t.boolean "active", default: false, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["iap_transaction_id"], name: "index_spree_entitlements_on_iap_transaction_id"
+    t.index ["user_id", "key"], name: "index_spree_entitlements_on_user_id_and_key", unique: true
+  end
+
   create_table "spree_gateways", id: :serial, force: :cascade do |t|
     t.string "type"
     t.string "name"
@@ -472,6 +516,93 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.text "preferences"
     t.index ["active"], name: "index_spree_gateways_on_active"
     t.index ["test_mode"], name: "index_spree_gateways_on_test_mode"
+  end
+
+  create_table "spree_iap_account_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["token"], name: "index_spree_iap_account_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_spree_iap_account_tokens_on_user_id", unique: true
+  end
+
+  create_table "spree_iap_audit_logs", force: :cascade do |t|
+    t.bigint "iap_transaction_id", null: false
+    t.bigint "admin_user_id"
+    t.string "action", null: false
+    t.text "note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["admin_user_id"], name: "index_spree_iap_audit_logs_on_admin_user_id"
+    t.index ["iap_transaction_id"], name: "index_spree_iap_audit_logs_on_iap_transaction_id"
+  end
+
+  create_table "spree_iap_notifications", force: :cascade do |t|
+    t.bigint "iap_transaction_id"
+    t.string "platform", null: false
+    t.string "notification_id", null: false
+    t.string "notification_type"
+    t.string "subtype"
+    t.string "environment"
+    t.text "signed_payload"
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "processed_at"
+    t.string "error"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["iap_transaction_id"], name: "index_spree_iap_notifications_on_iap_transaction_id"
+    t.index ["platform", "notification_id"], name: "index_spree_iap_notifications_on_platform_notification", unique: true
+  end
+
+  create_table "spree_iap_products", force: :cascade do |t|
+    t.bigint "store_id"
+    t.string "platform", null: false
+    t.string "product_id", null: false
+    t.string "kind", default: "subscription", null: false
+    t.string "entitlement"
+    t.string "name"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["platform", "product_id"], name: "index_spree_iap_products_on_platform_product", unique: true
+    t.index ["store_id"], name: "index_spree_iap_products_on_store_id"
+  end
+
+  create_table "spree_iap_transactions", force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "iap_product_id"
+    t.string "platform", null: false
+    t.string "product_id", null: false
+    t.string "transaction_id", null: false
+    t.string "original_transaction_id", null: false
+    t.string "order_id"
+    t.string "environment", default: "production", null: false
+    t.string "status", default: "active", null: false
+    t.boolean "auto_renew"
+    t.datetime "purchased_at"
+    t.datetime "expires_at"
+    t.datetime "grace_expires_at"
+    t.datetime "revoked_at"
+    t.string "revocation_reason"
+    t.decimal "price", precision: 12, scale: 4
+    t.string "currency"
+    t.text "signed_payload"
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "verified_at"
+    t.datetime "acknowledged_at"
+    t.datetime "admin_revoked_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "store_signed_at"
+    t.string "account_token"
+    t.index ["account_token"], name: "index_spree_iap_transactions_on_account_token"
+    t.index ["created_at"], name: "index_spree_iap_transactions_on_created_at"
+    t.index ["iap_product_id"], name: "index_spree_iap_transactions_on_iap_product_id"
+    t.index ["platform", "original_transaction_id"], name: "index_spree_iap_transactions_on_platform_original"
+    t.index ["platform", "transaction_id"], name: "index_spree_iap_transactions_on_platform_txn", unique: true
+    t.index ["status"], name: "index_spree_iap_transactions_on_status"
+    t.index ["user_id"], name: "index_spree_iap_transactions_on_user_id"
   end
 
   create_table "spree_inventory_units", id: :serial, force: :cascade do |t|
@@ -830,6 +961,15 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.index ["property_id"], name: "index_spree_product_properties_on_property_id"
   end
 
+  create_table "spree_product_videos", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.integer "position"
+    t.string "alt"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["product_id"], name: "index_spree_product_videos_on_product_id"
+  end
+
   create_table "spree_products", id: :serial, force: :cascade do |t|
     t.string "name", default: "", null: false
     t.text "description"
@@ -904,7 +1044,6 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
     t.boolean "used", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "code"
   end
 
   create_table "spree_promotion_rule_taxons", id: :serial, force: :cascade do |t|
@@ -1613,6 +1752,7 @@ ActiveRecord::Schema.define(version: 2026_11_03_120300) do
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
   add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"
