@@ -89,6 +89,43 @@ class Spree::Api::V1::ProfileControllerTest < ActionDispatch::IntegrationTest
     assert json['fields']['handle'].any?
   end
 
+  test 'PATCH: a member cannot take a reserved-prefix handle' do
+    with_moderation_lists do
+      Profiles.config.reserved_prefixes = %w[acme]
+      patch '/api/v1/profile', headers: @headers, params: { profile: { handle: 'acme_hq' } }, as: :json
+      assert_response :unprocessable_entity
+      assert_equal ['is reserved'], json['fields']['handle']
+    end
+  end
+
+  test 'PATCH: an admin may take a reserved handle, then the cooldown and other rules apply' do
+    headers = auth(make_admin(@user))
+    create(:user_profile, handle: 'support_team')
+    with_moderation_lists do
+      Profiles.config.reserved_prefixes = %w[acme]
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'a__b' } }, as: :json
+      assert_response :unprocessable_entity
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'xbadwordx' } }, as: :json
+      assert_equal ["isn't allowed"], json['fields']['handle']
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'SUPPORT_TEAM' } }, as: :json
+      assert_equal ['is taken'], json['fields']['handle']
+
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'admin' } }, as: :json
+      assert_response :success
+      assert_equal 'admin', json['handle']
+
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'acme' } }, as: :json
+      assert_response :success
+      assert_equal 'acme', json['handle']
+      assert json['handle_changeable_at'].present?, 'the change starts the cooldown'
+
+      patch '/api/v1/profile', headers: headers, params: { profile: { handle: 'acme_hq' } }, as: :json
+      assert_response :unprocessable_entity
+      assert json['fields']['handle'].first.include?('14 days')
+      assert_equal 'acme', @user.reload.profile.handle
+    end
+  end
+
   test 'PATCH without a profile object is 422' do
     patch '/api/v1/profile', headers: @headers, params: { name: 'x' } # form body: no JSON param wrapping
     assert_response :unprocessable_entity

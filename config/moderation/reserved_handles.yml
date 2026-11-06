@@ -1,4 +1,4 @@
-# Handles nobody can take (lowercase). Apps append with config/moderation/<app>_reserved_handles.yml.
+# Handles only admins (Profiles.config.reserved_handle_roles) can take (lowercase). Apps append with config/moderation/<app>_reserved_handles.yml.
 - about
 - abuse
 - account

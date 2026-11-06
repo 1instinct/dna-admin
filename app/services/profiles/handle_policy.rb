@@ -8,6 +8,10 @@ module Profiles
   #
   # The user's current handle is always :ok. :cooldown means the name is free but the user
   # changed their handle within Profiles.config.handle_cooldown (setting the first one is free).
+  #
+  # A user holding one of Profiles.config.reserved_handle_roles (default: admin) may take reserved
+  # handles and handles starting with a reserved prefix. Every other rule still applies to them:
+  # format, blocked terms, taken and the cooldown.
   module HandlePolicy
     FORMAT = /\A[a-z0-9_]{3,30}\z/.freeze
 
@@ -30,7 +34,7 @@ module Profiles
       current = profile&.persisted? ? profile.handle_in_database : nil
       return :ok if current.present? && current == handle
 
-      refused = refusal(handle)
+      refused = refusal(handle, allow_reserved: may_take_reserved?(user))
       return refused if refused
       return :taken if taken?(handle, user)
       return :cooldown if current.present? && profile.handle_changeable_at(now)
@@ -39,13 +43,19 @@ module Profiles
     end
 
     # What the rules alone say about a normalized handle, without touching the database:
-    # :invalid, :reserved, :not_allowed or nil.
-    def refusal(handle)
+    # :invalid, :reserved, :not_allowed or nil. allow_reserved skips only the reserved check.
+    def refusal(handle, allow_reserved: false)
       return :invalid unless valid_format?(handle)
-      return :reserved if reserved?(handle)
+      return :reserved if !allow_reserved && reserved?(handle)
       return :not_allowed unless ContentFilter.allowed?(handle, mode: :handle)
 
       nil
+    end
+
+    def may_take_reserved?(user)
+      return false unless user.respond_to?(:has_spree_role?)
+
+      Profiles.config.reserved_handle_roles.any? { |role| user.has_spree_role?(role) }
     end
 
     def reserved?(handle)

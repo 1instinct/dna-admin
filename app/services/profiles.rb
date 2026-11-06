@@ -11,12 +11,16 @@
 module Profiles
   class Config
     attr_writer :reserved_handles, :reserved_prefixes, :blocked_terms, :moderation_email, :avatar_url_hosts
-    attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :avatar_max_bytes,
-                  :avatar_content_types, :avatar_size, :avatar_variants, :moderation_dir,
-                  :favorites_limit, :avatar_fallback, :rate_limits
+    attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :report_limit,
+                  :report_window, :avatar_max_bytes, :avatar_content_types, :avatar_size,
+                  :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback,
+                  :rate_limits, :reserved_handle_roles,
+                  :handle_cooldown, :favorites_limit, :rate_limits
 
     def initialize
       @extra_reserved_handles = []
+      # Spree role names whose holders may take reserved handles and reserved-prefix handles.
+      @reserved_handle_roles = %w[admin]
       @links_keys = %w[instagram tiktok youtube soundcloud bandcamp]
       @handle_cooldown = 14.days
       @avatar_max_bytes = 5.megabytes
@@ -45,12 +49,12 @@ module Profiles
       }
     end
 
-    # Lowercase handles nobody may take.
+    # Lowercase handles only holders of reserved_handle_roles may take.
     def reserved_handles
       @reserved_handles ||= Set.new((load_list('reserved_handles') + extra_reserved_handles).map { |h| h.to_s.downcase })
     end
 
-    # Lowercase prefixes nobody may start a handle with.
+    # Lowercase prefixes only holders of reserved_handle_roles may start a handle with.
     def reserved_prefixes
       @reserved_prefixes ||= load_list('reserved_prefixes').map { |p| p.to_s.downcase.strip }.reject(&:empty?).uniq
     end
