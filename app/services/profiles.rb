@@ -14,9 +14,8 @@ module Profiles
     attr_accessor :extra_reserved_handles, :links_keys, :handle_cooldown, :report_limit,
                   :report_window, :avatar_max_bytes, :avatar_content_types, :avatar_size,
                   :avatar_variants, :moderation_dir, :favorites_limit, :avatar_fallback,
-                  :rate_limits, :reserved_handle_roles :extra_reserved_handles, :links_keys, :handle_cooldown, :avatar_max_bytes,
-                  :avatar_content_types, :avatar_size, :avatar_variants, :moderation_dir,
-                  :favorites_limit, :avatar_fallback, :rate_limits
+                  :rate_limits, :reserved_handle_roles,
+                  :handle_cooldown, :favorites_limit, :rate_limits
 
     def initialize
       @extra_reserved_handles = []
