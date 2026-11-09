@@ -98,6 +98,26 @@ class Spree::Admin::AppFeedbacksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 4, listed.size
   end
 
+  test 'the app version filter lists versions newest first, semantically, with junk last' do
+    create(:app_feedback, app_version: '1.9.0')
+    create(:app_feedback, app_version: '1.10.0')
+    create(:app_feedback, app_version: 'nightly build')
+    sign_in(@admin)
+    get '/admin/feedback'
+    select = response.body[%r{<select[^>]*name="app_version".*?</select>}m]
+    versions = select.scan(/<option value="([^"]+)"/).flatten
+    assert_equal ['1.10.0', '1.9.0', '1.2.0', '1.1.0', '1.0.0', 'nightly build'], versions
+  end
+
+  test 'a feedback whose user was hard-deleted can still be triaged' do
+    user = create(:user)
+    orphan = create(:app_feedback, install_id: nil, user: user)
+    Spree::User.where(id: user.id).delete_all
+    sign_in(@admin)
+    patch "/admin/feedback/#{orphan.id}", params: { app_feedback: { status: 'done' } }
+    assert_equal 'done', orphan.reload.status
+  end
+
   test 'index paginates' do
     sign_in(@admin)
     create_list(:app_feedback, Spree::Admin::AppFeedbacksController::PER_PAGE, kind: 'idea')

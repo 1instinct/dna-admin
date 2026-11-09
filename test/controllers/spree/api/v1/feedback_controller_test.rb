@@ -147,9 +147,25 @@ class Spree::Api::V1::FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_includes mail.subject, "##{json['id']}"
     body = mail.body.encoded
     assert_includes body, 'Pads stop responding after a phone call'
-    assert_includes body, "/feedback/#{json['id']}"
+    assert_includes body, "http://localhost/admin/feedback/#{json['id']}", 'an absolute link from the mailer host'
     refute_includes body, 'reply-to-me@example.com'
     refute_includes body, 'diag-value'
+  end
+
+  test 'the email links the admin by path when no host is configured' do
+    mailer_options = ActionMailer::Base.default_url_options
+    routes_options = Rails.application.routes.default_url_options
+    ActionMailer::Base.default_url_options = {}
+    Rails.application.routes.default_url_options = {}
+
+    send_feedback(fields)
+
+    assert_response :created
+    body = ActionMailer::Base.deliveries.last.body.encoded
+    assert_match %r{admin: /admin/feedback/#{json['id']}\s*$}, body
+  ensure
+    ActionMailer::Base.default_url_options = mailer_options
+    Rails.application.routes.default_url_options = routes_options
   end
 
   test 'no email for other kinds or when FEEDBACK_EMAIL is unset' do
@@ -211,6 +227,57 @@ class Spree::Api::V1::FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_response :too_many_requests
     send_feedback(fields(install_id: 'install-new'), ip: '203.0.113.8')
     assert_response :created
+  end
+
+  test 'a failed screenshot upload still stores the feedback once, notes it, emails and answers 201' do
+    service = ActiveStorage::Blob.service
+    service.define_singleton_method(:upload) { |*_args, **_opts| raise IOError, 'storage down' }
+    io = StringIO.new
+    old_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+
+    assert_no_difference -> { ActiveStorage::Blob.count } do
+      send_feedback(fields(screenshot: fixture_upload('avatar.png', 'image/png')))
+    end
+
+    assert_response :created
+    assert_equal 1, AppFeedback.count
+    feedback = AppFeedback.find(json['id'])
+    refute feedback.screenshot.attached?
+    assert_includes feedback.admin_note, 'screenshot upload failed'
+    assert_includes io.string, "feedback #{feedback.id} screenshot upload failed: IOError"
+    assert ActionMailer::Base.deliveries.last, 'the bug email still goes out'
+    assert_equal 0, ActiveStorage::Attachment.where(record_type: 'AppFeedback').count
+  ensure
+    Rails.logger = old_logger
+    service.singleton_class.send(:remove_method, :upload)
+  end
+
+  test 'the screenshot is uploaded before the row is saved, so it is readable right after 201' do
+    send_feedback(fields(screenshot: fixture_upload('avatar.png', 'image/png')))
+    assert_response :created
+    blob = AppFeedback.find(json['id']).screenshot.blob
+    assert blob.service.exist?(blob.key)
+    assert_equal File.binread(Rails.root.join('test', 'fixtures', 'files', 'avatar.png')), blob.download
+  end
+
+  test 'a request the IP limit refuses does not use up the sender limit, and the other way round' do
+    AppFeedback.config.rate_limits = { sender: { limit: 3, window: 24.hours }, ip: { limit: 2, window: 24.hours } }
+
+    2.times do
+      send_feedback(fields, ip: '198.51.100.1')
+      assert_response :created
+    end
+    send_feedback(fields, ip: '198.51.100.1')
+    assert_response :too_many_requests, 'the IP is over its limit'
+
+    send_feedback(fields, ip: '198.51.100.2')
+    assert_response :created, 'the refused request did not count against the install'
+    send_feedback(fields, ip: '198.51.100.3')
+    assert_response :too_many_requests, 'now the install is over its limit'
+
+    send_feedback(fields(install_id: 'other-install'), ip: '198.51.100.3')
+    assert_response :created, 'the install-refused request did not count against the IP'
   end
 
   test 'the limit resets after a day, refused feedback does not use it, and IPs are not stored' do

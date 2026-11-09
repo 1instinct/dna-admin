@@ -27,17 +27,21 @@ module Spree
           feedback = AppFeedback.new(attributes)
           return render_record_errors(feedback, 'Feedback could not be sent') unless diagnostics_ok?(feedback)
 
-          screenshot = params[:screenshot]
-          if screenshot.present?
-            return unless attach_screenshot(feedback, screenshot)
+          screenshot = nil
+          if params[:screenshot].present?
+            screenshot = checked_screenshot(params[:screenshot])
+            return unless screenshot
           end
           return render_record_errors(feedback, 'Feedback could not be sent') unless feedback.valid?
           return render_error('Too much feedback. Try again later.', :too_many_requests) unless within_limits?(feedback)
 
+          upload_error = screenshot && upload_screenshot(feedback, screenshot)
           if feedback.save
+            log_upload_failure(feedback, upload_error) if upload_error
             notify(feedback)
             render json: { id: feedback.id }, status: :created
           else
+            discard_uploaded_screenshot(feedback)
             render_record_errors(feedback, 'Feedback could not be sent')
           end
         end
@@ -89,16 +93,18 @@ module Spree
           nil
         end
 
-        def attach_screenshot(feedback, upload)
+        # { path:, content_type: } for an upload that is a JPEG or PNG of at most 5 MB, or nil after
+        # rendering the 422.
+        def checked_screenshot(upload)
           unless upload.respond_to?(:tempfile) || upload.respond_to?(:path)
             render_error('screenshot must be an image file', :unprocessable_entity,
                          fields: { screenshot: ['must be a JPEG or PNG image'] })
-            return false
+            return
           end
           if upload.size > AppFeedback::SCREENSHOT_MAX_BYTES
             render_error('screenshot is too large', :unprocessable_entity,
                          fields: { screenshot: ["must be at most #{AppFeedback::SCREENSHOT_MAX_BYTES / 1.megabyte} MB"] })
-            return false
+            return
           end
 
           path = upload.respond_to?(:tempfile) ? upload.tempfile.path : upload.path
@@ -107,18 +113,48 @@ module Spree
           unless AppFeedback::SCREENSHOT_CONTENT_TYPES.include?(detected)
             render_error('screenshot must be a JPEG or PNG image', :unprocessable_entity,
                          fields: { screenshot: ['must be a JPEG or PNG image'] })
-            return false
+            return
           end
 
-          extension = detected == 'image/png' ? 'png' : 'jpg'
-          feedback.screenshot.attach(io: File.open(path, 'rb'), filename: "screenshot.#{extension}", content_type: detected)
-          true
+          { path: path, content_type: detected }
+        end
+
+        # Uploads to storage before the row is saved, then attaches the stored blob. Rails 6.1
+        # would otherwise upload after commit, where a storage error turns into a 500 for a row
+        # already saved (and a retry from the app into a duplicate). On failure the feedback is
+        # kept without its screenshot, noted for the admin; returns the error, or nil.
+        def upload_screenshot(feedback, screenshot)
+          extension = screenshot[:content_type] == 'image/png' ? 'png' : 'jpg'
+          # A key chosen here, so a blob row left by a failed upload can be found and removed.
+          key = ActiveStorage::Blob.generate_unique_secure_token
+          File.open(screenshot[:path], 'rb') do |io|
+            blob = ActiveStorage::Blob.create_and_upload!(key: key, io: io, filename: "screenshot.#{extension}",
+                                                          content_type: screenshot[:content_type], identify: false)
+            feedback.screenshot.attach(blob)
+          end
+          nil
+        rescue StandardError => e
+          ActiveStorage::Blob.where(key: key).delete_all if key
+          feedback.admin_note = [feedback.admin_note.presence, 'screenshot upload failed'].compact.join("\n")
+          e
+        end
+
+        def log_upload_failure(feedback, error)
+          Rails.logger.error("[feedback] feedback #{feedback.id} screenshot upload failed: #{error.class}")
+        end
+
+        # The row didn't save (rare: it validated a moment ago); drop the screenshot stored for it.
+        def discard_uploaded_screenshot(feedback)
+          feedback.screenshot.blob.purge if feedback.screenshot.attached?
+        rescue StandardError => e
+          Rails.logger.error("[feedback] discarding an unsaved screenshot failed: #{e.class}")
         end
 
         def within_limits?(feedback)
-          sender = AppFeedback::RateLimit.sender_key(feedback.user, feedback.install_id)
-          AppFeedback::RateLimit.allow?(:sender, sender) &&
-            AppFeedback::RateLimit.allow?(:ip, AppFeedback::RateLimit.ip_key(request.remote_ip))
+          AppFeedback::RateLimit.allow_all?(
+            sender: AppFeedback::RateLimit.sender_key(feedback.user, feedback.install_id),
+            ip: AppFeedback::RateLimit.ip_key(request.remote_ip)
+          )
         end
 
         def notify(feedback)

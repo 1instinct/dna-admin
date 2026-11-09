@@ -24,7 +24,8 @@ class AppFeedback < ApplicationRecord
   validates :rating, presence: true, if: -> { kind == 'rating' }
   validates :message, presence: true, unless: -> { kind == 'rating' }
   validates :message, length: { maximum: MESSAGE_MAX }
-  validates :install_id, presence: true, unless: :user_id
+  # On create only: a user deleted later nulls user_id, and the row must stay triageable.
+  validates :install_id, presence: true, unless: :user_id, on: :create
   validates(*SHORT_FIELDS, length: { maximum: SHORT_MAX })
   validates :email, length: { maximum: EMAIL_MAX },
                     format: { with: URI::MailTo::EMAIL_REGEXP, message: 'is not a valid email' }, allow_blank: true

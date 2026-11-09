@@ -40,6 +40,15 @@ class AppFeedbackTest < ActiveSupport::TestCase
     assert build(:app_feedback, install_id: nil, user: create(:user)).valid?
   end
 
+  test 'feedback whose user was deleted can still be triaged without an install_id' do
+    user = create(:user)
+    feedback = create(:app_feedback, install_id: nil, user: user)
+    Spree::User.where(id: user.id).delete_all
+    feedback.reload
+    assert_nil feedback.user_id
+    assert feedback.update(status: 'triaged', admin_note: 'seen'), feedback.errors.full_messages.to_sentence
+  end
+
   test 'email is optional and validated' do
     assert build(:app_feedback, email: nil).valid?
     assert build(:app_feedback, email: 'tester@example.com').valid?

@@ -14,7 +14,7 @@ module Spree
         @feedbacks = filtered(AppFeedback.includes(:screenshot_attachment).newest_first)
                      .page(params[:page]).per(PER_PAGE)
         @platforms = AppFeedback.where.not(platform: [nil, '']).distinct.order(:platform).pluck(:platform)
-        @app_versions = AppFeedback.where.not(app_version: [nil, '']).distinct.order(app_version: :desc).limit(50).pluck(:app_version)
+        @app_versions = sorted_versions(AppFeedback.where.not(app_version: [nil, '']).distinct.pluck(:app_version)).first(50)
       end
 
       def show; end
@@ -71,6 +71,12 @@ module Spree
         scope = scope.where('app_feedbacks.created_at >= ?', from.beginning_of_day) if from
         scope = scope.where('app_feedbacks.created_at <= ?', to.end_of_day) if to
         scope
+      end
+
+      # Newest first by version ("1.10.0" above "1.9.0"); values that aren't versions go last, A-Z.
+      def sorted_versions(versions)
+        valid, junk = versions.partition { |v| Gem::Version.correct?(v.to_s.strip) }
+        valid.sort_by { |v| Gem::Version.new(v.to_s.strip) }.reverse + junk.sort
       end
 
       def parse_date(value)

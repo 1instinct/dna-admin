@@ -9,4 +9,4 @@ Device: <%= [@feedback.platform, @feedback.os_version, @feedback.device_model].c
 Screenshot: <%= @feedback.screenshot.attached? ? 'yes' : 'no' %>
 <% if @feedback.sentry_url %>Sentry: <%= @feedback.sentry_url %>
 <% end %>
-Triage it in the admin: <%= @admin_path %>
+Triage it in the admin: <%= @admin_link %>
