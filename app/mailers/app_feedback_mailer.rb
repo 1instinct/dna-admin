@@ -17,14 +17,14 @@ class AppFeedbackMailer < ApplicationMailer
 
   private
 
-  # An absolute URL when the app has a host configured (config.action_mailer.default_url_options,
-  # else the routes' default_url_options), else the admin path. The store's URL isn't used: in a
-  # headless setup it is the storefront's host, not the admin's.
+  # An absolute URL when the app sets a host in Rails.application.routes.default_url_options, else
+  # the admin path. Neither the store's URL nor ActionMailer's default host is used: Spree's
+  # mailers fill the latter with the former on their first send, and in a headless setup that is
+  # the storefront's host, not the admin's.
   def admin_link(feedback)
     path = "#{Spree.admin_path.chomp('/')}/feedback/#{feedback.id}"
-    options = [ActionMailer::Base.default_url_options, Rails.application.routes.default_url_options]
-              .map { |o| (o || {}).symbolize_keys }.find { |o| o[:host].present? }
-    return path unless options
+    options = (Rails.application.routes.default_url_options || {}).symbolize_keys
+    return path if options[:host].blank?
 
     Spree::Core::Engine.routes.url_helpers.admin_app_feedback_url(feedback, **options.slice(:host, :port, :protocol))
   rescue StandardError

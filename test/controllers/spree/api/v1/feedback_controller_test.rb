@@ -147,25 +147,37 @@ class Spree::Api::V1::FeedbackControllerTest < ActionDispatch::IntegrationTest
     assert_includes mail.subject, "##{json['id']}"
     body = mail.body.encoded
     assert_includes body, 'Pads stop responding after a phone call'
-    assert_includes body, "http://localhost/admin/feedback/#{json['id']}", 'an absolute link from the mailer host'
+    assert_includes body, "/admin/feedback/#{json['id']}"
     refute_includes body, 'reply-to-me@example.com'
     refute_includes body, 'diag-value'
   end
 
-  test 'the email links the admin by path when no host is configured' do
-    mailer_options = ActionMailer::Base.default_url_options
-    routes_options = Rails.application.routes.default_url_options
-    ActionMailer::Base.default_url_options = {}
-    Rails.application.routes.default_url_options = {}
+  # Spree's own mailers fill ActionMailer's default host with the store URL (the storefront in a
+  # headless setup), so only the app's routes host is trusted for the admin link.
+  def with_hosts(routes:, mailer:)
+    old = [Rails.application.routes.default_url_options, ActionMailer::Base.default_url_options]
+    Rails.application.routes.default_url_options = routes
+    ActionMailer::Base.default_url_options = mailer
+    yield
+  ensure
+    Rails.application.routes.default_url_options, ActionMailer::Base.default_url_options = old
+  end
 
-    send_feedback(fields)
+  test 'the email links the admin with an absolute URL from the routes host' do
+    with_hosts(routes: { host: 'admin.example.com', protocol: 'https' }, mailer: { host: 'shop.example.com' }) do
+      send_feedback(fields)
+    end
+    assert_response :created
+    body = ActionMailer::Base.deliveries.last.body.encoded
+    assert_includes body, "admin: https://admin.example.com/admin/feedback/#{json['id']}"
+    refute_includes body, 'shop.example.com'
+  end
 
+  test 'the email links the admin by path when no routes host is configured' do
+    with_hosts(routes: {}, mailer: { host: 'shop.example.com' }) { send_feedback(fields) }
     assert_response :created
     body = ActionMailer::Base.deliveries.last.body.encoded
     assert_match %r{admin: /admin/feedback/#{json['id']}\s*$}, body
-  ensure
-    ActionMailer::Base.default_url_options = mailer_options
-    Rails.application.routes.default_url_options = routes_options
   end
 
   test 'no email for other kinds or when FEEDBACK_EMAIL is unset' do
