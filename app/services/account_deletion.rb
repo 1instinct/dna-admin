@@ -12,6 +12,8 @@
 #             shipments (email anonymized), store credit and loyalty points, for accounting;
 #             reports the user filed, with reporter_id and the free-text details cleared
 #             (moderation record: reason and target snapshot stay).
+# Feedback:   app feedback the user sent is deleted with its screenshots; anonymous feedback
+#             from the same install can't be tied to the account and stays.
 #
 # Refused (AccountDeletion::Refused, with a message for the user) for admin accounts.
 class AccountDeletion
@@ -85,6 +87,7 @@ class AccountDeletion
     LiveStreamLike.where(user_id: user.id).delete_all
     Message.where(sender: user).or(Message.where(receiver: user)).delete_all
     delete_profile_data
+    delete_feedback
     # In-app purchase receipts are payment records: when that module lands, keep them for
     # accounting and detach or anonymize them here rather than deleting.
   end
@@ -102,6 +105,17 @@ class AccountDeletion
         profile.avatar.detach
       end
       profile.destroy!
+    end
+  end
+
+  # Feedback the user sent (app_feedbacks), with its screenshots purged after commit.
+  def delete_feedback
+    AppFeedback.where(user_id: user.id).find_each do |feedback|
+      if feedback.screenshot.attached?
+        avatar_blobs << feedback.screenshot.blob
+        feedback.screenshot.detach
+      end
+      feedback.delete
     end
   end
 

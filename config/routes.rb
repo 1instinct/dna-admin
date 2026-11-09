@@ -196,3 +196,18 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# App feedback: the app's endpoint and the admin's Feedback tab.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      post :feedback, to: 'feedback#create', as: :feedback
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resources :app_feedbacks, path: 'feedback', only: %i[index show update] do
+      collection { post :bulk_archive }
+    end
+  end
+end

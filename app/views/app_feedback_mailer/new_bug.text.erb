@@ -1,0 +1,12 @@
+New bug report #<%= @feedback.id %> (<%= @feedback.created_at.utc.iso8601 %>)
+
+<%= @feedback.message %>
+
+App: <%= [@feedback.app_version, @feedback.build_number && "build #{@feedback.build_number}", @feedback.channel].compact.join(', ').presence || 'unknown' %>
+Device: <%= [@feedback.platform, @feedback.os_version, @feedback.device_model].compact.join(' ').presence || 'unknown' %>
+<% if @feedback.moment.present? %>Moment: <%= @feedback.moment %>
+<% end %>From: <%= @feedback.user_id ? "user #{@feedback.user_id}" : 'anonymous install' %><%= ' (left an email for a reply)' if @feedback.email.present? %>
+Screenshot: <%= @feedback.screenshot.attached? ? 'yes' : 'no' %>
+<% if @feedback.sentry_url %>Sentry: <%= @feedback.sentry_url %>
+<% end %>
+Triage it in the admin: <%= @admin_path %>

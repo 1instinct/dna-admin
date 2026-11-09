@@ -1,0 +1,109 @@
+<% content_for :page_title do %>
+  Feedback
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_app_feedbacks_filter">
+    <%= form_tag spree.admin_app_feedbacks_path, method: :get do %>
+      <div class="row">
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :kind, 'Kind' %>
+            <%= select_tag :kind, options_for_select(AppFeedback::KINDS.map { |k| [Spree::Admin::AppFeedbacksHelper::FEEDBACK_KIND_LABELS.fetch(k, k), k] }, @filters[:kind]),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :rating, 'Rating' %>
+            <%= select_tag :rating, options_for_select((1..5).map(&:to_s), @filters[:rating]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select([['Not archived', 'active'], ['All', 'all']] + AppFeedback::STATUSES.map { |s| [s.capitalize, s] }, @filters[:status]),
+                           class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :platform, 'Platform' %>
+            <%= select_tag :platform, options_for_select(@platforms, @filters[:platform]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :app_version, 'App version' %>
+            <%= select_tag :app_version, options_for_select(@app_versions, @filters[:app_version]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :screenshot, 'Screenshot' %>
+            <%= select_tag :screenshot, options_for_select([%w[With yes], %w[Without no]], @filters[:screenshot]), include_blank: 'Any', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :from, 'From' %>
+            <%= date_field_tag :from, @filters[:from], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :to, 'To' %>
+            <%= date_field_tag :to, @filters[:to], class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @feedbacks.any? %>
+  <%= form_tag spree.bulk_archive_admin_app_feedbacks_path, method: :post, id: 'app_feedbacks_bulk' do %>
+    <div class="mb-2">
+      <%= submit_tag 'Archive selected', class: 'btn btn-sm btn-light', id: 'bulk_archive',
+                                         data: { confirm: 'Archive the selected feedback?' } %>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm" id="listing_app_feedbacks">
+        <thead>
+          <tr>
+            <th><input type="checkbox" aria-label="Select all" onclick="document.querySelectorAll('#listing_app_feedbacks .feedback-select').forEach(function (box) { box.checked = this.checked; }, this)"></th>
+            <th>Date</th>
+            <th>Kind</th>
+            <th>Rating</th>
+            <th>Moment</th>
+            <th>Message</th>
+            <th></th>
+            <th>Build</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @feedbacks.each do |feedback| %>
+            <tr id="app_feedback_<%= feedback.id %>">
+              <td><%= check_box_tag 'ids[]', feedback.id, false, class: 'feedback-select', id: "select_feedback_#{feedback.id}", 'aria-label': "Select feedback #{feedback.id}" %></td>
+              <td class="text-nowrap"><%= link_to l(feedback.created_at, format: :short), spree.admin_app_feedback_path(feedback) %></td>
+              <td><%= feedback_kind_badge(feedback) %></td>
+              <td><%= feedback_rating_dots(feedback.rating) %></td>
+              <td><%= feedback.moment %></td>
+              <td><%= link_to truncate(feedback.message.to_s, length: 120), spree.admin_app_feedback_path(feedback), class: 'text-body' %></td>
+              <td><% if feedback.screenshot.attached? %><span title="Has a screenshot" class="feedback-has-screenshot"><%= svg_icon name: 'images.svg', width: '16', height: '16' %></span><% end %></td>
+              <td class="text-nowrap"><%= feedback_build(feedback) %></td>
+              <td><%= feedback_status_badge(feedback) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+  <%= paginate @feedbacks %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No feedback matches these filters.</div>
+<% end %>
