@@ -1,0 +1,58 @@
+<% content_for :page_title do %>
+  Creator applications
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :applications %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_creator_applications_filter">
+    <%= form_tag spree.admin_creator_applications_path, method: :get do %>
+      <div class="row">
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select(Spree::CreatorApplication::STATUSES.map { |s| ["#{s.capitalize} (#{@counts[s] || 0})", s] }, @status),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @applications.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_creator_applications">
+      <thead>
+        <tr>
+          <th>Display name</th>
+          <th>User</th>
+          <th>Kinds</th>
+          <th>Demo files</th>
+          <th>Status</th>
+          <th>Applied</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @applications.each do |application| %>
+          <tr id="creator_application_<%= application.id %>">
+            <td><%= link_to application.display_name, spree.admin_creator_application_path(application) %></td>
+            <td><%= application.user ? link_to(application.user.email, spree.edit_admin_user_path(application.user)) : '(deleted)' %></td>
+            <td><%= application.kinds.join(', ') %></td>
+            <td><%= application.samples.attachments.size %></td>
+            <td><%= render 'spree/admin/creator_applications/status_badge', status: application.status %></td>
+            <td class="text-nowrap"><%= l(application.created_at, format: :short) %></td>
+            <td class="actions"><%= link_to 'Review', spree.admin_creator_application_path(application), class: 'btn btn-sm btn-light' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @applications %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No applications match these filters.</div>
+<% end %>

@@ -1,0 +1,59 @@
+<% content_for :page_title do %>
+  Creator accounts
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :accounts %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_creator_accounts_filter">
+    <%= form_tag spree.admin_creator_accounts_path, method: :get do %>
+      <div class="row">
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select(Spree::CreatorAccount::STATUSES.map { |s| [s.capitalize, s] }, @status),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @accounts.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_creator_accounts">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Creator</th>
+          <th>Share</th>
+          <th>Payout email</th>
+          <th>Status</th>
+          <th>Since</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @accounts.each do |account| %>
+          <% identity = Creators.user_identity(account.user_id) %>
+          <tr id="creator_account_<%= account.id %>">
+            <td><%= account.user ? link_to(account.user.email, spree.edit_admin_user_path(account.user)) : '(deleted)' %></td>
+            <td><%= identity && (identity[:handle] ? "@#{identity[:handle]}" : identity[:name]) %></td>
+            <td><%= number_to_percentage(account.revenue_share_bps / 100.0, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td><%= account.payout_email %></td>
+            <td><%= render 'spree/admin/creator_applications/status_badge', status: account.status %></td>
+            <td class="text-nowrap"><%= l(account.created_at, format: :short) %></td>
+            <td class="actions"><%= link_to 'Edit', spree.edit_admin_creator_account_path(account), class: 'btn btn-sm btn-light' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @accounts %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No creator accounts match these filters.</div>
+<% end %>

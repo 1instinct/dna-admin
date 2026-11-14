@@ -1,0 +1,40 @@
+<% content_for :page_title do %>
+  Creator review queue
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :reviews %>
+
+<% if @products.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_creator_reviews">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Creator</th>
+          <th>Kind</th>
+          <th>Price</th>
+          <th>Live version</th>
+          <th>Submitted</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @products.each do |product| %>
+          <% draft = Spree::DigitalAsset.draft.where(variant_id: product.master.id).order(id: :desc).first %>
+          <tr id="creator_review_<%= product.id %>">
+            <td><%= link_to product.name, spree.admin_creator_review_path(product) %></td>
+            <td><%= product.creator&.email || '(deleted)' %></td>
+            <td><%= draft&.kind %></td>
+            <td><%= product.display_price %></td>
+            <td><%= product.master.live_digital_asset&.version || 'none (new product)' %></td>
+            <td class="text-nowrap"><%= product.submitted_at ? l(product.submitted_at, format: :short) : '' %></td>
+            <td class="actions"><%= link_to 'Review', spree.admin_creator_review_path(product), class: 'btn btn-sm btn-light' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @products %>
+<% else %>
+  <div class="alert alert-info no-objects-found">Nothing is waiting for review.</div>
+<% end %>
