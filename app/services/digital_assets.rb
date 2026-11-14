@@ -10,8 +10,9 @@ module DigitalAssets
     # links_rate_limit: per-user limit on POST /api/v1/library/:id/links.
     # max_asset_bytes: total size of one asset's files.
     # claimable_property: product property that makes a price-0 product claimable when "true".
+    # creator_for: optional ->(product) { { handle:, name: } or nil } for the library's product.creator.
     attr_accessor :kinds, :manifest_validators, :revoked_visibility_days, :link_ttl, :links_rate_limit,
-                  :max_asset_bytes, :claimable_property
+                  :max_asset_bytes, :claimable_property, :creator_for
 
     def initialize
       @kinds = []

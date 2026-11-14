@@ -211,3 +211,15 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Digital library (ownership, signed download links, free claims) and direct uploads.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      get 'library', to: 'library#index', as: :library
+      post 'library/claim', to: 'library#claim', as: :library_claim
+      post 'library/:ownership_id/links', to: 'library#links', as: :library_links
+      post 'uploads', to: 'uploads#create', as: :uploads
+    end
+  end
+end
