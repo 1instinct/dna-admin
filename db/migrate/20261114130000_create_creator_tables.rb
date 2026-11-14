@@ -1,5 +1,4 @@
-# Creators: applications to sell, the accounts of approved creators, and a creator's products
-# (ordinary Spree products with creator_id and a review state).
+# Creators: applications to sell and the accounts of approved creators.
 class CreateCreatorTables < ActiveRecord::Migration[6.1]
   def change
     create_table :spree_creator_applications do |t|
@@ -28,11 +27,7 @@ class CreateCreatorTables < ActiveRecord::Migration[6.1]
 
       t.timestamps
     end
-
-    add_reference :spree_products, :creator, type: :integer, index: true, foreign_key: { to_table: :spree_users }
-    add_column :spree_products, :review_state, :string
-    add_column :spree_products, :review_note, :text
-    add_column :spree_products, :submitted_at, :datetime
-    add_index :spree_products, :review_state
+    # The spree_products columns are added by AddCreatorColumnsToSpreeProducts, without a
+    # transaction so their indexes build concurrently.
   end
 end
