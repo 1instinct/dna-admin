@@ -12,7 +12,7 @@ class Spree::Api::V1::Creator::DashboardTest < ActionDispatch::IntegrationTest
     @pack = approved_creator_product(@creator, price: 10)
     @preset = approved_creator_product(@creator, price: 5)
     @buyer = create(:user, email: 'buyer-secret@example.com')
-    @order = complete_order!(cart_order(@buyer, [@pack, 2], [@preset, 1]))
+    @order = complete_order!(creator_cart_order(@buyer, [@pack, 2], [@preset, 1]))
   end
 
   test 'all endpoints 401 without bearer and 403 for non-creators' do
@@ -72,7 +72,7 @@ class Spree::Api::V1::Creator::DashboardTest < ActionDispatch::IntegrationTest
 
     other = creator_user
     theirs = approved_creator_product(other, price: 7)
-    complete_order!(cart_order(@buyer, [theirs, 1]))
+    complete_order!(creator_cart_order(@buyer, [theirs, 1]))
     get '/api/v1/creator/sales', headers: @headers
     refute_includes json['rows'].map { |r| r['product_id'] }, theirs.id
     get '/api/v1/creator/sales', headers: @headers, params: { product_id: theirs.id }

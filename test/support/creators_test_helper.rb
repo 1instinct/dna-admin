@@ -44,7 +44,7 @@ module CreatorsTestHelper
   end
 
   # An order in the cart state for the user holding [product, quantity] pairs.
-  def cart_order(user, *items)
+  def creator_cart_order(user, *items)
     order = Spree::Order.create!(user: user, email: user.email, store: digital_store, currency: 'USD')
     items.each { |product, quantity| Spree::Cart::AddItem.call(order: order, variant: product.master, quantity: quantity) }
     order.update_with_updater!

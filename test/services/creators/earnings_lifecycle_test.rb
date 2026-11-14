@@ -22,7 +22,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'complete creates one earning per creator line item at share_bps' do
-    order = complete_order!(cart_order(@buyer, [@pack, 2], [@preset, 1], [@shirt, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 2], [@preset, 1], [@shirt, 1]))
 
     assert_equal 2, earnings.count
     pack = earnings.find_by!(line_item_id: order.line_items.find_by!(variant_id: @pack.master.id).id)
@@ -38,14 +38,14 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
 
   test 'the share is the account share at completion' do
     @account.update!(revenue_share_bps: 8000)
-    complete_order!(cart_order(@buyer, [@pack, 1]))
+    complete_order!(creator_cart_order(@buyer, [@pack, 1]))
     earning = earnings.first
     assert_equal 8000, earning.share_bps
     assert_equal 8.0, earning.amount.to_f
   end
 
   test 're-run none' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     3.times { Creators::EarningsRecorder.call(order.reload) }
     assert_equal 2, earnings.count
 
@@ -57,7 +57,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'gross deducts item and order promotions' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     earnings.delete_all
     pack_item = order.line_items.find_by!(variant_id: @pack.master.id)
     pack_item.update_columns(promo_total: -2)
@@ -75,14 +75,14 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'refund covering a line item voids that earning only' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     refund(order, 5)
     assert_equal 'void', earning_for(order, @preset).state
     assert_equal 'pending', earning_for(order, @pack).state
   end
 
   test 'partial refund then cancel voids everything' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     refund(order, 3)
     assert_equal %w[pending pending], earnings.pluck(:state)
 
@@ -91,13 +91,13 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'full refund voids all earnings' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     refund(order, order.total)
     assert_equal %w[void void], earnings.pluck(:state)
   end
 
   test 'resume brings voided earnings back; paid earnings never change' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     earning_for(order, @pack).update!(state: 'paid')
     order.canceled_by(admin_user)
     assert_equal 'paid', earning_for(order, @pack).state
@@ -109,7 +109,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'refund, then cancel, then resume brings back only the cancel-voided earning' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     refund(order, 5)
     assert_equal 'refund', earning_for(order, @preset).void_reason
 
@@ -127,7 +127,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   test 'multi-creator order: a matching refund voids only that line item' do
     other = creator_user
     theirs = approved_creator_product(other, price: 7)
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [theirs, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [theirs, 1]))
     refund(order, 7)
 
     assert_equal 'void', Spree::CreatorEarning.find_by!(line_item_id: order.line_items.find_by!(variant_id: theirs.master.id).id).state
@@ -136,7 +136,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
 
   test 'a refund matching several equal-price line items voids nothing and is logged' do
     twin = approved_creator_product(@creator, price: 5)
-    order = complete_order!(cart_order(@buyer, [@preset, 1], [twin, 1], [@pack, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@preset, 1], [twin, 1], [@pack, 1]))
     logged = capture_log { refund(order, 5) }
 
     assert_equal %w[pending pending pending], earnings.order(:id).pluck(:state)
@@ -145,7 +145,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'a partial refund matching no line item is prorated over the earnings' do
-    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 1], [@preset, 1]))
     refund(order, 3) # a fifth of the 15.00 order
 
     pack = earning_for(order, @pack)
@@ -157,7 +157,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test '1 of 3 returned through a reimbursement takes a third off the earning' do
-    order = complete_order!(cart_order(@buyer, [@pack, 3]))
+    order = complete_order!(creator_cart_order(@buyer, [@pack, 3]))
     line_item = order.line_items.first
     payment = order.payments.valid.first
     unit = Struct.new(:line_item_id, :quantity).new(line_item.id, 1)
@@ -173,7 +173,7 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   test 'a creator buying their own product earns nothing' do
-    complete_order!(cart_order(@creator, [@pack, 1]))
+    complete_order!(creator_cart_order(@creator, [@pack, 1]))
     assert_equal 0, earnings.count
   end
 
@@ -181,13 +181,13 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
     stray_creator = creator_user
     stray = approved_creator_product(stray_creator, price: 3)
     Spree::CreatorAccount.where(user_id: stray_creator.id).delete_all
-    complete_order!(cart_order(@buyer, [@shirt, 1], [stray, 1]))
+    complete_order!(creator_cart_order(@buyer, [@shirt, 1], [stray, 1]))
     assert_equal 0, Spree::CreatorEarning.count
   end
 
   test 'a failing recorder never breaks checkout' do
     Creators::EarningsRecorder.stub(:new, ->(*) { raise 'boom' }) do
-      order = complete_order!(cart_order(@buyer, [@pack, 1]))
+      order = complete_order!(creator_cart_order(@buyer, [@pack, 1]))
       assert order.reload.complete?
       assert order.canceled_by(admin_user)
     end
