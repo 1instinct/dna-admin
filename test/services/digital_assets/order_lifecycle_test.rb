@@ -276,6 +276,24 @@ class DigitalAssets::OrderLifecycleTest < ActionDispatch::IntegrationTest
     assert_equal 'refunded', revoked.revoke_reason
   end
 
+  test 'a refund matching two line items of the same amount revokes neither' do
+    twin = published_asset(price: 5).variant
+    completed = complete_digital_order(@preset, twin)
+    refund(completed, 5)
+    assert_equal [@preset.id, twin.id].sort, ownerships.active.pluck(:variant_id).sort
+  end
+
+  test 'resume after refund then cancel keeps the refunded item revoked' do
+    completed = complete_digital_order(@pack, @preset)
+    refund(completed, 5)
+    completed.reload.canceled_by(create(:user))
+    assert_equal 0, ownerships.active.count
+
+    completed.reload.resume!
+    assert_equal [@pack.id], ownerships.active.pluck(:variant_id)
+    assert_equal 'refunded', ownerships.where(variant_id: @preset.id).order(:id).last.revoke_reason
+  end
+
   test 'a partial refund that matches no line item revokes nothing; a full refund revokes all' do
     completed = complete_digital_order(@pack, @preset)
     refund(completed, 3)
