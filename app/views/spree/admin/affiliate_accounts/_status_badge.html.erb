@@ -1,0 +1,3 @@
+<% badge = { 'pending' => 'badge-warning', 'approved' => 'badge-success', 'rejected' => 'badge-secondary', 'suspended' => 'badge-danger',
+              'paid' => 'badge-success', 'void' => 'badge-secondary' }.fetch(status.to_s, 'badge-info') %>
+<span class="badge <%= badge %>"><%= status.to_s.capitalize %></span>

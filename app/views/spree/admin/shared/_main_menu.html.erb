@@ -103,6 +103,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, AffiliateAccount %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAffiliates">
+      <%= tab :affiliate_accounts, label: 'Affiliates', icon: 'money.svg', url: spree.admin_affiliate_accounts_path, match_path: '/affiliate' %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, AppFeedback %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarAppFeedback">
       <%= tab :app_feedbacks, label: 'Feedback', icon: 'message.svg', url: spree.admin_app_feedbacks_path %>
