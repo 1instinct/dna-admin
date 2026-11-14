@@ -1,0 +1,55 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :digital_asset } %>
+
+<% content_for :page_actions do %>
+  <%= yield :page_actions %>
+  <%= button_link_to('New draft', spree.new_admin_product_digital_asset_url(@product), { class: 'btn-success', icon: 'add.svg', id: 'new_digital_asset_link' }) if can? :create, Spree::DigitalAsset %>
+<% end %>
+
+<p class="text-muted">
+  The files a buyer gets for a variant. Each publish makes a new version, and buyers always receive the highest published version.
+  Published versions are not edited: put changed files in a new draft and publish it.
+</p>
+
+<% if @assets.empty? %>
+  <div class="alert alert-warning">No digital assets yet.</div>
+<% else %>
+  <div class="table-responsive">
+    <table class="table" data-hook="digital_assets_table">
+      <thead>
+        <tr>
+          <th>Variant</th>
+          <th>Version</th>
+          <th>Status</th>
+          <th>Kind</th>
+          <th>Files</th>
+          <th>Size</th>
+          <th>Updated</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @assets.each do |asset| %>
+          <tr id="digital_asset_<%= asset.id %>">
+            <td><%= asset.variant.is_master? ? 'Master' : asset.variant.options_text %> <small class="text-muted"><%= asset.variant.sku %></small></td>
+            <td><%= asset.version || '-' %></td>
+            <td><span class="badge badge-<%= { 'published' => 'success', 'draft' => 'warning', 'retired' => 'secondary' }[asset.status] %>"><%= asset.status %></span></td>
+            <td><%= asset.kind %></td>
+            <td><%= asset.files.attachments.size %></td>
+            <td><%= number_to_human_size(asset.byte_size) %></td>
+            <td><%= l(asset.updated_at, format: :short) %></td>
+            <td class="actions text-right">
+              <%= link_to_with_icon('edit.svg', asset.draft? ? 'Edit' : 'View', spree.edit_admin_product_digital_asset_url(@product, asset), class: 'btn btn-light btn-sm') %>
+              <% if asset.draft? %>
+                <%= button_to 'Publish', spree.publish_admin_product_digital_asset_url(@product, asset), method: :post, class: 'btn btn-primary btn-sm', form_class: 'd-inline-block',
+                              data: { confirm: 'Publish this draft as the next version? Buyers will receive it.' } %>
+              <% elsif asset.published? %>
+                <%= button_to 'Retire', spree.retire_admin_product_digital_asset_url(@product, asset), method: :post, class: 'btn btn-warning btn-sm', form_class: 'd-inline-block',
+                              data: { confirm: 'Retire this version? If it is the live one, buyers get the previous published version, or nothing.' } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

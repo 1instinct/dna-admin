@@ -211,3 +211,35 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Digital library (ownership, signed download links, free claims) and direct uploads.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      get 'library', to: 'library#index', as: :library
+      post 'library/claim', to: 'library#claim', as: :library_claim
+      post 'library/:ownership_id/links', to: 'library#links', as: :library_links
+      post 'uploads', to: 'uploads#create', as: :uploads
+    end
+  end
+end
+
+# Admin: the "Digital asset" tab on products and the ownership panel on users.
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    resources :products, only: [] do
+      resources :digital_assets, except: :show do
+        member do
+          post :publish
+          post :retire
+          delete 'files/:attachment_id', action: :remove_file, as: :remove_file
+        end
+      end
+    end
+    resources :users, only: [] do
+      resources :digital_ownerships, only: :create do
+        member { post :revoke }
+      end
+    end
+  end
+end
