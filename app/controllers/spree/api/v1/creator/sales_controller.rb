@@ -50,7 +50,7 @@ module Spree
             by_day = earnings.reject(&:void?).group_by { |earning| earning.created_at.in_time_zone.to_date }
             range.map do |date|
               day = by_day.fetch(date, [])
-              { date: date.iso8601, units: day.sum { |e| units(e) }, gross: money(day.sum(&:gross)),
+              { date: date.iso8601, units: day.sum { |e| units(e) }, gross: money(day.sum(&:net_gross)),
                 earned: money(day.sum(&:amount)) }
             end
           end
@@ -58,7 +58,7 @@ module Spree
           def rows(earnings)
             earnings.first(Creators.config.sales_rows_limit).map do |earning|
               { order_masked: earning.order_masked, product_id: earning.line_item&.variant&.product_id,
-                units: units(earning), gross: money(earning.gross), earned: money(earning.amount), state: earning.state,
+                units: units(earning), gross: money(earning.net_gross), earned: money(earning.amount), state: earning.state,
                 created_at: earning.created_at.iso8601 }
             end
           end

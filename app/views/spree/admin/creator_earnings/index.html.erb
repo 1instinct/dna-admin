@@ -44,6 +44,7 @@
           <th>State</th>
           <th>Payable from</th>
           <th>Created</th>
+          <th class="actions"></th>
         </tr>
       </thead>
       <tbody>
@@ -52,12 +53,21 @@
             <td><%= earning.creator_account&.user&.email || "Account #{earning.creator_account_id}" %></td>
             <td><%= earning.order ? link_to(earning.order.number, spree.edit_admin_order_path(earning.order)) : earning.order_id %></td>
             <td><%= earning.line_item ? "#{earning.line_item.quantity} × #{earning.line_item.name}" : earning.line_item_id %></td>
-            <td class="text-right"><%= number_with_precision(earning.gross, precision: 2) %> <%= earning.currency %></td>
+            <td class="text-right">
+              <%= number_with_precision(earning.net_gross, precision: 2) %> <%= earning.currency %>
+              <% if earning.refunded_gross.to_d.positive? %><br><small class="text-muted">of <%= number_with_precision(earning.gross, precision: 2) %>, <%= number_with_precision(earning.refunded_gross, precision: 2) %> refunded</small><% end %>
+            </td>
             <td class="text-right"><%= number_to_percentage(earning.share_bps / 100.0, precision: 2, strip_insignificant_zeros: true) %></td>
             <td class="text-right"><%= number_with_precision(earning.amount, precision: 2) %> <%= earning.currency %></td>
-            <td><%= render 'spree/admin/creator_applications/status_badge', status: earning.state %></td>
+            <td><%= render 'spree/admin/creator_applications/status_badge', status: earning.state %><% if earning.void_reason %> <small class="text-muted"><%= earning.void_reason %></small><% end %></td>
             <td class="text-nowrap"><%= l(earning.payable_at, format: :short) %></td>
             <td class="text-nowrap"><%= l(earning.created_at, format: :short) %></td>
+            <td class="actions">
+              <% if earning.pending? || earning.payable? %>
+                <%= button_to 'Void', spree.void_admin_creator_earning_path(earning), method: :post, class: 'btn btn-sm btn-outline-danger',
+                              data: { confirm: 'Void this earning? The creator will not be paid for it.' } %>
+              <% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>

@@ -19,7 +19,12 @@ module Creators
       Spree::CreatorEarning.sweep!(now: now)
       Spree::CreatorPayout.transaction do
         Spree::CreatorAccount.where(id: account.id).lock.pluck(:id)
-        earnings = Spree::CreatorEarning.payable.where(creator_account_id: account.id, currency: currency.to_s)
+        # Lock and fix the payable rows once; the total and the update use exactly these ids, so an
+        # earning voided or made payable meanwhile is neither paid without being counted nor counted
+        # without being paid.
+        ids = Spree::CreatorEarning.payable.where(creator_account_id: account.id, currency: currency.to_s)
+                                   .order(:id).lock.pluck(:id)
+        earnings = Spree::CreatorEarning.where(id: ids)
         total = earnings.sum(:amount)
         raise Error, "Nothing is payable in #{currency}" unless total.positive?
 

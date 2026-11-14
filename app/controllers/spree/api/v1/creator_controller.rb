@@ -39,7 +39,7 @@ module Spree
           earnings = Spree::CreatorEarning.counted.where(creator_account_id: creator_account.id, currency: currency)
           sums = earnings.group(:state).sum(:amount)
           {
-            gross: money(earnings.sum(:gross)),
+            gross: money(earnings.sum(Arel.sql('gross - refunded_gross'))),
             earned: money(sums.values.sum),
             payable: money(sums['payable']),
             paid: money(sums['paid']),

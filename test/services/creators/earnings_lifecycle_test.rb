@@ -108,8 +108,79 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
     assert_equal 'pending', earning_for(order, @preset).state
   end
 
+  test 'refund, then cancel, then resume brings back only the cancel-voided earning' do
+    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    refund(order, 5)
+    assert_equal 'refund', earning_for(order, @preset).void_reason
+
+    order.reload.canceled_by(admin_user)
+    assert_equal 'cancel', earning_for(order, @pack).void_reason
+    assert_equal 'refund', earning_for(order, @preset).void_reason
+
+    order.reload.resume!
+    assert_equal 'pending', earning_for(order, @pack).state
+    assert_nil earning_for(order, @pack).void_reason
+    assert_equal 'void', earning_for(order, @preset).state
+    assert_equal 'refund', earning_for(order, @preset).void_reason
+  end
+
+  test 'multi-creator order: a matching refund voids only that line item' do
+    other = creator_user
+    theirs = approved_creator_product(other, price: 7)
+    order = complete_order!(cart_order(@buyer, [@pack, 1], [theirs, 1]))
+    refund(order, 7)
+
+    assert_equal 'void', Spree::CreatorEarning.find_by!(line_item_id: order.line_items.find_by!(variant_id: theirs.master.id).id).state
+    assert_equal 'pending', earning_for(order, @pack).state
+  end
+
+  test 'a refund matching several equal-price line items voids nothing and is logged' do
+    twin = approved_creator_product(@creator, price: 5)
+    order = complete_order!(cart_order(@buyer, [@preset, 1], [twin, 1], [@pack, 1]))
+    logged = capture_log { refund(order, 5) }
+
+    assert_equal %w[pending pending pending], earnings.order(:id).pluck(:state)
+    assert_equal [0.0], earnings.distinct.pluck(:refunded_gross).map(&:to_f)
+    assert_match(/matches 2 line items/, logged)
+  end
+
+  test 'a partial refund matching no line item is prorated over the earnings' do
+    order = complete_order!(cart_order(@buyer, [@pack, 1], [@preset, 1]))
+    refund(order, 3) # a fifth of the 15.00 order
+
+    pack = earning_for(order, @pack)
+    assert_equal 'pending', pack.state
+    assert_equal 2.0, pack.refunded_gross.to_f
+    assert_equal 5.6, pack.amount.to_f # (10 - 2) * 70%
+    assert_equal 1.0, earning_for(order, @preset).refunded_gross.to_f
+    assert_equal 2.8, earning_for(order, @preset).amount.to_f
+  end
+
+  test '1 of 3 returned through a reimbursement takes a third off the earning' do
+    order = complete_order!(cart_order(@buyer, [@pack, 3]))
+    line_item = order.line_items.first
+    payment = order.payments.valid.first
+    unit = Struct.new(:line_item_id, :quantity).new(line_item.id, 1)
+    reimbursement = Struct.new(:id, :return_items, :refunds).new(42, [Struct.new(:inventory_unit).new(unit)], [])
+    refund = Struct.new(:id, :payment, :amount, :reimbursement).new(7, payment, 10, reimbursement)
+    reimbursement.refunds << refund
+
+    Creators::EarningsRecorder.for_refund(refund)
+    earning = earning_for(order, @pack)
+    assert_equal 'pending', earning.state
+    assert_equal 10.0, earning.refunded_gross.to_f
+    assert_equal 14.0, earning.amount.to_f # (30 - 10) * 70%
+  end
+
+  test 'a creator buying their own product earns nothing' do
+    complete_order!(cart_order(@creator, [@pack, 1]))
+    assert_equal 0, earnings.count
+  end
+
   test 'store products and creators without an account earn nothing' do
-    stray = approved_creator_product(create(:user), price: 3)
+    stray_creator = creator_user
+    stray = approved_creator_product(stray_creator, price: 3)
+    Spree::CreatorAccount.where(user_id: stray_creator.id).delete_all
     complete_order!(cart_order(@buyer, [@shirt, 1], [stray, 1]))
     assert_equal 0, Spree::CreatorEarning.count
   end
@@ -155,6 +226,17 @@ class Creators::EarningsLifecycleTest < ActiveSupport::TestCase
   end
 
   private
+
+  def capture_log
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+    original = Rails.logger
+    Rails.logger = logger
+    yield
+    io.string
+  ensure
+    Rails.logger = original
+  end
 
   def earning_for(order, product)
     earnings.find_by!(line_item_id: order.line_items.find_by!(variant_id: product.master.id).id)

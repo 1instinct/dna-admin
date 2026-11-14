@@ -282,7 +282,9 @@ Spree::Core::Engine.add_routes do
         post :reject
       end
     end
-    resources :creator_earnings, only: :index
+    resources :creator_earnings, only: :index do
+      post :void, on: :member
+    end
     resources :creator_payouts, only: %i[index new create]
   end
 end

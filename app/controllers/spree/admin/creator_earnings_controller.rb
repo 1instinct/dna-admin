@@ -16,6 +16,17 @@ module Spree
         @accounts = Spree::CreatorAccount.includes(:user).order(:id)
       end
 
+      # POST /admin/creator_earnings/:id/void: voids a pending or payable earning (void_reason admin).
+      def void
+        earning = Spree::CreatorEarning.find(params[:id])
+        if earning.void_by_admin!
+          flash[:success] = "Earning #{earning.id} voided."
+        else
+          flash[:error] = "Earning #{earning.id} is #{earning.state} and cannot be voided."
+        end
+        redirect_to spree.admin_creator_earnings_path
+      end
+
       private
 
       def model_class

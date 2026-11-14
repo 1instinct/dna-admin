@@ -4,25 +4,35 @@ module Creators
   # - Completion: one pending earning per line item of a creator product whose creator has an
   #   account, at the account's share then: gross = the line item amount after its own promotions
   #   and its share (by amount) of the order's promotions; payable_at = completed_at + hold_days.
-  #   A line item with nothing to share (gross 0, e.g. a free claimable item) earns nothing.
-  # - Cancel: every earning of the order goes void. Resume (revive: true): void earnings come
-  #   back (pending, or payable when the hold has passed).
-  # - Refund (for_refund): voids the earnings of the line items the refund covers, the way
-  #   DigitalAssets::OrderRevoker decides it: the returned units of a reimbursement; every line item
-  #   once refunds reach the order total; else the first counted earning whose line item amount
-  #   (or final amount) equals the refund.
+  #   A line item with nothing to share (gross 0, e.g. a free claimable item) earns nothing, and a
+  #   creator buying their own product earns nothing.
+  # - Cancel: every unpaid earning of the order goes void with void_reason "cancel". Resume
+  #   (revive: true) brings back only the cancel-voided ones (pending, or payable when the hold has
+  #   passed); an earning voided by a refund or an admin stays void.
+  # - Refund (for_refund), in step with DigitalAssets::OrderRevoker:
+  #   - through a reimbursement (on its first refund only): each returned line item loses the
+  #     returned units' share of its gross (refunded_gross); a fully returned one goes void;
+  #   - once the order's refunds reach its total: every earning goes void;
+  #   - else, when the amount equals exactly one line item's amount (or final amount): that line
+  #     item's earning goes void (a store item matching voids nothing);
+  #   - else, when it equals more than one: nothing changes and it is logged for an admin;
+  #   - else (a partial refund matching no line item): every earning loses refund / order total of
+  #     its gross.
+  #   amount is recomputed from gross - refunded_gross; void_reason is "refund".
   # - Paid earnings never change.
   #
   # Runs in a savepoint and logs and swallows its errors: earnings bookkeeping never fails
   # checkout, a cancel or a refund.
   class EarningsRecorder
+    OPEN = %w[pending payable].freeze
+
     def self.call(order, revive: false, now: Time.current)
       safely(order) { new(order, now: now).record(revive: revive) }
     end
 
     def self.for_refund(refund, now: Time.current)
       order = refund&.payment && Spree::Order.find_by(id: refund.payment.order_id)
-      safely(order) { new(order, now: now).void_refunded(refund) }
+      safely(order) { new(order, now: now).apply_refund(refund) }
     end
 
     def self.safely(order)
@@ -51,10 +61,10 @@ module Creators
         elsif earning.paid?
           earning
         elsif order.canceled?
-          earning.update!(state: 'void') unless earning.void?
+          earning.update!(state: 'void', void_reason: 'cancel') unless earning.void?
           earning
-        elsif revive && earning.void?
-          earning.update!(state: earning.payable_at <= now ? 'payable' : 'pending')
+        elsif revive && earning.void? && earning.void_reason == 'cancel'
+          earning.update!(state: earning.payable_at <= now ? 'payable' : 'pending', void_reason: nil)
           earning
         else
           earning
@@ -62,10 +72,23 @@ module Creators
       end.compact
     end
 
-    def void_refunded(refund)
-      ids = refunded_line_item_ids(refund)
-      Spree::CreatorEarning.where(order_id: order.id, line_item_id: ids, state: %w[pending payable])
-                           .update_all(state: 'void', updated_at: now)
+    def apply_refund(refund)
+      reimbursement = refund.respond_to?(:reimbursement) ? refund.reimbursement : nil
+      return apply_returns(reimbursement) if reimbursement && first_refund_of?(reimbursement, refund)
+      return [] if reimbursement
+      return void(open_earnings) if order.refunds.sum(:amount) >= order.total
+
+      matches = order.line_items.select do |line_item|
+        [line_item.amount, line_item.final_amount].any? { |amount| amount.to_d == refund.amount.to_d }
+      end
+      if matches.size > 1
+        Rails.logger.warn("[creators] refund #{refund.id} on order #{order.number} matches #{matches.size} " \
+                          'line items; no earning changed, adjust by hand if needed')
+        return []
+      end
+      return void(open_earnings.where(line_item_id: matches.first.id)) if matches.one?
+
+      prorate(refund.amount.to_d / order.total.to_d) if order.total.to_d.positive?
     end
 
     # The line item's amount after its own promotions and its share of the order's promotions.
@@ -81,7 +104,7 @@ module Creators
 
     private
 
-    # [[line_item, creator account]] for line items of creator products.
+    # [[line_item, creator account]] for line items of creator products sold to someone else.
     def creator_line_items
       items = order.line_items.includes(variant: :product).to_a
       creator_ids = items.map { |li| li.variant&.product&.creator_id }.compact.uniq
@@ -90,7 +113,7 @@ module Creators
       accounts = Spree::CreatorAccount.where(user_id: creator_ids).index_by(&:user_id)
       items.filter_map do |line_item|
         account = accounts[line_item.variant&.product&.creator_id]
-        [line_item, account] if account
+        [line_item, account] if account && account.user_id != order.user_id
       end
     end
 
@@ -106,18 +129,49 @@ module Creators
       )
     end
 
-    def refunded_line_item_ids(refund)
-      if refund.respond_to?(:reimbursement) && refund.reimbursement
-        return refund.reimbursement.return_items.map { |item| item.inventory_unit&.line_item_id }.compact.uniq
-      end
-      return order.line_items.pluck(:id) if order.refunds.sum(:amount) >= order.total
+    def open_earnings
+      Spree::CreatorEarning.where(order_id: order.id, state: OPEN)
+    end
 
-      counted = Spree::CreatorEarning.counted.where(order_id: order.id).pluck(:line_item_id)
-      match = order.line_items.detect do |line_item|
-        counted.include?(line_item.id) &&
-          [line_item.amount, line_item.final_amount].any? { |amount| amount.to_d == refund.amount.to_d }
+    def void(scope)
+      scope.update_all(state: 'void', void_reason: 'refund', updated_at: now)
+    end
+
+    # A reimbursement can pay out in several refunds; its returns are applied once, on the first.
+    def first_refund_of?(reimbursement, refund)
+      refunds = reimbursement.refunds
+      refunds = refunds.reload if refunds.respond_to?(:reload)
+      first = Array(refunds).map(&:id).compact.min
+      first.nil? || first == refund.id
+    end
+
+    def apply_returns(reimbursement)
+      units = Hash.new(0)
+      reimbursement.return_items.each do |item|
+        unit = item.inventory_unit
+        units[unit.line_item_id] += (unit.respond_to?(:quantity) && unit.quantity) || 1 if unit&.line_item_id
       end
-      match ? [match.id] : []
+      quantities = order.line_items.where(id: units.keys).pluck(:id, :quantity).to_h
+      open_earnings.where(line_item_id: units.keys).lock.map do |earning|
+        quantity = quantities[earning.line_item_id].to_i
+        reduce(earning, quantity.positive? ? units[earning.line_item_id].to_d / quantity : 1)
+      end
+    end
+
+    def prorate(fraction)
+      open_earnings.lock.map { |earning| reduce(earning, fraction) }
+    end
+
+    def reduce(earning, fraction)
+      gross = earning.gross.to_d
+      refunded = [earning.refunded_gross.to_d + (gross * [fraction, 1].min).round(2), gross].min
+      net = gross - refunded
+      if net <= 0
+        earning.update!(state: 'void', void_reason: 'refund', refunded_gross: gross)
+      else
+        earning.update!(refunded_gross: refunded, amount: Spree::CreatorEarning.amount_for(net, earning.share_bps))
+      end
+      earning
     end
   end
 end

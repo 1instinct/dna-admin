@@ -30,6 +30,18 @@ class Spree::Admin::CreatorEarningsAdminTest < ActionDispatch::IntegrationTest
     refute_includes response.body, 'dna-modern'
   end
 
+  test 'admin voids an earning with reason admin' do
+    login_as(@admin, scope: :spree_user)
+    post "/admin/creator_earnings/#{@later.id}/void"
+    assert_redirected_to '/admin/creator_earnings'
+    assert_equal 'void', @later.reload.state
+    assert_equal 'admin', @later.void_reason
+
+    @due.update!(state: 'paid')
+    post "/admin/creator_earnings/#{@due.id}/void"
+    assert_equal 'paid', @due.reload.state
+  end
+
   test 'payouts page lists payable balances and a payout marks them paid' do
     login_as(@admin, scope: :spree_user)
     get '/admin/creator_payouts'
