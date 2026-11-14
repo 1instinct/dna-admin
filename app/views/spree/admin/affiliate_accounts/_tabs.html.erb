@@ -1,0 +1,18 @@
+<% content_for :page_tabs do %>
+  <li class="nav-item">
+    <%= link_to 'Applications', spree.admin_affiliate_accounts_path(status: 'pending'),
+                class: "nav-link #{'active' if current == :applications}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Accounts', spree.admin_affiliate_accounts_path,
+                class: "nav-link #{'active' if current == :accounts}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Commissions', spree.admin_affiliate_account_commissions_path,
+                class: "nav-link #{'active' if current == :commissions}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Payouts', spree.admin_affiliate_payouts_path,
+                class: "nav-link #{'active' if current == :payouts}" %>
+  </li>
+<% end %>

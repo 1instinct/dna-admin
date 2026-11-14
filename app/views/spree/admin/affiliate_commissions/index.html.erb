@@ -1,0 +1,86 @@
+<% content_for :page_title do %>
+  Affiliate commissions
+<% end %>
+
+<%= render 'spree/admin/affiliate_accounts/tabs', current: :commissions %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_affiliate_commissions_filter">
+    <%= form_tag spree.admin_affiliate_account_commissions_path, method: :get do %>
+      <div class="row">
+        <div class="col-6 col-lg-3">
+          <div class="form-group">
+            <%= label_tag :state, 'State' %>
+            <%= select_tag :state, options_for_select(AffiliateCommission::STATES.map { |s| [s.capitalize, s] }, @filters[:state]),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="form-group">
+            <%= label_tag :affiliate_account_id, 'Affiliate' %>
+            <%= select_tag :affiliate_account_id, options_for_select(@accounts, @filters[:affiliate_account_id].presence&.to_i),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="form-group">
+            <%= label_tag :from, 'From' %>
+            <%= date_field_tag :from, @filters[:from], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="form-group">
+            <%= label_tag :to, 'To' %>
+            <%= date_field_tag :to, @filters[:to], class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @commissions.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_affiliate_commissions">
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Affiliate</th>
+          <th>Order</th>
+          <th>Base</th>
+          <th>Rate</th>
+          <th>Commission</th>
+          <th>State</th>
+          <th>Approvable</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @commissions.each do |commission| %>
+          <tr id="affiliate_commission_<%= commission.id %>">
+            <td class="text-nowrap"><%= l(commission.created_at, format: :short) %></td>
+            <td><%= link_to commission.affiliate_account.code, spree.admin_affiliate_account_path(commission.affiliate_account) %></td>
+            <td><%= commission.order ? link_to(commission.order.number, spree.edit_admin_order_path(commission.order)) : '—' %></td>
+            <td><%= number_with_precision(commission.base_amount, precision: 2) %></td>
+            <td><%= number_to_percentage(commission.commission_bps / 100.0, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td><%= number_with_precision(commission.amount, precision: 2) %> <%= commission.currency %></td>
+            <td><%= render 'spree/admin/affiliate_accounts/status_badge', status: commission.state %></td>
+            <td class="text-nowrap"><%= commission.approvable_at ? l(commission.approvable_at, format: :short) : '—' %></td>
+            <td class="actions">
+              <% if commission.pending? || commission.approved? %>
+                <%= button_to 'Void', spree.void_admin_affiliate_account_commission_path(commission), method: :post,
+                              class: 'btn btn-sm btn-outline-danger', form: { data: { confirm: 'Void this commission?' } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @commissions %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No commissions match these filters.</div>
+<% end %>
