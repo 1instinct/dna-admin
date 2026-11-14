@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_08_210000) do
+ActiveRecord::Schema.define(version: 2026_11_14_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -503,6 +503,20 @@ ActiveRecord::Schema.define(version: 2026_11_08_210000) do
     t.index ["stock_location_id"], name: "index_spree_customer_returns_on_stock_location_id"
   end
 
+  create_table "spree_digital_assets", force: :cascade do |t|
+    t.integer "variant_id", null: false
+    t.string "kind", null: false
+    t.integer "version"
+    t.string "status", default: "draft", null: false
+    t.jsonb "manifest", default: {}, null: false
+    t.bigint "byte_size", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["variant_id", "status"], name: "index_spree_digital_assets_on_variant_id_and_status"
+    t.index ["variant_id", "version"], name: "index_spree_digital_assets_on_variant_version", unique: true, where: "(version IS NOT NULL)"
+    t.index ["variant_id"], name: "index_spree_digital_assets_on_variant_id"
+  end
+
   create_table "spree_digital_links", id: :serial, force: :cascade do |t|
     t.integer "digital_id"
     t.integer "line_item_id"
@@ -513,6 +527,23 @@ ActiveRecord::Schema.define(version: 2026_11_08_210000) do
     t.index ["digital_id"], name: "index_spree_digital_links_on_digital_id"
     t.index ["line_item_id"], name: "index_spree_digital_links_on_line_item_id"
     t.index ["secret"], name: "index_spree_digital_links_on_secret"
+  end
+
+  create_table "spree_digital_ownerships", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "variant_id", null: false
+    t.string "source", null: false
+    t.string "source_type"
+    t.bigint "source_id"
+    t.datetime "granted_at", null: false
+    t.datetime "revoked_at"
+    t.string "revoke_reason"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["source_type", "source_id"], name: "index_spree_digital_ownerships_on_source_type_and_source_id"
+    t.index ["user_id", "variant_id"], name: "index_spree_digital_ownerships_active", unique: true, where: "(revoked_at IS NULL)"
+    t.index ["user_id"], name: "index_spree_digital_ownerships_on_user_id"
+    t.index ["variant_id"], name: "index_spree_digital_ownerships_on_variant_id"
   end
 
   create_table "spree_digitals", id: :serial, force: :cascade do |t|
@@ -1786,6 +1817,9 @@ ActiveRecord::Schema.define(version: 2026_11_08_210000) do
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_content_reports", "spree_users", column: "reporter_id", on_delete: :nullify
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
+  add_foreign_key "spree_digital_assets", "spree_variants", column: "variant_id"
+  add_foreign_key "spree_digital_ownerships", "spree_users", column: "user_id"
+  add_foreign_key "spree_digital_ownerships", "spree_variants", column: "variant_id"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
