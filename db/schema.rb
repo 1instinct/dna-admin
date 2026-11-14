@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_04_120000) do
+ActiveRecord::Schema.define(version: 2026_11_08_210000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -79,6 +79,41 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["singleton_guard"], name: "index_admin_themes_on_singleton_guard", unique: true
+  end
+
+  create_table "app_feedback_rate_counters", force: :cascade do |t|
+    t.string "key", null: false
+    t.datetime "window_started_at", null: false
+    t.integer "hits", default: 0, null: false
+    t.index ["key"], name: "index_app_feedback_rate_counters_on_key", unique: true
+    t.index ["window_started_at"], name: "index_app_feedback_rate_counters_on_window_started_at"
+  end
+
+  create_table "app_feedbacks", force: :cascade do |t|
+    t.integer "user_id"
+    t.string "install_id"
+    t.string "email"
+    t.string "kind", null: false
+    t.integer "rating"
+    t.string "moment"
+    t.text "message"
+    t.string "platform"
+    t.string "os_version"
+    t.string "device_model"
+    t.string "app_version"
+    t.string "build_number"
+    t.string "channel"
+    t.string "locale"
+    t.jsonb "diagnostics"
+    t.string "sentry_event_id"
+    t.string "status", default: "new", null: false
+    t.text "admin_note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["install_id"], name: "index_app_feedbacks_on_install_id"
+    t.index ["kind", "created_at"], name: "index_app_feedbacks_on_kind_and_created_at"
+    t.index ["status", "created_at"], name: "index_app_feedbacks_on_status_and_created_at"
+    t.index ["user_id"], name: "index_app_feedbacks_on_user_id"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1741,6 +1776,7 @@ ActiveRecord::Schema.define(version: 2026_11_04_120000) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "app_feedbacks", "spree_users", column: "user_id", on_delete: :nullify
   add_foreign_key "favorites", "spree_users", column: "user_id"
   add_foreign_key "favorites", "spree_variants", column: "variant_id"
   add_foreign_key "live_stream_contacts", "contacts"
