@@ -8,6 +8,7 @@ module Creators
   #
   # asset is the version being worked on: the newest draft, else the live (highest published)
   # version. live_asset_version is what buyers get now (nil before the first approval).
+  # preview shows the media waiting for review, when there are any, else the live ones.
   module ProductJson
     module_function
 
@@ -26,7 +27,7 @@ module Creators
         review_state: product.review_state,
         review_note: product.review_note,
         taxon_ids: product.taxon_ids,
-        preview: { image_url: image_url(master, base_url), audio_url: blob_url(product.creator_preview_audio, base_url) },
+        preview: preview_json(product, base_url),
         asset: working && asset_json(working),
         live_asset_version: live&.version,
         sales_count: sales_count(product),
@@ -48,6 +49,16 @@ module Creators
       Spree::CreatorEarning.counted.joins(:line_item)
                            .where(spree_line_items: { variant_id: product.variants_including_master.select(:id) })
                            .sum('spree_line_items.quantity').to_i
+    end
+
+    # The preview media the creator last set: on a live product, those waiting for review come first.
+    def preview_json(product, base_url)
+      image = product.creator_pending_preview_image
+      audio = product.creator_pending_preview_audio
+      {
+        image_url: image.attached? ? blob_url(image, base_url) : image_url(product.master, base_url),
+        audio_url: blob_url(audio.attached? ? audio : product.creator_preview_audio, base_url)
+      }
     end
 
     def image_url(variant, base_url)

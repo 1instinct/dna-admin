@@ -12,10 +12,17 @@ module Creators
   #   remove_file_ids: [id]     attachment ids to take out of the draft
   #   manifest: Hash            the app-defined manifest (its server-owned "files" key is kept)
   #
-  # File changes always land in a draft asset. When the product has none (it is live, or was
-  # rejected after going live), a new draft is started from the live version's files, the product
-  # goes back to review_state "draft", and the live version stays what buyers get until an admin
-  # approves the new one. Changes to the details apply at once.
+  # File, kind and manifest changes always land in a draft asset. When the product has none (it is
+  # live, or was rejected after going live), a new draft is started from the live version's files,
+  # the product goes back to review_state "draft", and the live version stays what buyers get until
+  # an admin approves the new one. New preview media on a live product wait for review the same way
+  # (creator_pending_preview_image / _audio). Name, description, price and categories apply at once.
+  #
+  # price: at least Creators.min_price(currency) (0.50 by default): free products are admin-only,
+  # so only a creator who is also an admin may go lower.
+  #
+  # Editable review states (PATCH): draft, changes_requested, approved, and rejected once live.
+  # The state is checked under the product's row lock, so an edit never races a submit or a review.
   #
   # Raises Creators::ProductWriter::Invalid (with #fields) and changes nothing when the input is
   # refused.
@@ -23,13 +30,14 @@ module Creators
     class Invalid < StandardError
       attr_reader :fields
 
-      def initialize(fields)
+      def initialize(fields, message = nil)
         @fields = fields
-        super(fields.values.flatten.first || 'is invalid')
+        super(message || fields.values.flatten.first || 'is invalid')
       end
     end
 
     EDITABLE_STATES = %w[draft changes_requested approved].freeze
+    SUBMITTABLE_STATES = %w[draft changes_requested].freeze
 
     def self.create(user, attrs)
       new(user, attrs).create
@@ -43,6 +51,37 @@ module Creators
     def self.editable?(product)
       EDITABLE_STATES.include?(product.review_state) ||
         (product.review_state == 'rejected' && product.master.live_digital_asset.present?)
+    end
+
+    # Sends the product to review (review_state submitted) under its row lock. Needs a submittable
+    # state and something to review: a draft with files, or, on a live product, preview media waiting
+    # for review. Raises Invalid otherwise.
+    def self.submit!(product)
+      Spree::Product.transaction do
+        Spree::Product.where(id: product.id).lock.pluck(:id)
+        product.reload
+        unless SUBMITTABLE_STATES.include?(product.review_state)
+          raise Invalid.new({ review_state: ['cannot be submitted'] },
+                            'Only a draft or a product with requested changes can be submitted')
+        end
+
+        draft = Spree::DigitalAsset.draft.where(variant_id: product.master.id).order(id: :desc).first
+        unless draft&.files&.attached? || (product.master.live_digital_asset && product.creator_pending_preview?)
+          raise Invalid.new({ files: ['are required'] }, 'Add files before submitting')
+        end
+
+        product.update!(review_state: 'submitted', submitted_at: Time.current, review_note: nil)
+        product
+      end
+    end
+
+    # Makes the blob the product's only master image. Returns the image (unsaved when invalid).
+    def self.put_preview_image(product, blob)
+      product.master.images.each(&:destroy!)
+      image = Spree::Image.new(viewable: product.master, alt: product.name)
+      image.attachment.attach(blob)
+      image.save
+      image
     end
 
     attr_reader :user, :attrs, :errors
@@ -62,33 +101,38 @@ module Creators
         product.stores << store if product.respond_to?(:stores) && store.persisted?
         apply_details(product)
         blobs = new_blobs
+        previews = preview_blobs
         save_product(product)
         check!
         apply_asset(Spree::DigitalAsset.new(variant: product.master, kind: attrs[:kind].to_s.strip, manifest: {}), blobs)
-        apply_previews(product)
+        apply_previews(product, previews, live: false)
         check!
         product
       end
     end
 
     def update(product)
-      unless self.class.editable?(product)
-        raise Invalid, { review_state: ["A product that is #{product.review_state.to_s.tr('_', ' ')} cannot be edited"] }
-      end
-
       Spree::Product.transaction do
         Spree::Product.where(id: product.id).lock.pluck(:id)
         product.reload
+        unless self.class.editable?(product)
+          raise Invalid, { review_state: ["A product that is #{product.review_state.to_s.tr('_', ' ')} cannot be edited"] }
+        end
+
+        live = product.master.live_digital_asset.present?
         apply_details(product)
+        previews = preview_blobs
+        check!
         if asset_change?
           blobs = new_blobs
           check!
           draft, copied = working_draft(product, blobs)
           apply_asset(draft, blobs, copied)
-          product.review_state = 'draft' if %w[approved rejected].include?(product.review_state)
+          to_review(product)
         end
+        to_review(product) if live && previews.values.any?
         save_product(product)
-        apply_previews(product)
+        apply_previews(product, previews, live: live)
         check!
         product
       end
@@ -98,6 +142,15 @@ module Creators
 
     def check!
       raise Invalid, errors.to_h if errors.any?
+    end
+
+    # A live (approved, or rejected after going live) product with changes waiting goes back to draft.
+    def to_review(product)
+      product.review_state = 'draft' if %w[approved rejected].include?(product.review_state)
+    end
+
+    def admin?
+      user.respond_to?(:has_spree_role?) && user.has_spree_role?('admin')
     end
 
     def asset_change?
@@ -120,18 +173,21 @@ module Creators
     end
 
     def apply_price(product)
-      price = BigDecimal(attrs[:price].to_s.strip)
-      if price.negative? || price > 100_000
-        errors[:price] << 'must be between 0 and 100000'
+      price = BigDecimal(attrs[:price].to_s.strip).round(2)
+      min = admin? ? 0.to_d : Creators.min_price(product.master.currency)
+      if price < min
+        errors[:price] << format('must be at least %.2f', min)
+      elsif price > 100_000
+        errors[:price] << 'must be at most 100000'
       else
-        product.price = price.round(2)
+        product.price = price
       end
     rescue ArgumentError, TypeError
       errors[:price] << 'must be a number'
     end
 
-    # Categories under the marketplace taxon. The marketplace taxon itself, which approval adds,
-    # stays when the product has it.
+    # Sets the product's marketplace categories. Taxons outside the marketplace (an admin's own
+    # merchandising), and the marketplace taxon itself, which approval adds, stay as they are.
     def apply_taxons(product)
       ids = Array(attrs[:taxon_ids]).map { |id| Integer(id.to_s, exception: false) }
       marketplace = Creators.marketplace_taxon
@@ -140,8 +196,10 @@ module Creators
         errors[:taxon_ids] << 'must be marketplace categories'
         return
       end
-      kept = marketplace && product.taxon_ids.include?(marketplace.id) ? [marketplace.id] : []
-      product.taxon_ids = (ids + kept).uniq
+      current = product.taxon_ids
+      kept = current - allowed
+      kept << marketplace.id if marketplace && current.include?(marketplace.id)
+      product.taxon_ids = (kept + ids).uniq
     end
 
     def save_product(product)
@@ -277,15 +335,24 @@ module Creators
 
     # --- previews -------------------------------------------------------------------------------
 
-    def apply_previews(product)
-      if attrs.key?(:preview_image_signed_id)
-        blob = preview_blob(:preview_image_signed_id, %w[image])
-        replace_preview_image(product, blob) if blob
-      end
-      return unless attrs.key?(:preview_audio_signed_id)
+    # { image:, audio: } blobs from the request (nil when not given); bad ones add errors.
+    def preview_blobs
+      {
+        image: attrs.key?(:preview_image_signed_id) ? preview_blob(:preview_image_signed_id, %w[image]) : nil,
+        audio: attrs.key?(:preview_audio_signed_id) ? preview_blob(:preview_audio_signed_id, %w[audio]) : nil
+      }
+    end
 
-      blob = preview_blob(:preview_audio_signed_id, %w[audio])
-      product.creator_preview_audio.attach(blob) if blob
+    # Before the product is live, previews apply at once. On a live product they wait for review.
+    def apply_previews(product, previews, live:)
+      image, audio = previews.values_at(:image, :audio)
+      if live
+        product.creator_pending_preview_image.attach(image) if image
+        product.creator_pending_preview_audio.attach(audio) if audio
+      else
+        replace_preview_image(product, image) if image
+        product.creator_preview_audio.attach(audio) if audio
+      end
     end
 
     def preview_blob(key, kinds)
@@ -299,11 +366,7 @@ module Creators
     end
 
     def replace_preview_image(product, blob)
-      product.master.images.each(&:destroy!)
-      image = Spree::Image.new(viewable: product.master, alt: product.name)
-      image.attachment.attach(blob)
-      return if image.save
-
+      image = self.class.put_preview_image(product, blob)
       image.errors.full_messages.each { |message| errors[:preview_image_signed_id] << message }
     end
   end

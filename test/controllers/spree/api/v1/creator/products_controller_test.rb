@@ -316,6 +316,96 @@ class Spree::Api::V1::Creator::ProductsControllerTest < ActionDispatch::Integrat
     Uploads.reset_config!
   end
 
+  test 'preview media edits on a live product wait for review' do
+    old_image = digital_blob(ShopMediaTestHelper::PNG_BYTES, 'old.png', 'image/png').signed_id
+    product = create_product(preview_image_signed_id: old_image)
+    submit(product)
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    live_blob = product.master.images.first.attachment.blob
+
+    new_image = digital_blob(ShopMediaTestHelper::PNG_BYTES, 'new.png', 'image/png').signed_id
+    new_audio = digital_blob(DigitalAssetsTestHelper::WAV_BYTES, 'teaser.wav').signed_id
+    patch_product(product, { preview_image_signed_id: new_image, preview_audio_signed_id: new_audio })
+    assert_response :success, response.body
+    assert_equal 'draft', json['review_state']
+    assert_match(/new\.png/, json['preview']['image_url'])
+    assert_match(/teaser\.wav/, json['preview']['audio_url'])
+    product.reload
+    assert_equal live_blob.id, product.master.images.first.attachment.blob.id
+    refute product.creator_preview_audio.attached?
+    assert product.available?
+
+    submit(product)
+    assert_response :success, response.body
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    product.reload
+    assert_equal 'new.png', product.master.images.first.attachment.filename.to_s
+    assert_equal 'teaser.wav', product.creator_preview_audio.filename.to_s
+    refute product.creator_pending_preview_image.attached?
+    assert_equal 1, product.master.live_digital_asset.version
+  end
+
+  test 'creator prices start at the minimum; a free product is admin-only' do
+    post PATH, headers: @headers.merge('Content-Type' => 'application/json'),
+               params: { name: 'Free', price: '0', kind: 'pack', files: [] }.to_json
+    assert_response :unprocessable_entity
+    assert_match(/at least 0.50/, json['fields']['price'].first)
+
+    draft = create_product(files: [])
+    %w[0 0.49].each do |price|
+      patch_product(draft, { price: price })
+      assert_response :unprocessable_entity
+    end
+
+    product = create_product
+    submit(product)
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    %w[0 0.49].each do |price|
+      patch_product(product, { price: price })
+      assert_response :unprocessable_entity
+      assert json['fields']['price']
+    end
+    patch_product(product, { price: '0.5' })
+    assert_response :success
+    assert_equal 0.5, product.reload.price.to_f
+
+    @creator.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
+    patch_product(product, { price: '0' })
+    assert_response :success, response.body
+    assert_equal 0.0, product.reload.price.to_f
+  end
+
+  test 'a manifest-only edit of a live product starts a new draft version' do
+    product = create_product(manifest: { format: 1, bpm: 120 })
+    submit(product)
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    live = product.master.live_digital_asset
+
+    patch_product(product, { manifest: { format: 1, bpm: 90 } })
+    assert_response :success, response.body
+    assert_equal 'draft', json['review_state']
+    assert_equal 'draft', json['asset']['status']
+    assert_equal 90, json['asset']['manifest']['bpm']
+    assert_equal %w[kick.wav snare.wav], json['asset']['files'].map { |f| f['filename'] }.sort
+    assert_equal 120, live.reload.manifest['bpm']
+    assert live.published?
+
+    submit(product)
+    assert_response :success, response.body
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    assert_equal 2, product.master.live_digital_asset.version
+    assert_equal 90, product.master.live_digital_asset.manifest['bpm']
+  end
+
+  test 'taxon_ids keeps taxons outside the marketplace' do
+    product = create_product
+    featured = Spree::Taxonomy.create!(name: "Featured #{SecureRandom.hex(2)}").root
+    product.taxons << featured
+    patch_product(product, { taxon_ids: [] })
+    assert_response :success, response.body
+    assert_equal [featured.id], product.reload.taxon_ids
+  end
+
   test 'editing only details of an approved product keeps it approved' do
     product = create_product
     submit(product)

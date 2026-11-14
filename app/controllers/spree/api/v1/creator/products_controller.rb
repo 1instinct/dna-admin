@@ -9,7 +9,8 @@ module Spree
         #   GET    /api/v1/creator/products/:id         200 Product | 404
         #   PATCH  /api/v1/creator/products/:id         200 Product | 404 | 422 (in review, rejected, invalid)
         #   DELETE /api/v1/creator/products/:id         204 | 404 | 422 unless a draft that never went live
-        #   POST   /api/v1/creator/products/:id/submit  200 Product | 422 unless draft or changes_requested with files
+        #   POST   /api/v1/creator/products/:id/submit  200 Product | 422 unless draft or changes_requested with
+        #                                               files (or, when live, preview media waiting for review)
         #
         # Create and update take { name, description, price, kind, taxon_ids, preview_image_signed_id,
         # preview_audio_signed_id, files: [signed_id], keep_file_ids: [id], remove_file_ids: [id], manifest }; see
@@ -53,17 +54,10 @@ module Spree
           end
 
           def submit
-            unless %w[draft changes_requested].include?(@product.review_state)
-              return render_error('Only a draft or a product with requested changes can be submitted', :unprocessable_entity)
-            end
-
-            draft = Spree::DigitalAsset.draft.where(variant_id: @product.master.id).order(id: :desc).first
-            unless draft&.files&.attached?
-              return render_error('Add files before submitting', :unprocessable_entity, fields: { files: ['are required'] })
-            end
-
-            @product.update!(review_state: 'submitted', submitted_at: Time.current, review_note: nil)
+            Creators::ProductWriter.submit!(@product)
             render json: product_json(@product)
+          rescue Creators::ProductWriter::Invalid => e
+            render_error(e.message, :unprocessable_entity, fields: e.fields)
           end
 
           private

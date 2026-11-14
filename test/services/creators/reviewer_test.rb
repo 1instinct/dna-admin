@@ -53,6 +53,13 @@ class Creators::ReviewerTest < ActiveSupport::TestCase
     assert_equal 'Not original', @product.review_note
   end
 
+  test 'approve refuses when the creator has no active account' do
+    Spree::CreatorAccount.find_by!(user_id: @creator.id).update!(status: 'suspended')
+    assert_raises(Creators::Reviewer::Error) { Creators::Reviewer.approve!(@product, @admin) }
+    assert_equal 'submitted', @product.reload.review_state
+    refute @product.available?
+  end
+
   test 'only submitted products can be reviewed' do
     @product.update!(review_state: 'draft')
     assert_raises(Creators::Reviewer::Error) { Creators::Reviewer.approve!(@product, @admin) }

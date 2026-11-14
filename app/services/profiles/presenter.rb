@@ -98,11 +98,12 @@ module Profiles
     end
 
     # The creator role is the authority (Creators); an is_creator column, where an app has one, is
-    # kept in step with it.
+    # kept in step with it. Memoized: one role lookup per presenter, however many payloads ask.
     def creator?
-      return false unless user
+      return @creator if defined?(@creator)
 
-      Creators.creator?(user) || (user.respond_to?(:is_creator) && user.is_creator == true)
+      @creator = user.present? &&
+                 (Creators.creator?(user) || (user.respond_to?(:is_creator) && user.is_creator == true))
     end
 
     def joined

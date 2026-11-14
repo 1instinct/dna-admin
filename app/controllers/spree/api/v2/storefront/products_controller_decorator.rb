@@ -5,14 +5,32 @@ module Spree
         module ProductsControllerDecorator
           VIDEO_INCLUDES = { videos: { video_attachment: :blob, poster_attachment: :blob } }.freeze
 
+          protected
+
+          # A listing looks up its creators' { handle, name } in one batch for the serializer's
+          # creator attribute (Creators.identities_for).
+          def serialize_collection(collection)
+            @creator_identities = Creators.identities_for(collection.map(&:creator_id))
+            super
+          end
+
+          def serializer_params
+            @creator_identities ? super.merge(creator_identities: @creator_identities) : super
+          end
+
           private
 
-          # Preloads product videos and their attachments when a request asks for include=videos,
-          # so a listing doesn't query per product and per video.
+          # Preloads the variants' digital assets, which digital_kind reads, and product videos and
+          # their attachments when a request asks for include=videos, so a listing doesn't query per
+          # product.
           def scope_includes
-            return super unless params[:include].to_s.split(',').map(&:strip).include?('videos')
+            includes = super
+            includes = includes.merge(
+              variants_including_master: Array(includes[:variants_including_master]) + [:digital_assets]
+            )
+            return includes unless params[:include].to_s.split(',').map(&:strip).include?('videos')
 
-            super.merge(VIDEO_INCLUDES)
+            includes.merge(VIDEO_INCLUDES)
           end
 
           # Both show and index start here, so a product that isn't available is a 404 by slug and

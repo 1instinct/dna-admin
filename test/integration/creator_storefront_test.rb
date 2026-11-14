@@ -52,6 +52,28 @@ class CreatorStorefrontTest < ActionDispatch::IntegrationTest
     assert_equal({ 'handle' => 'nightshift', 'name' => 'Night Shift' }, json['items'].first['product']['creator'])
   end
 
+  test 'a 25-product listing reads digital kinds and creators in a constant number of queries' do
+    creators = Array.new(3) { |i| creator_user(handle: "maker#{i}x", name: "Maker #{i}") }
+    11.times { |i| approved_creator_product(creators[i % 3], price: 2 + i) }
+    13.times { published_asset(kind: 'preset') }
+    assert_equal 25, Spree::Product.publicly_visible.count
+
+    tables = /spree_digital_assets|spree_user_profiles|spree_creator_applications/
+    count = 0
+    counter = lambda do |_name, _start, _finish, _id, payload|
+      count += 1 if payload[:sql] =~ tables && payload[:name] != 'SCHEMA'
+    end
+    ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+      get '/api/v2/storefront/products', params: { per_page: 25 }
+    end
+    assert_response :success
+    data = JSON.parse(response.body)['data']
+    assert_equal 25, data.size
+    assert_equal 12, data.count { |p| p['attributes']['creator'] }
+    assert_equal 25, data.count { |p| p['attributes']['digital_kind'] }
+    assert_operator count, :<=, 4, "#{count} queries on assets, profiles and applications"
+  end
+
   test 'digital_summary returns kind, sample count, byte size for published only' do
     get "/api/v1/products/#{@product.slug}/digital_summary"
     assert_response :success

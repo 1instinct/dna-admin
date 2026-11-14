@@ -1,3 +1,12 @@
+        <% if @product.creator_pending_preview? %>
+          <h3 class="h6 mt-3">Waiting for review (replaces the above on approval)</h3>
+          <% if @product.creator_pending_preview_image.attached? %>
+            <%= render 'spree/admin/creator_applications/media', attachment: @product.creator_pending_preview_image %>
+          <% end %>
+          <% if @product.creator_pending_preview_audio.attached? %>
+            <%= render 'spree/admin/creator_applications/media', attachment: @product.creator_pending_preview_audio %>
+          <% end %>
+        <% end %>
 <% content_for :page_title do %>
   <%= link_to 'Creator review queue', spree.admin_creator_reviews_path %> &raquo; <%= @product.name %>
 <% end %>
@@ -48,6 +57,15 @@
         <% end %>
         <% unless @image || @product.creator_preview_audio.attached? %>
           <p class="text-muted mb-0">No preview media.</p>
+        <% end %>
+        <% if @product.creator_pending_preview? %>
+          <h3 class="h6 mt-3">Waiting for review (replaces the above on approval)</h3>
+          <% if @product.creator_pending_preview_image.attached? %>
+            <%= render 'spree/admin/creator_applications/media', attachment: @product.creator_pending_preview_image %>
+          <% end %>
+          <% if @product.creator_pending_preview_audio.attached? %>
+            <%= render 'spree/admin/creator_applications/media', attachment: @product.creator_pending_preview_audio %>
+          <% end %>
         <% end %>
       </div>
     </div>

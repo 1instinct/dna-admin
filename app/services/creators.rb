@@ -14,8 +14,10 @@ module Creators
     # shipping_category_name: the shipping category of creator products (created when missing).
     # max_samples: demo files an application may carry.
     # sales_rows_limit: rows returned by GET /api/v1/creator/sales.
+    # min_price: the lowest price a creator may set (free products are admin-only); a number, or a
+    #   Hash of currency => number with an optional "default" key.
     attr_accessor :default_share_bps, :hold_days, :marketplace_taxon_permalink, :role_name,
-                  :shipping_category_name, :max_samples, :sales_rows_limit
+                  :shipping_category_name, :max_samples, :sales_rows_limit, :min_price
 
     def initialize
       @default_share_bps = 7000
@@ -25,6 +27,7 @@ module Creators
       @shipping_category_name = 'Digital'
       @max_samples = 3
       @sales_rows_limit = 500
+      @min_price = BigDecimal('0.5')
     end
   end
 
@@ -82,10 +85,51 @@ module Creators
   def self.user_identity(user_id)
     return unless user_id
 
-    profile = Spree::UserProfile.find_by(user_id: user_id, hidden_at: nil)
-    name = profile&.name.presence ||
-           Spree::CreatorApplication.where(user_id: user_id, status: 'approved').order(:reviewed_at).last&.display_name
-    { handle: profile&.handle, name: name }
+    identities_for([user_id])[user_id]
+  end
+
+  # { user_id => { handle, name } } for many creators in two queries (storefront listings).
+  def self.identities_for(user_ids)
+    ids = Array(user_ids).compact.uniq
+    return {} if ids.empty?
+
+    profiles = Spree::UserProfile.where(user_id: ids, hidden_at: nil).index_by(&:user_id)
+    unnamed = ids.reject { |id| profiles[id]&.name.present? }
+    names = if unnamed.empty?
+              {}
+            else
+              Spree::CreatorApplication.where(user_id: unnamed, status: 'approved').order(:reviewed_at, :id)
+                                       .pluck(:user_id, :display_name).to_h
+            end
+    ids.index_with do |id|
+      profile = profiles[id]
+      { handle: profile&.handle, name: profile&.name.presence || names[id] }
+    end
+  end
+
+  # The kind of the product's live digital asset (its highest published version), or nil. Reads
+  # the preloaded variants_including_master.digital_assets when a listing preloaded them.
+  def self.digital_kind(product)
+    variants = product.variants_including_master
+    if variants.loaded? && variants.all? { |variant| variant.association(:digital_assets).loaded? }
+      live = variants.flat_map(&:digital_assets).select(&:published?)
+                     .max_by { |asset| [asset.version.to_i, asset.id.to_i] }
+      return live&.kind
+    end
+
+    Spree::DigitalAsset.published.where(variant_id: variants.map(&:id)).order(version: :desc, id: :desc).pick(:kind)
+  end
+
+  # The lowest price a creator may set in the currency (Creators.config.min_price).
+  def self.min_price(currency)
+    setting = config.min_price
+    value = if setting.is_a?(Hash)
+              setting = setting.stringify_keys
+              setting[currency.to_s] || setting['default']
+            else
+              setting
+            end
+    BigDecimal((value || 0).to_s)
   end
 
   # An order number reduced to its last four characters: creators never see who bought.
