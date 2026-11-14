@@ -15,7 +15,7 @@ module Spree
 
     enum status: STATUSES.index_with(&:itself)
 
-    belongs_to :variant, class_name: 'Spree::Variant', inverse_of: :digital_assets, touch: true
+    belongs_to :variant, -> { with_deleted }, class_name: 'Spree::Variant', inverse_of: :digital_assets, touch: true
     has_many_attached :files
 
     before_validation :compute_byte_size
@@ -25,6 +25,8 @@ module Spree
     validate :check_manifest
     validate :check_files
     validate :check_published_has_files
+
+    after_save :reset_variant_digital_cache
 
     # Gives a draft the variant's next version and publishes it. Raises RecordInvalid when the asset
     # is invalid or has no files. Publishing a published asset changes nothing.
@@ -70,7 +72,7 @@ module Spree
       sha = Array(manifest.is_a?(Hash) ? manifest['files'] : nil).each_with_object({}) do |entry, out|
         out[entry['id']] = entry['sha256'] if entry.is_a?(Hash)
       end
-      files.attachments.includes(:blob).order(:id).map do |file|
+      sorted_attachments.map do |file|
         { id: file.id, filename: file.filename.to_s, byte_size: file.byte_size, content_type: file.content_type,
           md5: file.checksum, sha256: sha[file.id] }
       end
@@ -90,6 +92,21 @@ module Spree
     end
 
     private
+
+    # The saved attachments by id, from the preloaded association when there is one (the library
+    # preloads files_attachments: :blob), else one query with their blobs.
+    def sorted_attachments
+      if association(:files_attachments).loaded? && !attachment_changes.key?('files')
+        files_attachments.sort_by(&:id)
+      else
+        files.attachments.includes(:blob).order(:id)
+      end
+    end
+
+    # Spree::Variant#digital? is memoized per instance; publishing or retiring changes the answer.
+    def reset_variant_digital_cache
+      variant.reset_digital_cache! if association(:variant).loaded? && variant
+    end
 
     def sha256_of(blob)
       digest = Digest::SHA256.new

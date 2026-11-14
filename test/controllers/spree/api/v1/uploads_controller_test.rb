@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'rake'
 
 # POST /api/v1/uploads: a direct-upload slot for one file.
 class Spree::Api::V1::UploadsControllerTest < ActionDispatch::IntegrationTest
@@ -68,6 +69,32 @@ class Spree::Api::V1::UploadsControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
     post '/api/v1/uploads', params: params_for, headers: @headers, as: :json
     assert_response :too_many_requests
+  end
+
+  test 'the default limit is 100 upload slots an hour' do
+    assert_equal({ limit: 100, window: 1.hour }, Uploads.config.rate_limit)
+  end
+
+  test 'the sweep purges unattached blobs older than a day only' do
+    old_loose = ActiveStorage::Blob.create_and_upload!(io: StringIO.new('a'), filename: 'a.wav', content_type: 'audio/wav')
+    old_loose.update_columns(created_at: 2.days.ago)
+    new_loose = ActiveStorage::Blob.create_and_upload!(io: StringIO.new('b'), filename: 'b.wav', content_type: 'audio/wav')
+    asset = published_asset
+    asset.files.blobs.each { |b| b.update_columns(created_at: 2.days.ago) }
+
+    assert_equal 1, Uploads::UnattachedSweeper.call
+    refute ActiveStorage::Blob.exists?(old_loose.id)
+    assert ActiveStorage::Blob.exists?(new_loose.id)
+    assert_equal 1, asset.reload.files.count
+  end
+
+  test 'the uploads:sweep_unattached task runs the sweep' do
+    Rails.application.load_tasks unless Rake::Task.task_defined?('uploads:sweep_unattached')
+    loose = ActiveStorage::Blob.create_and_upload!(io: StringIO.new('a'), filename: 'a.wav', content_type: 'audio/wav')
+    loose.update_columns(created_at: 2.days.ago)
+    Rake::Task['uploads:sweep_unattached'].reenable
+    assert_output(/1/) { Rake::Task['uploads:sweep_unattached'].invoke }
+    refute ActiveStorage::Blob.exists?(loose.id)
   end
 
   test 'all endpoints 401 without bearer' do

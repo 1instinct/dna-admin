@@ -114,6 +114,33 @@ class Spree::DigitalAssetTest < ActiveSupport::TestCase
                  asset.manifest['files']
   end
 
+  test 'a digital variant tracks no stock but keeps its track_inventory setting' do
+    variant = asset_with_file(create(:digital_product).master).tap(&:publish!).variant
+    variant = Spree::Variant.find(variant.id)
+    assert variant[:track_inventory]
+    assert variant.track_inventory, 'the admin form shows the saved setting'
+    refute variant.should_track_inventory?
+
+    variant.update!(sku: 'SAVED-1')
+    assert variant.reload[:track_inventory], 'saving the variant keeps the column'
+  end
+
+  test 'digital? is answered once per variant instance and follows publish' do
+    variant = create(:digital_product).master
+    asset = asset_with_file(variant)
+    variant = Spree::Variant.find(variant.id)
+    refute variant.digital?
+
+    queries = 0
+    callback = ->(*, payload) { queries += 1 unless payload[:name] == 'SCHEMA' || payload[:cached] }
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { 3.times { variant.digital? } }
+    assert_equal 0, queries
+
+    asset.publish!
+    assert asset.variant.digital?, 'the asset clears its own variant'
+    assert variant.reload.digital?
+  end
+
   test 'attach_files! adds to the files already attached' do
     asset = Spree::DigitalAsset.create!(variant: create(:digital_product).master, kind: 'pack')
     asset.attach_files!([digital_blob('aa', 'a.wav')])

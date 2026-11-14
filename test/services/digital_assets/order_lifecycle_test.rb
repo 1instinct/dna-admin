@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 # Orders grant, and cancels and refunds revoke, ownership of digital line items. Digital-only
 # orders skip the delivery step; guests cannot check out digital items.
@@ -109,9 +110,133 @@ class DigitalAssets::OrderLifecycleTest < ActionDispatch::IntegrationTest
     # A state-machine re-run (an admin resuming a canceled order) leaves exactly one active row.
     completed.canceled_by(create(:user))
     completed.reload.resume!
-    DigitalAssets::OrderGranter.call(completed.reload)
+    3.times { DigitalAssets::OrderGranter.call(completed.reload) }
     assert_equal 1, ownerships.active.count
     assert_equal [@pack.id], ownerships.active.pluck(:variant_id)
+  end
+
+  test 'resuming a canceled order through the state machine grants again' do
+    completed = complete_digital_order(@pack)
+    completed.canceled_by(create(:user))
+    assert_equal 0, ownerships.active.count
+
+    completed.reload.resume!
+    assert_equal 'resumed', completed.reload.state
+    assert_equal [@pack.id], ownerships.active.pluck(:variant_id)
+    assert_equal 2, ownerships.count
+  end
+
+  test 'a grant failure (a database error) leaves the order complete' do
+    start_cart
+    add(@pack)
+    addresses(ship: false)
+    next_step
+    next_step
+    current = order
+    current.payments.create!(payment_method: @payment_method, amount: current.total)
+    failing = ->(**) { ActiveRecord::Base.connection.execute('SELECT * FROM digital_assets_missing_table') }
+    Spree::DigitalOwnership.stub(:grant!, failing) do
+      patch '/api/v2/storefront/checkout/complete', headers: @headers
+    end
+    assert_response :success, response.body
+    assert order.completed?
+    assert_equal 'complete', order.state
+    assert_equal 0, ownerships.count
+  end
+
+  test 'a revoke failure in a refund keeps the refund' do
+    completed = complete_digital_order(@pack)
+    failing = ->(*, **) { ActiveRecord::Base.connection.execute('SELECT * FROM digital_assets_missing_table') }
+    DigitalAssets::OrderRevoker.stub(:call, failing) { refund(completed, completed.total) }
+    assert_equal 1, Spree::Refund.count
+    assert ownerships.first.active?
+  end
+
+  test 'a zero-total digital order completes without payment and grants' do
+    free = published_asset(price: 0).variant
+    start_cart
+    add(free)
+    addresses(ship: false)
+    # No payment and no confirmation step: advance goes all the way to complete.
+    patch '/api/v2/storefront/checkout/advance', headers: @headers
+    assert_response :success, response.body
+    assert order.completed?
+    assert_equal [free.id], ownerships.active.pluck(:variant_id)
+  end
+
+  test 'an order paid with store credit grants' do
+    category = Spree::StoreCreditCategory.first_or_create!(name: 'Default')
+    Spree::PaymentMethod::StoreCredit.first_or_create!(name: 'Store Credit', active: true, display_on: 'both')
+    Spree::StoreCreditType.first_or_create!(name: 'Expiring', priority: 1)
+    Spree::StoreCredit.create!(user: @user, amount: 50, category: category, created_by: @user, currency: 'USD')
+    start_cart
+    add(@pack)
+    addresses(ship: false)
+    next_step
+    next_step
+    assert_equal 'payment', order.state
+    post '/api/v2/storefront/checkout/add_store_credit', headers: @headers
+    assert_response :success, response.body
+    patch '/api/v2/storefront/checkout/complete', headers: @headers
+    assert_response :success, response.body
+    assert order.completed?
+    assert_equal [@pack.id], ownerships.active.pluck(:variant_id)
+  end
+
+  test 'a guest who reached address cannot add a digital item and go on' do
+    start_cart(nil)
+    add(@shirt)
+    addresses
+    next_step
+    assert_equal 'address', order.state
+
+    add(@pack)
+    next_step
+    assert_response :unprocessable_entity
+    assert_equal 'digital_requires_account', json['error']
+    assert_equal 'address', order.state
+
+    patch '/api/v2/storefront/checkout/advance', headers: @headers
+    refute %w[delivery payment confirm complete].include?(order.state)
+  end
+
+  test 'a guest at payment who adds a digital item gets no 500 and cannot complete' do
+    start_cart(nil)
+    add(@shirt)
+    addresses
+    3.times { next_step }
+    assert_equal 'payment', order.state
+    current = order
+    current.payments.create!(payment_method: @payment_method, amount: current.total)
+
+    post '/api/v2/storefront/cart/add_item', params: { variant_id: @pack.id, quantity: 1 }, headers: @headers
+    assert_response :success, response.body
+    assert_equal 'cart', order.state
+
+    patch '/api/v2/storefront/checkout/complete', headers: @headers
+    assert_response :unprocessable_entity
+    refute order.completed?
+    next_step
+    assert_response :unprocessable_entity
+    assert_equal 'digital_requires_account', json['error']
+    assert_equal 0, Spree::DigitalOwnership.count
+  end
+
+  test 'a guest order holding a digital item cannot be completed from payment' do
+    start_cart(nil)
+    add(@shirt)
+    addresses
+    3.times { next_step }
+    # Slipped in without the cart service (no checkout restart).
+    order.line_items.create!(variant: @pack, quantity: 1, price: 10)
+    current = order
+    current.update_with_updater!
+    current.payments.create!(payment_method: @payment_method, amount: current.total)
+    patch '/api/v2/storefront/checkout/complete', headers: @headers
+    assert_response :unprocessable_entity
+    assert_equal 'digital_requires_account', json['error']
+    refute order.completed?
+    assert_equal %w[checkout], order.payments.map(&:state)
   end
 
   test 'the granter does nothing for an incomplete order or one without a user' do

@@ -63,7 +63,7 @@ module DigitalAssets
 
     # The variant's first image, else the product's (master) first image.
     def image_url
-      image = @ownership.variant.images.first || product.master.images.first
+      image = @ownership.variant.images.first || product.master&.images&.first
       attachment = image&.attachment
       return nil unless attachment&.attached?
 

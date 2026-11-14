@@ -9,7 +9,8 @@ module Spree
     self.table_name = 'spree_digital_ownerships'
 
     belongs_to :user, class_name: Spree.user_class.to_s
-    belongs_to :variant, class_name: 'Spree::Variant', inverse_of: :digital_ownerships
+    # with_deleted: owners keep their items when a product or variant is deleted (soft delete).
+    belongs_to :variant, -> { with_deleted }, class_name: 'Spree::Variant', inverse_of: :digital_ownerships
     belongs_to :source_record, polymorphic: true, optional: true, foreign_key: :source_id, foreign_type: :source_type
 
     scope :active, -> { where(revoked_at: nil) }
@@ -26,9 +27,12 @@ module Spree
     def self.grant!(user:, variant:, source:, source_record: nil)
       attempts = 0
       begin
+        # The create runs in a savepoint: a lost race must not abort the caller's transaction.
         active.find_by(user_id: user.id, variant_id: variant.id) ||
-          create!(user: user, variant: variant, source: source.to_s, source_record: source_record,
-                  granted_at: Time.current)
+          transaction(requires_new: true) do
+            create!(user: user, variant: variant, source: source.to_s, source_record: source_record,
+                    granted_at: Time.current)
+          end
       rescue ActiveRecord::RecordNotUnique
         attempts += 1
         retry if attempts < 2

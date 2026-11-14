@@ -27,7 +27,7 @@ module Uploads
           max_bytes: 256.kilobytes
         }
       }
-      @rate_limit = { limit: 300, window: 1.hour }
+      @rate_limit = { limit: 100, window: 1.hour }
     end
 
     # The rule a file falls under, or nil.

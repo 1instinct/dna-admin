@@ -161,6 +161,68 @@ class Spree::Api::V1::LibraryControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found, 'another user has their own limit'
   end
 
+  test 'links ignore file ids of another asset' do
+    other = published_asset
+    foreign = other.file_entries.first[:id]
+    own = @asset.file_entries.first[:id]
+    post "/api/v1/library/#{@ownership.id}/links", params: { file_ids: [foreign, own] }, headers: @headers, as: :json
+    assert_response :success
+    assert_equal [own], json['links'].map { |l| l['file_id'] }
+  end
+
+  test 'a deleted product stays in the library and its links still work' do
+    @variant.product.destroy!
+    assert @variant.product.reload.deleted?
+
+    get '/api/v1/library', headers: @headers
+    assert_response :success
+    assert_equal [@ownership.id], json['items'].map { |i| i['ownership_id'] }
+    assert_equal @variant.product.name, json['items'].first['product']['name']
+
+    post "/api/v1/library/#{@ownership.id}/links", headers: @headers, as: :json
+    assert_response :success
+    assert_equal 2, json['links'].size
+  end
+
+  test 'a revoked row is not listed next to an active row for the same variant' do
+    @ownership.revoke!('order_canceled')
+    again = Spree::DigitalOwnership.grant!(user: @user, variant: @variant, source: 'order')
+    get '/api/v1/library', headers: @headers
+    assert_equal [again.id], json['items'].map { |i| i['ownership_id'] }
+
+    again.revoke!('refunded')
+    get '/api/v1/library', headers: @headers
+    assert_equal [again.id], json['items'].map { |i| i['ownership_id'] }, 'only the latest revoked row'
+  end
+
+  test 'index queries do not grow with the number of items' do
+    add_cover = lambda do |variant|
+      media = Spree::Image.new(viewable: variant, alt: 'cover')
+      media.attachment.attach(digital_blob(DigitalAssetsTestHelper::WAV_BYTES, 'cover.png', 'image/png'))
+      media.save!(validate: false)
+    end
+    count_queries = lambda do
+      queries = 0
+      # Count cached queries too: another test may leave the query cache on for the connection.
+      ActiveRecord::Base.connection.clear_query_cache
+      callback = ->(*, payload) { queries += 1 unless payload[:name] == 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { get '/api/v1/library', headers: @headers }
+      assert_response :success
+      queries
+    end
+    add_cover.call(@variant)
+    one = count_queries.call
+    4.times do
+      asset = published_asset(files: { 'a.wav' => 'a', 'b.wav' => 'b' })
+      add_cover.call(asset.variant)
+      Spree::DigitalOwnership.grant!(user: @user, variant: asset.variant, source: 'grant')
+    end
+    five = count_queries.call
+    assert_equal 5, json['items'].size
+    assert(json['items'].all? { |i| i['product']['image_url'].present? })
+    assert_equal one, five, "1 item: #{one} queries, 5 items: #{five}"
+  end
+
   test 'claim grants free source for claimable price-0 variant' do
     variant = free_variant
     post '/api/v1/library/claim', params: { variant_id: variant.id }, headers: @headers, as: :json

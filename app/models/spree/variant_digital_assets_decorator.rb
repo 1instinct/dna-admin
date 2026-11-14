@@ -14,8 +14,24 @@ module Spree
       digital_assets.published.order(version: :desc).first
     end
 
+    # Whether the variant has a published asset. Uses the loaded digital_assets when preloaded;
+    # otherwise one query, memoized on this instance (cart, checkout and stock checks ask often).
+    # reload and DigitalAsset saves on this instance clear it.
     def digital?
-      digital_assets.published.exists?
+      return digital_assets.any?(&:published?) if association(:digital_assets).loaded?
+      return @digital if defined?(@digital)
+
+      @digital = digital_assets.published.exists?
+    end
+
+    def reset_digital_cache!
+      remove_instance_variable(:@digital) if defined?(@digital)
+      association(:digital_assets).reset
+    end
+
+    def reload(*)
+      reset_digital_cache!
+      super
     end
 
     # A digital variant has no stock: it can always be supplied and never moves inventory.
@@ -23,6 +39,13 @@ module Spree
       return false if digital?
 
       super
+    end
+
+    # Spree 4.2 defines the track_inventory reader as should_track_inventory?, which would show
+    # (and the admin form would save) false for every digital variant. Keep the reader on the
+    # column and the global setting only.
+    def track_inventory
+      track_inventory? && Spree::Config.track_inventory_levels
     end
   end
 end

@@ -20,11 +20,13 @@ module Spree
       class LibraryController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
+        IMAGE_BLOB = { attachment_attachment: :blob }.freeze
+
         before_action :require_bearer_user
         before_action :set_storage_host
 
         def index
-          ownerships = visible_ownerships.to_a
+          ownerships = one_per_variant(visible_ownerships.to_a)
           assets = live_assets(ownerships.map(&:variant_id))
           ownerships.select! { |ownership| assets[ownership.variant_id] }
 
@@ -72,13 +74,21 @@ module Spree
           cutoff = DigitalAssets.config.revoked_visibility_days.days.ago
           Spree::DigitalOwnership.where(user_id: current_api_user.id)
                                  .where('revoked_at IS NULL OR revoked_at > ?', cutoff)
-                                 .includes(variant: [:images, { product: { master: :images } }])
+                                 .includes(variant: [{ images: IMAGE_BLOB }, { product: { master: { images: IMAGE_BLOB } } }])
                                  .order(:granted_at, :id)
+        end
+
+        # One row per variant: the active ownership when there is one (a cancel then resume, or a
+        # refund then a new purchase, leaves a revoked row beside it), else the latest revoked one.
+        def one_per_variant(ownerships)
+          ownerships.group_by(&:variant_id).values.map do |rows|
+            rows.detect(&:active?) || rows.max_by { |o| [o.revoked_at, o.id] }
+          end.sort_by { |o| [o.granted_at, o.id] }
         end
 
         # { variant_id => live asset }
         def live_assets(variant_ids)
-          Spree::DigitalAsset.published.where(variant_id: variant_ids).order(version: :desc)
+          Spree::DigitalAsset.published.where(variant_id: variant_ids).with_attached_files.order(version: :desc)
                              .each_with_object({}) { |asset, out| out[asset.variant_id] ||= asset }
         end
 
