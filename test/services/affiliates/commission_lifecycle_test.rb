@@ -150,6 +150,87 @@ class Affiliates::CommissionLifecycleTest < ActiveSupport::TestCase
     assert_equal 0, AffiliateCommission.count
   end
 
+  test 'cancel and a full refund record why the commission is void' do
+    canceled = complete_order!(attributed_cart)
+    canceled.canceled_by(@admin)
+    assert_equal 'order_canceled', canceled.affiliate_commission.reload.void_reason
+
+    refunded = complete_order!(attributed_cart)
+    capture_and_refund(refunded, refunded.total)
+    assert_equal 'refunded', refunded.affiliate_commission.reload.void_reason
+  end
+
+  test 'admin void, then cancel, then resume stays void' do
+    order = complete_order!(attributed_cart)
+    order.affiliate_commission.update!(state: 'void', void_reason: 'admin')
+    order.reload.canceled_by(@admin)
+    order.reload.resume!
+    commission = order.affiliate_commission.reload
+    assert_equal 'void', commission.state
+    assert_equal 'admin', commission.void_reason
+  end
+
+  test 'cancel, then resume while the affiliate is suspended stays void' do
+    order = complete_order!(attributed_cart)
+    order.canceled_by(@admin)
+    @affiliate.update!(status: 'suspended')
+    order.reload.resume!
+    assert_equal 'void', order.affiliate_commission.reload.state
+  end
+
+  test 'resume after a full refund stays void' do
+    order = complete_order!(attributed_cart)
+    capture_and_refund(order, order.total)
+    assert_equal 'void', order.affiliate_commission.reload.state
+    order.reload.canceled_by(@admin)
+    order.reload.resume!
+    assert_equal 'void', order.affiliate_commission.reload.state
+  end
+
+  test 'refund, cancel and resume never create a commission' do
+    order = attributed_cart
+    @affiliate.update!(status: 'suspended')
+    complete_order!(order)
+    @affiliate.update!(status: 'approved')
+
+    capture_and_refund(order, 10)
+    assert_equal 0, AffiliateCommission.count
+    order.reload.canceled_by(@admin)
+    assert_equal 0, AffiliateCommission.count
+    order.reload.resume!
+    assert_equal 0, AffiliateCommission.count
+  end
+
+  test 'an attribution older than the cookie window at completion earns nothing' do
+    order = attributed_cart
+    order.update_columns(affiliate_attributed_at: 31.days.ago)
+    complete_order!(order)
+    assert_equal 0, AffiliateCommission.count
+  end
+
+  test 'an attribution inside the account\'s cookie window earns' do
+    @affiliate.update!(cookie_days: 60)
+    order = attributed_cart
+    order.update_columns(affiliate_attributed_at: 45.days.ago)
+    complete_order!(order)
+    assert_equal 1, AffiliateCommission.count
+  end
+
+  test 'a store credit reimbursement reduces the base like a refund' do
+    buyer = create(:user)
+    order = complete_order!(attributed_cart(user: buyer))
+    category = Spree::StoreCreditCategory.first || Spree::StoreCreditCategory.create!(name: 'Default')
+    credit_type = Spree::StoreCreditType.first || Spree::StoreCreditType.create!(name: 'Non-expiring', priority: 1)
+    credit = Spree::StoreCredit.create!(user: buyer, amount: 25, currency: 'USD', category: category, created_by: @admin,
+                                        credit_type: credit_type)
+    reimbursement = Spree::Reimbursement.create!(order: order, total: 25)
+    Spree::Reimbursement::Credit.create!(reimbursement: reimbursement, amount: 25, creditable: credit)
+
+    commission = order.affiliate_commission.reload
+    assert_equal 75, commission.base_amount.to_i
+    assert_equal 7.5, commission.amount.to_f
+  end
+
   test 'a recorder failure never breaks checkout' do
     order = attributed_cart
     AffiliateCommission.stub(:create!, ->(*) { raise ActiveRecord::StatementInvalid, 'boom' }) do

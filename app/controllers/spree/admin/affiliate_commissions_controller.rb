@@ -22,7 +22,7 @@ module Spree
       def void
         commission = AffiliateCommission.find(params[:id])
         if commission.pending? || commission.approved?
-          commission.update!(state: 'void')
+          commission.update!(state: 'void', void_reason: 'admin')
           flash[:success] = 'Commission voided'
         else
           flash[:error] = "A #{commission.state} commission can't be voided"

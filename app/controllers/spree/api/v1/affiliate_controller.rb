@@ -16,7 +16,8 @@ module Spree
       #                                           per day (default the last 30 days, at most 366)
       #   GET   /api/v1/affiliate/commissions?page  { rows: [{ order_masked, base_amount, amount, state,
       #                                           created_at, approvable_at }], page, pages }, 25 a page
-      #   GET   /api/v1/affiliate/payouts         { payouts: [{ id, amount, currency, reference, paid_at, note }] }
+      #   GET   /api/v1/affiliate/payouts         { payouts: [{ id, amount, currency, reference, paid_at }] }
+      #                                           (the admin's payout note stays internal)
       #   GET   /api/v1/affiliate/code_available?code=  { available }
       #
       # Money is a number in the account's currency. Affiliates never see buyer names or emails;
@@ -104,7 +105,7 @@ module Spree
         def payouts
           payouts = @account.payouts.order(paid_at: :desc, id: :desc).map do |payout|
             { id: payout.id, amount: money(payout.amount), currency: payout.currency, reference: payout.reference,
-              paid_at: payout.paid_at&.iso8601, note: payout.note }
+              paid_at: payout.paid_at&.iso8601 }
           end
           render json: { payouts: payouts }
         end

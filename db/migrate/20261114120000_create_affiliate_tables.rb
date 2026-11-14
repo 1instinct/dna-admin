@@ -51,6 +51,9 @@ class CreateAffiliateTables < ActiveRecord::Migration[6.1]
       t.decimal :amount, precision: 10, scale: 2, null: false, default: 0
       t.string :currency, null: false
       t.string :state, null: false, default: 'pending'
+      # Why a void commission is void: order_canceled | refunded | admin. Only order_canceled
+      # comes back on a resume.
+      t.string :void_reason
       t.datetime :approvable_at
       t.references :affiliate_payout, foreign_key: true
       t.timestamps
@@ -59,11 +62,18 @@ class CreateAffiliateTables < ActiveRecord::Migration[6.1]
     add_index :affiliate_commissions, :order_id, unique: true
     add_index :affiliate_commissions, %i[affiliate_account_id created_at], name: 'index_affiliate_commissions_on_account_and_created_at'
     add_index :affiliate_commissions, %i[state approvable_at]
-    add_foreign_key :affiliate_commissions, :spree_orders, column: :order_id
 
-    add_column :spree_orders, :affiliate_account_id, :bigint
-    add_column :spree_orders, :affiliate_attributed_at, :datetime
-    add_index :spree_orders, :affiliate_account_id
-    add_foreign_key :spree_orders, :affiliate_accounts, column: :affiliate_account_id, on_delete: :nullify
+    # Fixed-window counters for Affiliates::RateLimit, one row per key ("click:<visitor hash>").
+    create_table :affiliate_rate_counters do |t|
+      t.string :key, null: false
+      t.datetime :window_started_at, null: false
+      t.integer :hits, null: false, default: 0
+    end
+
+    add_index :affiliate_rate_counters, :key, unique: true
+    add_index :affiliate_rate_counters, :window_started_at
+
+    # The spree_orders columns and the foreign keys to spree_orders are in
+    # AddAffiliateAttributionToSpreeOrders, which avoids long locks on spree_orders.
   end
 end

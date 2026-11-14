@@ -12,9 +12,10 @@ module Spree
       base.has_one :affiliate_commission, class_name: 'AffiliateCommission', foreign_key: :order_id, inverse_of: :order
     end
 
+    # The only hook that creates a commission; the others update an existing one.
     def finalize!
       result = super
-      Affiliates::CommissionRecorder.call(self)
+      Affiliates::CommissionRecorder.call(self, create: true)
       result
     end
 

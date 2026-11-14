@@ -4,12 +4,17 @@
 module Affiliates
   class Config
     attr_writer :link_base_url, :visitor_salt
-    attr_accessor :default_commission_bps, :cookie_days, :hold_days, :reserved_codes
+    attr_accessor :default_commission_bps, :cookie_days, :hold_days, :reserved_codes, :rate_limits,
+                  :click_dedupe_window
 
     def initialize
       @default_commission_bps = 1000
       @cookie_days = 30
       @hold_days = 30
+      # Per-visitor limit on POST /api/v1/affiliate/clicks (Affiliates::RateLimit); past it, 429.
+      @rate_limits = { click: { limit: 30, window: 1.minute } }
+      # A click from the same visitor through the same code within this window is counted once.
+      @click_dedupe_window = 30.minutes
       # Codes nobody may take, on top of the profile module's reserved handles when present.
       @reserved_codes = %w[admin affiliate affiliates api help support shop store staff official]
     end

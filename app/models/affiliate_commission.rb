@@ -2,10 +2,12 @@
 #
 # base_amount: the item total after promotions, without shipping or tax, less refunds.
 # amount: base_amount * commission_bps / 10000, rounded to cents.
-# state: pending -> approved (after approvable_at, see .sweep!) -> paid (in a payout); void when the
-#        order is canceled or fully refunded, or by an admin.
+# state: pending -> approved (after approvable_at, see .sweep!) -> paid (in a payout); void when
+#        the order is canceled or fully refunded, or by an admin.
+# void_reason: order_canceled | refunded | admin. Only order_canceled comes back on a resume.
 class AffiliateCommission < ApplicationRecord
   STATES = %w[pending approved paid void].freeze
+  VOID_REASONS = %w[order_canceled refunded admin].freeze
 
   belongs_to :affiliate_account
   belongs_to :order, class_name: 'Spree::Order'
@@ -13,6 +15,7 @@ class AffiliateCommission < ApplicationRecord
                       inverse_of: :commissions
 
   validates :state, inclusion: { in: STATES }
+  validates :void_reason, inclusion: { in: VOID_REASONS }, allow_nil: true
   validates :order_id, uniqueness: true
   validates :commission_bps, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :currency, presence: true

@@ -105,7 +105,7 @@
 
   <% if can? :admin, AffiliateAccount %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarAffiliates">
-      <%= tab :affiliate_accounts, label: 'Affiliates', icon: 'money.svg', url: spree.admin_affiliate_accounts_path, match_path: '/affiliate' %>
+      <%= tab :affiliate_accounts, label: 'Affiliates', icon: 'money.svg', url: spree.admin_affiliate_accounts_path, match_path: Spree::Admin::AffiliatesTabHelper.affiliates_tab_match_path(spree.admin_path) %>
     </ul>
   <% end %>
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_14_120000) do
+ActiveRecord::Schema.define(version: 2026_11_14_120100) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,6 +116,7 @@ ActiveRecord::Schema.define(version: 2026_11_14_120000) do
     t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
     t.string "currency", null: false
     t.string "state", default: "pending", null: false
+    t.string "void_reason"
     t.datetime "approvable_at"
     t.bigint "affiliate_payout_id"
     t.datetime "created_at", precision: 6, null: false
@@ -136,6 +137,14 @@ ActiveRecord::Schema.define(version: 2026_11_14_120000) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["affiliate_account_id"], name: "index_affiliate_payouts_on_affiliate_account_id"
+  end
+
+  create_table "affiliate_rate_counters", force: :cascade do |t|
+    t.string "key", null: false
+    t.datetime "window_started_at", null: false
+    t.integer "hits", default: 0, null: false
+    t.index ["key"], name: "index_affiliate_rate_counters_on_key", unique: true
+    t.index ["window_started_at"], name: "index_affiliate_rate_counters_on_window_started_at"
   end
 
   create_table "app_feedback_rate_counters", force: :cascade do |t|

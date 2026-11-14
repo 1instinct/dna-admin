@@ -42,6 +42,22 @@ class Spree::Admin::AffiliatesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'sidebarAffiliates'
   end
 
+  test 'the Affiliates tab is selected on its own pages only' do
+    sign_in(@admin)
+    get '/admin/affiliate_commissions'
+    assert_match(/<li class="[^"]*selected[^"]*"><a[^>]*href="\/admin\/affiliate_accounts"/, response.body)
+
+    get '/admin/feedback'
+    refute_match(/<li class="[^"]*selected[^"]*"><a[^>]*href="\/admin\/affiliate_accounts"/, response.body)
+  end
+
+  test 'the Affiliates tab matcher ignores the legacy /admin/affiliates pages' do
+    matcher = Spree::Admin::AffiliatesTabHelper.affiliates_tab_match_path('/admin')
+    %w[/admin/affiliate_accounts /admin/affiliate_accounts/3 /admin/affiliate_commissions?state=void
+       /admin/affiliate_payouts/new].each { |path| assert_match matcher, path }
+    %w[/admin/affiliates /admin/affiliates/3/commissions /admin/affiliate_accountsx].each { |path| refute_match matcher, path }
+  end
+
   test 'applications list filters by status' do
     sign_in(@admin)
     get '/admin/affiliate_accounts', params: { status: 'pending' }
@@ -137,6 +153,7 @@ class Spree::Admin::AffiliatesControllerTest < ActionDispatch::IntegrationTest
 
     post "/admin/affiliate_commissions/#{pending.id}/void"
     assert_equal 'void', pending.reload.state
+    assert_equal 'admin', pending.void_reason
     post "/admin/affiliate_commissions/#{paid.id}/void"
     assert_equal 'paid', paid.reload.state, 'a paid commission stays paid'
   end

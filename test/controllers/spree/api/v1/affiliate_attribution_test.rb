@@ -82,6 +82,76 @@ class Spree::Api::V1::AffiliateAttributionTest < ActionDispatch::IntegrationTest
     assert_equal({ 'attached' => true }, json)
   end
 
+  test 'a different code replaces an attribution older than the cookie window' do
+    order = cart_order
+    other = approved_affiliate(code: 'newer-code')
+    attach('good-code', 'X-Spree-Order-Token' => order.token)
+    order.update_columns(affiliate_attributed_at: 46.days.ago) # good-code's cookie is 45 days
+
+    attach('newer-code', 'X-Spree-Order-Token' => order.token)
+    assert_response :success
+    assert_equal({ 'attached' => true }, json)
+    order.reload
+    assert_equal other.id, order.affiliate_account_id
+    assert order.affiliate_attributed_at > 1.minute.ago
+  end
+
+  test 'within the cookie window a different code is still ignored' do
+    order = cart_order
+    approved_affiliate(code: 'newer-code')
+    attach('good-code', 'X-Spree-Order-Token' => order.token)
+    order.update_columns(affiliate_attributed_at: 44.days.ago)
+
+    attach('newer-code', 'X-Spree-Order-Token' => order.token)
+    assert_equal({ 'attached' => false }, json)
+    assert_equal @affiliate.id, order.reload.affiliate_account_id
+  end
+
+  test 'the same code refreshes an expired attribution' do
+    order = cart_order
+    attach('good-code', 'X-Spree-Order-Token' => order.token)
+    order.update_columns(affiliate_attributed_at: 50.days.ago)
+
+    attach('good-code', 'X-Spree-Order-Token' => order.token)
+    assert_equal({ 'attached' => true }, json)
+    assert order.reload.affiliate_attributed_at > 1.minute.ago
+  end
+
+  test 'the same visitor and code within 30 minutes count once' do
+    assert_difference -> { AffiliateClick.count }, 1 do
+      post_click(code: 'good-code', landing_path: '/a')
+      post_click(code: 'good-code', landing_path: '/b')
+    end
+    assert_response :success
+    assert_equal 45, json['cookie_days']
+
+    AffiliateClick.update_all(created_at: 31.minutes.ago)
+    assert_difference -> { AffiliateClick.count }, 1 do
+      post_click(code: 'good-code')
+    end
+    assert_difference -> { AffiliateClick.count }, 1 do
+      post_click({ code: 'good-code' }, 'HTTP_USER_AGENT' => 'OtherAgent/2.0')
+    end
+  end
+
+  test 'clicks are rate limited per visitor' do
+    Affiliates.config.rate_limits[:click] = { limit: 2, window: 1.minute }
+    approved_affiliate(code: 'second-code')
+    post_click(code: 'good-code')
+    assert_response :success
+    post_click(code: 'second-code')
+    assert_response :success
+    assert_no_difference -> { AffiliateClick.count } do
+      post_click(code: 'good-code')
+    end
+    assert_response :too_many_requests
+
+    post_click({ code: 'good-code' }, 'REMOTE_ADDR' => '198.51.100.4')
+    assert_response :success
+  ensure
+    Affiliates.reset_config!
+  end
+
   test 'attach with the order token for a guest cart' do
     order = cart_order
     attach('good-code', 'X-Spree-Order-Token' => order.token)

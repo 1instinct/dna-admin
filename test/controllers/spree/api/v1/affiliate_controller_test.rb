@@ -119,6 +119,14 @@ class Spree::Api::V1::AffiliateControllerTest < ActionDispatch::IntegrationTest
     patch '/api/v1/affiliate', params: { code: 'better-code', payout_email: 'later@example.com' }.to_json, headers: json_headers
     assert_response :success
     assert_equal 'later@example.com', json['payout_email']
+
+    patch '/api/v1/affiliate', params: { payout_email: 'approved@example.com', website: 'https://new.example.com' }.to_json,
+                               headers: json_headers
+    assert_response :success
+    get '/api/v1/affiliate', headers: @headers
+    assert_equal 'approved', json['status']
+    assert_equal 'approved@example.com', json['payout_email']
+    assert_equal 'https://new.example.com', json['application']['website']
   end
 
   test 'update before applying is 404' do
@@ -243,7 +251,8 @@ class Spree::Api::V1::AffiliateControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal 1, json['payouts'].length
     payout = json['payouts'].first
-    assert_equal %w[amount currency id note paid_at reference], payout.keys.sort
+    assert_equal %w[amount currency id paid_at reference], payout.keys.sort
+    refute_includes response.body, 'Thanks', 'the payout note is internal'
     assert_equal 12.5, payout['amount']
     assert_equal 'PAY-9', payout['reference']
   end
