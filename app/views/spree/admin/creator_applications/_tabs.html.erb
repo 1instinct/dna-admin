@@ -1,0 +1,14 @@
+<% content_for :page_tabs do %>
+  <li class="nav-item">
+    <%= link_to 'Applications', spree.admin_creator_applications_path,
+                class: "nav-link #{'active' if current == :applications}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Accounts', spree.admin_creator_accounts_path,
+                class: "nav-link #{'active' if current == :accounts}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Review queue', spree.admin_creator_reviews_path,
+                class: "nav-link #{'active' if current == :reviews}" %>
+  </li>
+<% end %>

@@ -56,6 +56,15 @@ module Creators
     Spree::Role.find_or_create_by!(name: config.role_name)
   end
 
+  def self.marketplace_taxon
+    permalink = config.marketplace_taxon_permalink.to_s
+    permalink.empty? ? nil : Spree::Taxon.find_by(permalink: permalink)
+  end
+
+  def self.shipping_category
+    Spree::ShippingCategory.find_or_create_by!(name: config.shipping_category_name)
+  end
+
   # The account of an active creator (role and active account), else nil.
   def self.active_account(user)
     return unless creator?(user)
@@ -67,7 +76,10 @@ module Creators
   # come from the creator's profile (when it isn't hidden); the name falls back to the display
   # name of their approved application.
   def self.identity(product)
-    user_id = product&.creator_id
+    user_identity(product&.creator_id)
+  end
+
+  def self.user_identity(user_id)
     return unless user_id
 
     profile = Spree::UserProfile.find_by(user_id: user_id, hidden_at: nil)

@@ -1,0 +1,108 @@
+<% content_for :page_title do %>
+  <%= link_to 'Creator review queue', spree.admin_creator_reviews_path %> &raquo; <%= @product.name %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= link_to 'Product page', spree.edit_admin_product_path(@product), class: 'btn btn-light' %>
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :reviews %>
+
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Product</h1></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-4">Review state</dt>
+          <dd class="col-8"><%= render 'spree/admin/creator_applications/status_badge', status: @product.review_state %></dd>
+          <dt class="col-4">Creator</dt>
+          <dd class="col-8">
+            <%= @product.creator ? link_to(@product.creator.email, spree.edit_admin_user_path(@product.creator)) : '(deleted)' %>
+            <% if @identity %><small class="text-muted"><%= [@identity[:handle] && "@#{@identity[:handle]}", @identity[:name]].compact.join(' · ') %></small><% end %>
+          </dd>
+          <dt class="col-4">Price</dt>
+          <dd class="col-8"><%= @product.display_price %></dd>
+          <dt class="col-4">Categories</dt>
+          <dd class="col-8"><%= @product.taxons.map(&:pretty_name).join(', ') %></dd>
+          <dt class="col-4">Description</dt>
+          <dd class="col-8"><%= simple_format(@product.description) %></dd>
+          <dt class="col-4">Live version</dt>
+          <dd class="col-8"><%= @live ? "v#{@live.version} (#{@live.files.attachments.size} files)" : 'none: a new product' %></dd>
+          <% if @product.review_note.present? %>
+            <dt class="col-4">Last note</dt>
+            <dd class="col-8"><%= @product.review_note %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Preview</h2></div>
+      <div class="card-body">
+        <% if @image&.attachment&.attached? %>
+          <%= render 'spree/admin/creator_applications/media', attachment: @image.attachment %>
+        <% end %>
+        <% if @product.creator_preview_audio.attached? %>
+          <%= render 'spree/admin/creator_applications/media', attachment: @product.creator_preview_audio %>
+        <% end %>
+        <% unless @image || @product.creator_preview_audio.attached? %>
+          <p class="text-muted mb-0">No preview media.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Draft files<%= " (#{@draft.kind})" if @draft %></h2></div>
+      <div class="card-body">
+        <% if @files.any? %>
+          <% @files.each do |file| %>
+            <%= render 'spree/admin/creator_applications/media', attachment: file %>
+          <% end %>
+        <% else %>
+          <p class="text-muted mb-0">The draft has no files.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Manifest</h2></div>
+      <div class="card-body">
+        <pre class="mb-0" style="max-height: 480px; overflow: auto;"><%= @draft ? JSON.pretty_generate(@draft.manifest) : '' %></pre>
+      </div>
+    </div>
+  </div>
+
+  <% if @product.review_state == 'submitted' %>
+    <div class="col-12 col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Decision</h2></div>
+        <div class="card-body">
+          <%= form_tag spree.approve_admin_creator_review_path(@product), method: :post, id: 'approve_creator_product' do %>
+            <div class="form-group">
+              <%= label_tag :approve_note, 'Note to the creator (optional)' %>
+              <%= text_area_tag :review_note, nil, id: 'approve_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Approve and publish', class: 'btn btn-success' %>
+          <% end %>
+          <hr>
+          <%= form_tag spree.request_changes_admin_creator_review_path(@product), method: :post, id: 'request_changes_creator_product' do %>
+            <div class="form-group">
+              <%= label_tag :changes_note, 'What to change' %>
+              <%= text_area_tag :review_note, nil, id: 'changes_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Request changes', class: 'btn btn-warning' %>
+          <% end %>
+          <hr>
+          <%= form_tag spree.reject_admin_creator_review_path(@product), method: :post, id: 'reject_creator_product' do %>
+            <div class="form-group">
+              <%= label_tag :reject_note, 'Reason' %>
+              <%= text_area_tag :review_note, nil, id: 'reject_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Reject', class: 'btn btn-danger', data: { confirm: 'Reject this product?' } %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

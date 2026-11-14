@@ -37,6 +37,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, Spree::CreatorApplication %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarCreators">
+      <%= tab :creator_applications, label: 'Creators', icon: 'users.svg', url: spree.admin_creator_applications_path, match_path: '/creator_' %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, Spree::Admin::ReportsController %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarReport">
       <%= tab *Spree::BackendConfiguration::REPORT_TABS, icon: 'report.svg' %>

@@ -11,6 +11,30 @@ module CreatorsTestHelper
     user.reload
   end
 
+  # The marketplace taxon (Creators.config.marketplace_taxon_permalink) and one category under it.
+  def marketplace_taxons
+    taxonomy = Spree::Taxonomy.create!(name: 'Marketplace')
+    root = taxonomy.root
+    root.update!(permalink: Creators.config.marketplace_taxon_permalink)
+    child = Spree::Taxon.create!(name: 'Packs', taxonomy: taxonomy, parent: root)
+    [root.reload, child]
+  end
+
+  # A creator's draft product (unavailable) with a draft asset holding the files.
+  def creator_product(user, taxons: [], kind: 'pack', manifest: { 'format' => 1 },
+                      files: { 'kick.wav' => DigitalAssetsTestHelper::WAV_BYTES,
+                               'snare.wav' => DigitalAssetsTestHelper::WAV_BYTES }, price: 10)
+    product = Spree::Product.new(name: "Creator Pack #{SecureRandom.hex(3)}", price: price, available_on: nil,
+                                 shipping_category: Spree::ShippingCategory.first_or_create!(name: 'Default'),
+                                 creator_id: user.id, review_state: 'draft')
+    product.stores << digital_store if product.respond_to?(:stores)
+    product.taxons = taxons
+    product.save!
+    asset = Spree::DigitalAsset.create!(variant: product.master, kind: kind, manifest: manifest)
+    asset.attach_files!(files.map { |name, bytes| digital_blob(bytes, name) }) if files.any?
+    product
+  end
+
   def admin_user
     user = create(:user)
     user.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')

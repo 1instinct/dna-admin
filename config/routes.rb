@@ -249,6 +249,35 @@ Spree::Core::Engine.add_routes do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
       resource :creator_application, only: %i[show create destroy]
+      namespace :creator do
+        resources :products, only: %i[index show create update destroy] do
+          member { post :submit }
+        end
+      end
+      get 'products/:slug/digital_summary', to: 'digital_summaries#show', as: :product_digital_summary
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resources :creator_applications, only: %i[index show] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
+    resources :creator_accounts, only: %i[index edit update] do
+      member do
+        post :suspend
+        post :reinstate
+        post :revoke
+      end
+    end
+    resources :creator_reviews, only: %i[index show] do
+      member do
+        post :approve
+        post :request_changes
+        post :reject
+      end
     end
   end
 end

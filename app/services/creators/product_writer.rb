@@ -1,0 +1,274 @@
+module Creators
+  # Creates and updates a creator's product: a Spree::Product (master price, description,
+  # categories, preview image and audio) plus a draft Spree::DigitalAsset (kind, manifest, files).
+  #
+  # Attributes (all optional on update; kind is required on create):
+  #   name, description, price, kind, taxon_ids, preview_image_signed_id, preview_audio_signed_id,
+  #   files: [signed_id]        files to add; a file named like one already in the draft replaces it
+  #   remove_file_ids: [id]     attachment ids to take out of the draft
+  #   manifest: Hash            the app-defined manifest (its server-owned "files" key is kept)
+  #
+  # File changes always land in a draft asset. When the product has none (it is live, or was
+  # rejected after going live), a new draft is started from the live version's files, the product
+  # goes back to review_state "draft", and the live version stays what buyers get until an admin
+  # approves the new one. Changes to the details apply at once.
+  #
+  # Raises Creators::ProductWriter::Invalid (with #fields) and changes nothing when the input is
+  # refused.
+  class ProductWriter
+    class Invalid < StandardError
+      attr_reader :fields
+
+      def initialize(fields)
+        @fields = fields
+        super(fields.values.flatten.first || 'is invalid')
+      end
+    end
+
+    EDITABLE_STATES = %w[draft changes_requested approved].freeze
+    ASSET_KEYS = %i[kind files manifest remove_file_ids].freeze
+
+    def self.create(user, attrs)
+      new(user, attrs).create
+    end
+
+    def self.update(product, attrs)
+      new(product.creator, attrs).update(product)
+    end
+
+    # Whether the creator may edit the product now.
+    def self.editable?(product)
+      EDITABLE_STATES.include?(product.review_state) ||
+        (product.review_state == 'rejected' && product.master.live_digital_asset.present?)
+    end
+
+    attr_reader :user, :attrs, :errors
+
+    def initialize(user, attrs)
+      @user = user
+      @attrs = attrs.to_h.symbolize_keys
+      @errors = Hash.new { |h, k| h[k] = [] }
+    end
+
+    def create
+      errors[:kind] << 'is required' if attrs[:kind].to_s.strip.empty?
+      Spree::Product.transaction do
+        product = Spree::Product.new(creator_id: user.id, review_state: 'draft', available_on: nil,
+                                     shipping_category: Creators.shipping_category)
+        store = Spree::Store.default
+        product.stores << store if product.respond_to?(:stores) && store.persisted?
+        apply_details(product)
+        blobs = new_blobs
+        save_product(product)
+        check!
+        apply_asset(Spree::DigitalAsset.new(variant: product.master, kind: attrs[:kind].to_s.strip, manifest: {}), blobs)
+        apply_previews(product)
+        check!
+        product
+      end
+    end
+
+    def update(product)
+      unless self.class.editable?(product)
+        raise Invalid, { review_state: ["A product that is #{product.review_state.to_s.tr('_', ' ')} cannot be edited"] }
+      end
+
+      Spree::Product.transaction do
+        Spree::Product.where(id: product.id).lock.pluck(:id)
+        product.reload
+        apply_details(product)
+        if asset_change?
+          blobs = new_blobs
+          check!
+          draft, copied = working_draft(product, blobs)
+          apply_asset(draft, blobs, copied)
+          product.review_state = 'draft' if %w[approved rejected].include?(product.review_state)
+        end
+        save_product(product)
+        apply_previews(product)
+        check!
+        product
+      end
+    end
+
+    private
+
+    def check!
+      raise Invalid, errors.to_h if errors.any?
+    end
+
+    def asset_change?
+      attrs.key?(:kind) || attrs.key?(:manifest) || Array(attrs[:files]).any? || Array(attrs[:remove_file_ids]).any?
+    end
+
+    # --- details --------------------------------------------------------------------------------
+
+    def apply_details(product)
+      product.name = attrs[:name].to_s.strip if attrs.key?(:name)
+      product.description = attrs[:description].to_s.strip.presence if attrs.key?(:description)
+      apply_price(product) if attrs.key?(:price) || product.new_record?
+      apply_taxons(product) if attrs.key?(:taxon_ids)
+    end
+
+    def apply_price(product)
+      price = BigDecimal(attrs[:price].to_s.strip)
+      if price.negative? || price > 100_000
+        errors[:price] << 'must be between 0 and 100000'
+      else
+        product.price = price.round(2)
+      end
+    rescue ArgumentError, TypeError
+      errors[:price] << 'must be a number'
+    end
+
+    # Categories under the marketplace taxon. The marketplace taxon itself, which approval adds,
+    # stays when the product has it.
+    def apply_taxons(product)
+      ids = Array(attrs[:taxon_ids]).map { |id| Integer(id.to_s, exception: false) }
+      marketplace = Creators.marketplace_taxon
+      allowed = marketplace ? marketplace.self_and_descendants.pluck(:id) : []
+      if ids.any?(&:nil?) || (ids - allowed).any?
+        errors[:taxon_ids] << 'must be marketplace categories'
+        return
+      end
+      kept = marketplace && product.taxon_ids.include?(marketplace.id) ? [marketplace.id] : []
+      product.taxon_ids = (ids + kept).uniq
+    end
+
+    def save_product(product)
+      return if product.save
+
+      product.errors.to_hash.each { |field, messages| errors[field].concat(messages) }
+    end
+
+    # --- asset ----------------------------------------------------------------------------------
+
+    # [asset, blobs to copy]: the product's draft asset, or a new (unsaved) draft started from the
+    # live version, carrying the live files except those remove_file_ids names or a new file of the
+    # same name replaces. The copies share the live blobs; Rails 6.1 never purges a blob that is still
+    # attached (Blob before_destroy), so removing a draft file leaves the live file in place.
+    def working_draft(product, blobs)
+      draft = Spree::DigitalAsset.draft.where(variant_id: product.master.id).order(id: :desc).first
+      return [draft, []] if draft
+
+      live = product.master.live_digital_asset
+      draft = Spree::DigitalAsset.new(variant: product.master, kind: live&.kind || attrs[:kind].to_s.strip,
+                                      manifest: (live&.manifest || {}).except('files'))
+      return [draft, []] unless live
+
+      removed = Array(attrs[:remove_file_ids]).map(&:to_i)
+      names = blobs.map { |blob| blob.filename.to_s }
+      copied = live.files.attachments.includes(:blob).order(:id)
+                   .reject { |a| removed.include?(a.id) || names.include?(a.filename.to_s) }.map(&:blob)
+      [draft, copied]
+    end
+
+    # Applies kind, manifest and file changes and saves the asset once, so its validators see the
+    # final set of files.
+    def apply_asset(asset, blobs, copied = [])
+      remove_files(asset, blobs) if asset.persisted?
+      return if errors.any?
+
+      asset.kind = attrs[:kind].to_s.strip if attrs.key?(:kind)
+      apply_manifest(asset) if attrs.key?(:manifest)
+      return if errors.any?
+
+      attach = copied + blobs
+      if attach.empty?
+        asset.save!
+      elsif asset.persisted?
+        asset.attach_files!(attach)
+      else
+        # attach_files! reloads on failure, which a new record can't do.
+        asset.files.attach(attach)
+        asset.save!
+        DigitalAssets::ChecksumJob.perform_later(asset.id)
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      e.record.errors.to_hash.each { |field, messages| errors[field].concat(messages.uniq) }
+    end
+
+    def apply_manifest(asset)
+      manifest = attrs[:manifest]
+      if manifest.is_a?(String)
+        manifest = begin
+          JSON.parse(manifest)
+        rescue JSON::ParserError
+          nil
+        end
+      end
+      unless manifest.is_a?(Hash)
+        errors[:manifest] << 'must be a JSON object'
+        return
+      end
+      server_files = asset.manifest.is_a?(Hash) ? asset.manifest['files'] : nil
+      manifest = manifest.deep_stringify_keys.except('files')
+      manifest['files'] = server_files if server_files
+      asset.manifest = manifest
+    end
+
+    def new_blobs
+      Array(attrs[:files]).map(&:to_s).reject(&:empty?).filter_map do |signed_id|
+        blob = ActiveStorage::Blob.find_signed(signed_id)
+        if blob.nil?
+          errors[:files] << 'contain an unknown upload'
+          next
+        end
+        rule = Uploads.config.rule_for(blob.filename.to_s, blob.content_type)
+        errors[:files] << "#{blob.filename} is not an allowed file type" unless rule
+        errors[:files] << "#{blob.filename} is too large" if rule && blob.byte_size > rule[:max_bytes]
+        blob
+      end
+    end
+
+    # Takes the listed attachments, and those a new file of the same name replaces, out of a saved
+    # draft. The blobs are purged later unless another asset version still uses them.
+    def remove_files(asset, blobs)
+      attachments = asset.files.attachments.includes(:blob).to_a
+      ids = Array(attrs[:remove_file_ids]).map { |id| Integer(id.to_s, exception: false) }
+      if (ids - attachments.map(&:id)).any?
+        errors[:remove_file_ids] << 'must be files of this product'
+        return
+      end
+      names = blobs.map { |blob| blob.filename.to_s }
+      gone = attachments.select { |a| ids.include?(a.id) || names.include?(a.filename.to_s) }
+      return if gone.empty?
+
+      gone.each(&:purge_later)
+      asset.files_attachments.reset
+      asset.files_blobs.reset
+    end
+
+    # --- previews -------------------------------------------------------------------------------
+
+    def apply_previews(product)
+      if attrs.key?(:preview_image_signed_id)
+        blob = preview_blob(:preview_image_signed_id, %w[image])
+        replace_preview_image(product, blob) if blob
+      end
+      return unless attrs.key?(:preview_audio_signed_id)
+
+      blob = preview_blob(:preview_audio_signed_id, %w[audio])
+      product.creator_preview_audio.attach(blob) if blob
+    end
+
+    def preview_blob(key, kinds)
+      blob = ActiveStorage::Blob.find_signed(attrs[key].to_s)
+      unless blob && kinds.include?(blob.content_type.to_s.split('/').first) &&
+             Uploads.config.rule_for(blob.filename.to_s, blob.content_type)
+        errors[key] << "must be an uploaded #{kinds.first} file"
+        return
+      end
+      blob
+    end
+
+    def replace_preview_image(product, blob)
+      product.master.images.each(&:destroy!)
+      image = Spree::Image.new(viewable: product.master, alt: product.name)
+      image.attachment.attach(blob)
+      return if image.save
+
+      image.errors.full_messages.each { |message| errors[:preview_image_signed_id] << message }
+    end
+  end
+end

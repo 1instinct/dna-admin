@@ -1,0 +1,12 @@
+<%# One stored file with an inline player for audio and a thumbnail for images. %>
+<% type = attachment.content_type.to_s %>
+<% url = main_app.rails_blob_path(attachment, only_path: true) %>
+<div class="mb-2">
+  <div><%= link_to attachment.filename.to_s, url, target: '_blank', rel: 'noopener' %>
+    <small class="text-muted"><%= number_to_human_size(attachment.byte_size) %> &middot; <%= type %></small></div>
+  <% if type.start_with?('audio/') %>
+    <audio controls preload="none" src="<%= url %>"></audio>
+  <% elsif type.start_with?('image/') %>
+    <%= image_tag url, alt: attachment.filename.to_s, style: 'max-width: 240px; max-height: 240px;' %>
+  <% end %>
+</div>
