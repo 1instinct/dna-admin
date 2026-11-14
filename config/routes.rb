@@ -249,7 +249,10 @@ Spree::Core::Engine.add_routes do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
       resource :creator_application, only: %i[show create destroy]
+      get 'creator', to: 'creator#show', as: :creator
       namespace :creator do
+        get 'sales', to: 'sales#index', as: :sales
+        get 'payouts', to: 'payouts#index', as: :payouts
         resources :products, only: %i[index show create update destroy] do
           member { post :submit }
         end
@@ -279,5 +282,7 @@ Spree::Core::Engine.add_routes do
         post :reject
       end
     end
+    resources :creator_earnings, only: :index
+    resources :creator_payouts, only: %i[index new create]
   end
 end

@@ -11,4 +11,12 @@
     <%= link_to 'Review queue', spree.admin_creator_reviews_path,
                 class: "nav-link #{'active' if current == :reviews}" %>
   </li>
+  <li class="nav-item">
+    <%= link_to 'Earnings', spree.admin_creator_earnings_path,
+                class: "nav-link #{'active' if current == :earnings}" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to 'Payouts', spree.admin_creator_payouts_path,
+                class: "nav-link #{'active' if current == :payouts}" %>
+  </li>
 <% end %>

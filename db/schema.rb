@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_14_130000) do
+ActiveRecord::Schema.define(version: 2026_11_14_130100) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -499,6 +499,39 @@ ActiveRecord::Schema.define(version: 2026_11_14_130000) do
     t.index ["status", "created_at"], name: "index_spree_creator_applications_on_status_and_created_at"
     t.index ["user_id"], name: "index_spree_creator_applications_on_user_id"
     t.index ["user_id"], name: "index_spree_creator_applications_one_pending", unique: true, where: "((status)::text = 'pending'::text)"
+  end
+
+  create_table "spree_creator_earnings", force: :cascade do |t|
+    t.bigint "creator_account_id", null: false
+    t.integer "order_id", null: false
+    t.integer "line_item_id", null: false
+    t.decimal "gross", precision: 10, scale: 2, null: false
+    t.integer "share_bps", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "currency", null: false
+    t.string "state", default: "pending", null: false
+    t.datetime "payable_at", null: false
+    t.bigint "creator_payout_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["creator_account_id", "created_at"], name: "index_spree_creator_earnings_on_account_and_created_at"
+    t.index ["creator_account_id"], name: "index_spree_creator_earnings_on_creator_account_id"
+    t.index ["creator_payout_id"], name: "index_spree_creator_earnings_on_creator_payout_id"
+    t.index ["line_item_id"], name: "index_spree_creator_earnings_on_line_item_id", unique: true
+    t.index ["order_id"], name: "index_spree_creator_earnings_on_order_id"
+    t.index ["state", "payable_at"], name: "index_spree_creator_earnings_on_state_and_payable_at"
+  end
+
+  create_table "spree_creator_payouts", force: :cascade do |t|
+    t.bigint "creator_account_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "currency", null: false
+    t.string "reference", null: false
+    t.datetime "paid_at", null: false
+    t.text "note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["creator_account_id"], name: "index_spree_creator_payouts_on_creator_account_id"
   end
 
   create_table "spree_credit_cards", id: :serial, force: :cascade do |t|
@@ -1853,6 +1886,9 @@ ActiveRecord::Schema.define(version: 2026_11_14_130000) do
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_creator_accounts", "spree_users", column: "user_id"
   add_foreign_key "spree_creator_applications", "spree_users", column: "user_id"
+  add_foreign_key "spree_creator_earnings", "spree_creator_accounts", column: "creator_account_id"
+  add_foreign_key "spree_creator_earnings", "spree_creator_payouts", column: "creator_payout_id"
+  add_foreign_key "spree_creator_payouts", "spree_creator_accounts", column: "creator_account_id"
   add_foreign_key "spree_digital_assets", "spree_variants", column: "variant_id"
   add_foreign_key "spree_digital_ownerships", "spree_users", column: "user_id"
   add_foreign_key "spree_digital_ownerships", "spree_variants", column: "variant_id"

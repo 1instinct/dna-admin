@@ -43,9 +43,11 @@ module Creators
       amount.nil? ? nil : amount.to_d.round(2).to_f
     end
 
-    # Units sold. There is no sales ledger yet.
-    def sales_count(_product)
-      0
+    # Units sold, from the earnings ledger (void sales excluded).
+    def sales_count(product)
+      Spree::CreatorEarning.counted.joins(:line_item)
+                           .where(spree_line_items: { variant_id: product.variants_including_master.select(:id) })
+                           .sum('spree_line_items.quantity').to_i
     end
 
     def image_url(variant, base_url)
