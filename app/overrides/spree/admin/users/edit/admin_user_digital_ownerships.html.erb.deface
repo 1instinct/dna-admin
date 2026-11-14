@@ -1,0 +1,2 @@
+<!-- insert_after "[data-hook='admin_user_edit_general_settings']" -->
+<%= render partial: 'spree/admin/users/digital_ownerships', locals: { user: @user } %>

@@ -114,6 +114,18 @@ class Spree::DigitalAssetTest < ActiveSupport::TestCase
                  asset.manifest['files']
   end
 
+  test 'attach_files! adds to the files already attached' do
+    asset = Spree::DigitalAsset.create!(variant: create(:digital_product).master, kind: 'pack')
+    asset.attach_files!([digital_blob('aa', 'a.wav')])
+    asset = Spree::DigitalAsset.find(asset.id)
+    asset.attach_files!([digital_blob('bbb', 'b.wav')])
+
+    asset.reload
+    assert_equal %w[a.wav b.wav], asset.file_entries.map { |f| f[:filename] }
+    assert_equal 5, asset.byte_size
+    assert_equal 2, ActiveStorage::Attachment.where(record: asset).count
+  end
+
   test 'file names are unique within an asset' do
     asset = Spree::DigitalAsset.create!(variant: create(:digital_product).master, kind: 'pack')
     asset.attach_files!([digital_blob('a', 'same.wav')])

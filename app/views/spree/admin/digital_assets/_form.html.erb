@@ -1,0 +1,32 @@
+<% kinds = Array(DigitalAssets.config.kinds).map(&:to_s) %>
+<% editable_manifest = @asset.manifest.is_a?(Hash) ? @asset.manifest.except('files') : @asset.manifest %>
+<div data-hook="admin_digital_asset_form_fields" class="row">
+  <div class="col-12 col-md-6">
+    <% unless @asset.persisted? %>
+      <div class="form-group">
+        <%= f.label :variant_id, 'Variant' %>
+        <%= f.select :variant_id, @product.variants_including_master.map { |v| [v.is_master? ? "Master #{v.sku}" : "#{v.options_text} #{v.sku}", v.id] }, {}, class: 'select2 form-control' %>
+      </div>
+    <% end %>
+    <div class="form-group">
+      <%= f.label :kind, 'Kind' %>
+      <% if kinds.any? %>
+        <%= f.select :kind, kinds, {}, class: 'select2 form-control' %>
+      <% else %>
+        <%= f.text_field :kind, class: 'form-control' %>
+      <% end %>
+    </div>
+    <div class="form-group">
+      <%= f.label :files, 'Add files' %>
+      <%= f.file_field :files, multiple: true %>
+      <small class="form-text text-muted">Audio (wav, aiff, flac, mp3) up to 50 MB each, images (png, jpg, webp) up to 10 MB, json or glsl up to 256 KB. File names must be unique within the asset.</small>
+    </div>
+  </div>
+  <div class="col-12 col-md-6">
+    <div class="form-group">
+      <%= f.label :manifest, 'Manifest (JSON object)' %>
+      <%= f.text_area :manifest, value: @manifest_text || JSON.pretty_generate(editable_manifest || {}), rows: 14, class: 'form-control', style: 'font-family: monospace' %>
+      <small class="form-text text-muted">File checksums ("files") are kept by the server.</small>
+    </div>
+  </div>
+</div>

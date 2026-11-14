@@ -223,3 +223,23 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Admin: the "Digital asset" tab on products and the ownership panel on users.
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    resources :products, only: [] do
+      resources :digital_assets, except: :show do
+        member do
+          post :publish
+          post :retire
+          delete 'files/:attachment_id', action: :remove_file, as: :remove_file
+        end
+      end
+    end
+    resources :users, only: [] do
+      resources :digital_ownerships, only: :create do
+        member { post :revoke }
+      end
+    end
+  end
+end

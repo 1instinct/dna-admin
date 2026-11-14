@@ -97,8 +97,15 @@ module Spree
       digest.hexdigest
     end
 
+    # The attachments, pending ones included. With replace_on_assign_to_many off (load_defaults
+    # 5.2), Rails 6.1's has_many attach passes the existing blobs again, so the pending list holds
+    # each existing attachment twice: count each blob once.
+    def current_attachments
+      files.attachments.uniq(&:blob_id)
+    end
+
     def compute_byte_size
-      self.byte_size = files.attachments.sum { |a| a.blob&.byte_size.to_i }
+      self.byte_size = current_attachments.sum { |a| a.blob&.byte_size.to_i }
     end
 
     def check_kind
@@ -122,7 +129,7 @@ module Spree
     end
 
     def check_files
-      names = files.attachments.map { |a| a.blob&.filename.to_s }
+      names = current_attachments.map { |a| a.blob&.filename.to_s }
       dupes = names.select { |n| names.count(n) > 1 }.uniq
       errors.add(:files, "have duplicate names: #{dupes.join(', ')}") if dupes.any?
       max = DigitalAssets.config.max_asset_bytes
@@ -130,7 +137,7 @@ module Spree
     end
 
     def check_published_has_files
-      errors.add(:files, 'are required to publish') if published? && files.attachments.empty?
+      errors.add(:files, 'are required to publish') if published? && current_attachments.empty?
     end
   end
 end
