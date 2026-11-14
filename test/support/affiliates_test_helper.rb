@@ -36,8 +36,10 @@ module AffiliatesTestHelper
     order.update_with_updater!
     order.update_columns(state: 'confirm')
     order.payments.create!(amount: order.total, payment_method: check_payment_method, state: 'checkout')
-    order.reload.complete!
-    order.reload
+    order.reload.next!
+    raise "order #{order.number} is #{order.state}, not complete" unless order.reload.complete?
+
+    order
   end
 
   def check_payment_method
