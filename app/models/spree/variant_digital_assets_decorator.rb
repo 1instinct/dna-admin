@@ -17,6 +17,13 @@ module Spree
     def digital?
       digital_assets.published.exists?
     end
+
+    # A digital variant has no stock: it can always be supplied and never moves inventory.
+    def should_track_inventory?
+      return false if digital?
+
+      super
+    end
   end
 end
 

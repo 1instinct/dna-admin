@@ -15,7 +15,7 @@ module Spree
 
     enum status: STATUSES.index_with(&:itself)
 
-    belongs_to :variant, class_name: 'Spree::Variant', inverse_of: :digital_assets
+    belongs_to :variant, class_name: 'Spree::Variant', inverse_of: :digital_assets, touch: true
     has_many_attached :files
 
     before_validation :compute_byte_size
