@@ -97,8 +97,12 @@ module Profiles
       }
     end
 
+    # The creator role is the authority (Creators); an is_creator column, where an app has one, is
+    # kept in step with it.
     def creator?
-      user.respond_to?(:is_creator) ? user.is_creator == true : false
+      return false unless user
+
+      Creators.creator?(user) || (user.respond_to?(:is_creator) && user.is_creator == true)
     end
 
     def joined

@@ -243,3 +243,12 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Creators: applications, the creator portal API and the public digital summary of a product.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      resource :creator_application, only: %i[show create destroy]
+    end
+  end
+end

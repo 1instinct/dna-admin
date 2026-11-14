@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_14_120000) do
+ActiveRecord::Schema.define(version: 2026_11_14_130000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -471,6 +471,34 @@ ActiveRecord::Schema.define(version: 2026_11_14_120000) do
     t.index "lower((name)::text)", name: "index_spree_countries_on_lower_name", unique: true
     t.index ["iso"], name: "index_spree_countries_on_iso", unique: true
     t.index ["iso3"], name: "index_spree_countries_on_iso3", unique: true
+  end
+
+  create_table "spree_creator_accounts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "revenue_share_bps", null: false
+    t.string "payout_email"
+    t.text "payout_notes"
+    t.string "status", default: "active", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_spree_creator_accounts_on_user_id", unique: true
+  end
+
+  create_table "spree_creator_applications", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "status", default: "pending", null: false
+    t.string "display_name", null: false
+    t.string "kinds", default: [], null: false, array: true
+    t.jsonb "portfolio_links", default: [], null: false
+    t.text "about"
+    t.integer "reviewed_by_id"
+    t.datetime "reviewed_at"
+    t.text "review_note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["status", "created_at"], name: "index_spree_creator_applications_on_status_and_created_at"
+    t.index ["user_id"], name: "index_spree_creator_applications_on_user_id"
+    t.index ["user_id"], name: "index_spree_creator_applications_one_pending", unique: true, where: "((status)::text = 'pending'::text)"
   end
 
   create_table "spree_credit_cards", id: :serial, force: :cascade do |t|
@@ -1051,10 +1079,16 @@ ActiveRecord::Schema.define(version: 2026_11_14_120000) do
     t.boolean "promotionable", default: true
     t.string "meta_title"
     t.datetime "discontinue_on"
+    t.integer "creator_id"
+    t.string "review_state"
+    t.text "review_note"
+    t.datetime "submitted_at"
     t.index ["available_on"], name: "index_spree_products_on_available_on"
+    t.index ["creator_id"], name: "index_spree_products_on_creator_id"
     t.index ["deleted_at"], name: "index_spree_products_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_products_on_discontinue_on"
     t.index ["name"], name: "index_spree_products_on_name"
+    t.index ["review_state"], name: "index_spree_products_on_review_state"
     t.index ["shipping_category_id"], name: "index_spree_products_on_shipping_category_id"
     t.index ["slug"], name: "index_spree_products_on_slug", unique: true
     t.index ["tax_category_id"], name: "index_spree_products_on_tax_category_id"
@@ -1817,12 +1851,15 @@ ActiveRecord::Schema.define(version: 2026_11_14_120000) do
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "spree_content_reports", "spree_users", column: "reporter_id", on_delete: :nullify
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
+  add_foreign_key "spree_creator_accounts", "spree_users", column: "user_id"
+  add_foreign_key "spree_creator_applications", "spree_users", column: "user_id"
   add_foreign_key "spree_digital_assets", "spree_variants", column: "variant_id"
   add_foreign_key "spree_digital_ownerships", "spree_users", column: "user_id"
   add_foreign_key "spree_digital_ownerships", "spree_variants", column: "variant_id"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
+  add_foreign_key "spree_products", "spree_users", column: "creator_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
   add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"
