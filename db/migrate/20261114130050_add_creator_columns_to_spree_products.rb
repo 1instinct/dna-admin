@@ -6,19 +6,33 @@
 class AddCreatorColumnsToSpreeProducts < ActiveRecord::Migration[6.1]
   disable_ddl_transaction!
 
+  # Lock waits give up after 5 s (the release phase fails and can be retried) instead of queueing
+  # every request on spree_products behind a migration stuck on a long transaction. The concurrent
+  # index builds run without the timeout: one that timed out would leave an invalid index, which
+  # index_exists? would then skip on the retry.
   def up
+    execute "SET lock_timeout = '5s'"
     add_column :spree_products, :creator_id, :integer unless column_exists?(:spree_products, :creator_id)
     add_column :spree_products, :review_state, :string unless column_exists?(:spree_products, :review_state)
     add_column :spree_products, :review_note, :text unless column_exists?(:spree_products, :review_note)
     add_column :spree_products, :submitted_at, :datetime unless column_exists?(:spree_products, :submitted_at)
 
-    add_index :spree_products, :creator_id, algorithm: :concurrently unless index_exists?(:spree_products, :creator_id)
-    add_index :spree_products, :review_state, algorithm: :concurrently unless index_exists?(:spree_products, :review_state)
+    without_lock_timeout { add_index :spree_products, :creator_id, algorithm: :concurrently unless index_exists?(:spree_products, :creator_id) }
+    without_lock_timeout { add_index :spree_products, :review_state, algorithm: :concurrently unless index_exists?(:spree_products, :review_state) }
 
     return if foreign_key_exists?(:spree_products, :spree_users, column: :creator_id)
 
     add_foreign_key :spree_products, :spree_users, column: :creator_id, validate: false
     validate_foreign_key :spree_products, :spree_users, column: :creator_id
+  ensure
+    execute 'RESET lock_timeout'
+  end
+
+  def without_lock_timeout
+    execute 'SET lock_timeout = 0'
+    yield
+  ensure
+    execute "SET lock_timeout = '5s'"
   end
 
   def down
