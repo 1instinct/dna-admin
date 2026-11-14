@@ -256,6 +256,66 @@ class Spree::Api::V1::Creator::ProductsControllerTest < ActionDispatch::Integrat
     assert_equal 2, live.reload.files.attachments.count
   end
 
+  test 'keep_file_ids keeps a subset of the live files plus the new uploads in a new draft' do
+    product = create_product
+    submit(product)
+    Creators::Reviewer.approve!(product.reload, admin_user)
+    live = product.master.live_digital_asset
+    kick = live.files.attachments.detect { |a| a.filename.to_s == 'kick.wav' }
+
+    patch_product(product, { files: [wav('clap.wav')], keep_file_ids: [kick.id] })
+    assert_response :success, response.body
+    assert_equal 'draft', json['asset']['status']
+    assert_equal %w[clap.wav kick.wav], json['asset']['files'].map { |f| f['filename'] }.sort
+    assert_equal %w[kick.wav snare.wav], live.reload.files.attachments.map { |a| a.filename.to_s }.sort
+
+    # On the existing draft: keep only the clap, nothing new.
+    clap = json['asset']['files'].detect { |f| f['filename'] == 'clap.wav' }
+    patch_product(product, { files: [], keep_file_ids: [clap['id']] })
+    assert_response :success, response.body
+    assert_equal %w[clap.wav], json['asset']['files'].map { |f| f['filename'] }
+    assert_equal 2, Spree::DigitalAsset.where(variant_id: product.master.id).count
+  end
+
+  test 'keep_file_ids ignores ids of other products and other creators' do
+    product = create_product
+    draft = product.master.digital_assets.first
+    snare = draft.files.attachments.detect { |a| a.filename.to_s == 'snare.wav' }
+    foreign = creator_product(creator_user).master.digital_assets.first.files.attachments.first
+    plain = published_asset.files.attachments.first
+
+    patch_product(product, { files: [wav('hat.wav')], keep_file_ids: [snare.id, foreign.id, plain.id, 0] })
+    assert_response :success, response.body
+    assert_equal %w[hat.wav snare.wav], json['asset']['files'].map { |f| f['filename'] }.sort
+    assert foreign.reload
+    assert plain.reload
+  end
+
+  test 'omitting files and keep_file_ids leaves the files unchanged' do
+    product = create_product
+    before = product.master.digital_assets.first.files.attachments.pluck(:id).sort
+    patch_product(product, { name: 'Renamed', manifest: { format: 1, bpm: 90 } })
+    assert_response :success, response.body
+    assert_equal before, json['asset']['files'].map { |f| f['id'] }.sort
+    assert_equal 90, json['asset']['manifest']['bpm']
+  end
+
+  test 'kept files are re-checked against the upload rules' do
+    product = create_product
+    Uploads.config.rules[:audio][:max_bytes] = 1
+    patch_product(product, { files: [wav('big.wav')], keep_file_ids: [] })
+    assert_response :unprocessable_entity
+    assert_match(/big.wav is too large/, json['fields']['files'].first)
+    Uploads.reset_config!
+
+    # An empty keep list keeps nothing.
+    patch_product(product, { files: [wav('hat.wav')], keep_file_ids: [] })
+    assert_response :success, response.body
+    assert_equal %w[hat.wav], json['asset']['files'].map { |f| f['filename'] }
+  ensure
+    Uploads.reset_config!
+  end
+
   test 'editing only details of an approved product keeps it approved' do
     product = create_product
     submit(product)

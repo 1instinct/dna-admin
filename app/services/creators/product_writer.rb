@@ -5,6 +5,10 @@ module Creators
   # Attributes (all optional on update; kind is required on create):
   #   name, description, price, kind, taxon_ids, preview_image_signed_id, preview_audio_signed_id,
   #   files: [signed_id]        files to add; a file named like one already in the draft replaces it
+  #   keep_file_ids: [id]       when given, the draft's files become exactly these files (attachment
+  #                             ids of this product's draft or published versions; other ids are
+  #                             ignored) plus the new uploads in files; omitted, files are unchanged
+  #                             apart from files and remove_file_ids
   #   remove_file_ids: [id]     attachment ids to take out of the draft
   #   manifest: Hash            the app-defined manifest (its server-owned "files" key is kept)
   #
@@ -26,7 +30,6 @@ module Creators
     end
 
     EDITABLE_STATES = %w[draft changes_requested approved].freeze
-    ASSET_KEYS = %i[kind files manifest remove_file_ids].freeze
 
     def self.create(user, attrs)
       new(user, attrs).create
@@ -98,7 +101,13 @@ module Creators
     end
 
     def asset_change?
-      attrs.key?(:kind) || attrs.key?(:manifest) || Array(attrs[:files]).any? || Array(attrs[:remove_file_ids]).any?
+      attrs.key?(:kind) || attrs.key?(:manifest) || keep_mode? || Array(attrs[:files]).any? ||
+        Array(attrs[:remove_file_ids]).any?
+    end
+
+    # keep_file_ids given: the draft's files are replaced by the kept ones plus the new uploads.
+    def keep_mode?
+      attrs.key?(:keep_file_ids)
     end
 
     # --- details --------------------------------------------------------------------------------
@@ -147,14 +156,16 @@ module Creators
     # live version, carrying the live files except those remove_file_ids names or a new file of the
     # same name replaces. The copies share the live blobs; Rails 6.1 never purges a blob that is still
     # attached (Blob before_destroy), so removing a draft file leaves the live file in place.
+    #
+    # With keep_file_ids, the blobs to copy are the kept files, and a saved draft loses the files
+    # that are not kept.
     def working_draft(product, blobs)
       draft = Spree::DigitalAsset.draft.where(variant_id: product.master.id).order(id: :desc).first
-      return [draft, []] if draft
-
       live = product.master.live_digital_asset
-      draft = Spree::DigitalAsset.new(variant: product.master, kind: live&.kind || attrs[:kind].to_s.strip,
-                                      manifest: (live&.manifest || {}).except('files'))
-      return [draft, []] unless live
+      draft ||= Spree::DigitalAsset.new(variant: product.master, kind: live&.kind || attrs[:kind].to_s.strip,
+                                        manifest: (live&.manifest || {}).except('files'))
+      return [draft, kept_draft_files(product, draft, blobs)] if keep_mode?
+      return [draft, []] if draft.persisted? || live.nil?
 
       removed = Array(attrs[:remove_file_ids]).map(&:to_i)
       names = blobs.map { |blob| blob.filename.to_s }
@@ -163,10 +174,35 @@ module Creators
       [draft, copied]
     end
 
+    # The kept blobs still to attach to the draft. Kept ids name attachments of this product's
+    # draft or published versions; any other id is ignored. A new upload of the same name wins over
+    # a kept file. Attachments of a saved draft that are not kept are taken out.
+    def kept_draft_files(product, draft, blobs)
+      ids = Array(attrs[:keep_file_ids]).filter_map { |id| Integer(id.to_s, exception: false) }
+      asset_ids = Spree::DigitalAsset.where(variant_id: product.variants_including_master.with_deleted.select(:id),
+                                            status: %w[draft published]).select(:id)
+      names = blobs.map { |blob| blob.filename.to_s }
+      kept = ActiveStorage::Attachment.includes(:blob)
+                                      .where(id: ids, record_type: 'Spree::DigitalAsset', name: 'files', record_id: asset_ids)
+                                      .map(&:blob).uniq(&:id).reject { |blob| names.include?(blob.filename.to_s) }
+      return kept unless draft.persisted?
+
+      kept_ids = kept.map(&:id)
+      attached = draft.files.attachments.to_a
+      gone = attached.reject { |attachment| kept_ids.include?(attachment.blob_id) }
+      if gone.any?
+        gone.each(&:purge_later)
+        draft.files_attachments.reset
+        draft.files_blobs.reset
+      end
+      present = (attached - gone).map(&:blob_id)
+      kept.reject { |blob| present.include?(blob.id) }
+    end
+
     # Applies kind, manifest and file changes and saves the asset once, so its validators see the
     # final set of files.
     def apply_asset(asset, blobs, copied = [])
-      remove_files(asset, blobs) if asset.persisted?
+      remove_files(asset, blobs) if asset.persisted? && !keep_mode?
       return if errors.any?
 
       asset.kind = attrs[:kind].to_s.strip if attrs.key?(:kind)

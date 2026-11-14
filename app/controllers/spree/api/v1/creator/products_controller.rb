@@ -12,11 +12,11 @@ module Spree
         #   POST   /api/v1/creator/products/:id/submit  200 Product | 422 unless draft or changes_requested with files
         #
         # Create and update take { name, description, price, kind, taxon_ids, preview_image_signed_id,
-        # preview_audio_signed_id, files: [signed_id], remove_file_ids: [id], manifest }; see
+        # preview_audio_signed_id, files: [signed_id], keep_file_ids: [id], remove_file_ids: [id], manifest }; see
         # Creators::ProductWriter. Another creator's product, or a store product, is a 404.
         class ProductsController < Spree::Api::V1::Creator::BaseController
           WRITABLE = %i[name description price kind taxon_ids preview_image_signed_id preview_audio_signed_id files
-                        remove_file_ids manifest].freeze
+                        keep_file_ids remove_file_ids manifest].freeze
 
           before_action :load_product, except: %i[index create]
 
