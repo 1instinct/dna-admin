@@ -62,6 +62,21 @@ class UserTracks::SubmitJobTest < ActiveJob::TestCase
     assert_in_delta 0.0288, gen['costUsd'], 1e-9
   end
 
+  test 'while a regeneration is being submitted, the previous attempt is not finalised again' do
+    @track.update_columns(generation: { 'requestId' => 'req-1', 'requestIds' => ['req-1'], 'attempts' => 1 })
+    claimed_mid_submit = nil
+    stub_request(:post, BASE).with(query: hash_including({})).to_return do |_req|
+      UserTracks::FinalizeJob.perform_now(@track.id)
+      claimed_mid_submit = Spree::UserTrack.find(@track.id).status
+      { status: 200, body: { request_id: 'req-2' }.to_json }
+    end
+    UserTracks::SubmitJob.perform_now(@track.id)
+
+    assert_equal 'generating', claimed_mid_submit
+    assert_not_requested :get, /requests\/req-1/
+    assert_equal 'req-2', @track.reload.generation['requestId']
+  end
+
   test 'runs once: a track no longer queued, or deleted, is left alone' do
     stub = stub_submit
     UserTracks::SubmitJob.perform_now(@track.id)

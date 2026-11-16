@@ -9,8 +9,10 @@ module UserTracks
 
     def perform(track_id)
       now = Time.current
+      # The previous attempt's request id goes too, so nothing finalises it again while this one is
+      # being submitted.
       claimed = Spree::UserTrack.where(id: track_id, status: 'queued', deleted_at: nil).
-                update_all(status: 'generating', checked_at: nil, updated_at: now)
+                update_all(["status = 'generating', checked_at = NULL, updated_at = ?, generation = generation - 'requestId'", now])
       return unless claimed == 1
 
       track = Spree::UserTrack.find(track_id)

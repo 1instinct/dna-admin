@@ -26,6 +26,7 @@ module Spree
         rescue_from(ActiveRecord::RecordNotFound) { render_not_found }
 
         def index
+          reconcile
           tracks = own_tracks.newest_first.limit(100).with_attached_audio
           quota_header
           render json: tracks.map { |track| UserTracks::Presenter.call(track) }
@@ -111,6 +112,14 @@ module Spree
           render_error('busy', :service_unavailable)
         rescue UserTracks::Start::Unavailable
           render_error('unavailable', :service_unavailable)
+        end
+
+        # Overdue tracks are checked with the provider before listing; a failure here never fails
+        # the list.
+        def reconcile
+          UserTracks::Reconcile.call(current_api_user)
+        rescue StandardError => e
+          Rails.logger.error("[user_tracks] reconcile failed: #{e.class}")
         end
 
         def quota_header
