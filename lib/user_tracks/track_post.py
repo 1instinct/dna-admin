@@ -55,7 +55,7 @@ BASS_REL = 0.35           # a bass peak within -9 dB of the strongest pitch in t
 
 
 # Every key of the printed object, in order (README "Output").
-RESULT_KEYS = ('ok', 'reason', 'bpm', 'bpmMeasured', 'bpmMatch', 'driftMs', 'loopStartSec',
+RESULT_KEYS = ('ok', 'reason', 'bpm', 'bpmMeasured', 'bpmMatch', 'loopBpm', 'driftMs', 'loopStartSec',
                'loopSamples', 'sampleRate', 'loopStartBar', 'seam', 'key', 'keyPc', 'scale',
                'keyMatch', 'keyScore', 'keyMargin', 'keyMarginNonRelative', 'keyTop3', 'bassRoot',
                'bassPcs', 'lufs', 'peakDb', 'lowNote', 'medianNote', 'highNote', 'timbre')
@@ -763,7 +763,7 @@ def _find_window(f, bpm, bars, bpb, n):
 
     if n - L <= 2 * EDGE_TOL_SEC * sr:
         # the input is already the loop (or within a hair of it): the whole file is the window
-        return (0, {'L': L, 'bar': 0}) if gaps_ok(0) else (None, {})
+        return (0, {'L': L, 'bar': 0, 'whole': True}) if gaps_ok(0) else (None, {})
 
     # bar lines from the downbeat
     down = _downbeat(f, phase, P, bpb, beat_sec, f.o_frame(sounding[0] * 0.01))
@@ -866,7 +866,101 @@ def _find_window(f, bpm, bars, bpb, n):
                 s2 = min(max(s2, 0), n - L)
                 if gaps_ok(s2):
                     s = s2
-    return s, {'L': L, 'bar': k - first_sounding}
+    return s, {'L': L, 'bar': k - first_sounding, 'whole': False}
+
+
+def _fine_onsets(mono, sr, a, b, hop):
+    """Log-band spectral flux of mono[a:b] on a `hop`-sample grid (frame i centred on a + i * hop):
+    the onset signal of _Features at a finer hop, for placing beats to a fraction of a millisecond."""
+    n_fft = _pow2(0.0213 * sr)
+    edges_hz = np.geomspace(30.0, min(16000.0, sr * 0.475), 37)
+    edges = np.unique(np.clip(np.round(edges_hz * n_fft / sr).astype(int), 1, n_fft // 2))
+
+    def bands(power):
+        return np.add.reduceat(power, edges, axis=1)[:, :-1]
+    seg = mono[max(0, a):b]
+    be = _stft_reduce(seg, n_fft, hop, bands, 1 + len(seg) // hop)
+    db = _db(be / max(float(be.max()), 1e-12), 1e-8)
+    lag = max(1, int(round(0.005 * sr / hop)))
+    o = np.zeros(len(db))
+    o[lag:] = np.maximum(db[lag:] - db[:-lag], 0).mean(axis=1)
+    # less its +-50 ms mean, so a busy mix's steady flux doesn't swamp the beats
+    h = max(1, int(round(0.05 * sr / hop)))
+    cs = np.concatenate([[0.0], np.cumsum(o)])
+    idx = np.arange(len(o))
+    lo, hi = np.maximum(0, idx - h), np.minimum(len(o), idx + h + 1)
+    return np.maximum(0.0, o - (cs[hi] - cs[lo]) / (hi - lo))
+
+
+def _align(o, centre, tmpl, pre, search):
+    """(offset, strength): where `tmpl` (starting `pre` frames before its beat) best matches `o`
+    within +-search frames of `centre`, to a fraction of a frame (parabolic peak)."""
+    c = int(round(centre))
+    a, b = c - pre - search, c - pre + len(tmpl) + search
+    if a < 0 or b > len(o):
+        return None, 0.0
+    cc = np.correlate(o[a:b], tmpl, 'valid')
+    i = int(np.argmax(cc))
+    frac = 0.0
+    if 0 < i < len(cc) - 1:
+        y0, y1, y2 = cc[i - 1], cc[i], cc[i + 1]
+        den = y0 - 2 * y1 + y2
+        if den < 0:
+            frac = 0.5 * (y0 - y2) / den
+    return a + i + frac + pre - centre, float(cc[i])
+
+
+def _beat_period(mono, sr, start, period, count):
+    """Beat period in samples from a line fitted to the beat times after `start` (beats -1 to
+    count + 1, about `period` apart), or None when the beats don't hold a steady line (soft or
+    smeared attacks). Each beat is placed by matching a 1 ms onset signal to the window's average
+    beat; on clean beats the line pins the loop length to a few samples, so a loop cut from it
+    lands on the beat at the seam."""
+    hop = max(1, int(round(0.001 * sr)))
+    a = int(start - 2 * period)
+    o = _fine_onsets(mono, sr, a, int(start + (count + 3) * period), hop)
+    a = max(0, a)
+    pre, post = int(0.02 * sr / hop), int(0.08 * sr / hop)
+    search = int(period / 6 / hop)
+    ks = np.arange(-1, count + 2)
+    times = (start - a + ks * period) / float(hop)  # beat k in onset frames
+
+    slope = icpt = None
+    for _ in range(2):
+        segs = [o[int(round(t)) - pre:int(round(t)) + post] for t in times
+                if int(round(t)) - pre >= 0 and int(round(t)) + post <= len(o)]
+        if not segs:
+            return None
+        tmpl = np.mean(segs, axis=0)
+        tmpl -= tmpl.mean()
+        if not np.any(tmpl > 0):
+            return None
+        got = [(k, t) + _align(o, t, tmpl, pre, search) for k, t in zip(ks, times)]
+        got = [g for g in got if g[2] is not None]
+        if len(got) < 8:
+            return None
+        kk = np.array([g[0] for g in got], float)
+        tt = np.array([g[1] + g[2] for g in got], float)
+        ww = np.array([g[3] for g in got], float)
+        keep = ww >= 0.25 * np.median(ww)
+        for _ in range(4):
+            if keep.sum() < 8:
+                return None
+            slope, icpt = np.polyfit(kk[keep], tt[keep], 1)
+            res = tt - (icpt + slope * kk)
+            mad = float(np.median(np.abs(res[keep])))
+            new = keep & (np.abs(res) <= max(3 * 1.4826 * mad, 0.5))
+            if (new == keep).all():
+                break
+            keep = new
+        if keep.sum() < max(8, count // 3) or mad * hop > 0.01 * period:
+            return None
+        times = icpt + slope * ks
+        search = max(2, int(0.01 * sr / hop))
+    slope *= hop
+    if abs(slope / period - 1) > 0.005:
+        return None
+    return float(slope)
 
 
 def _cut(x, s, L, sr):
@@ -948,13 +1042,26 @@ def post(in_path, out_path, bpm, bars, beats_per_bar, key, scale):
         res['bpmMatch'] = match
         return res
     L = info['L']
+    beats = bars * bpb
     if match is not None:
-        # tempo measured over the loop itself, for the drift at the seam
+        # tempo measured over the loop itself
         oa = max(0, int(f.o_frame(s / float(sr))))
         ob = min(len(f.onset), int(f.o_frame((s + L) / float(sr))))
         m2, match2, _ = _tempo(f.onset[oa:ob], f.o_fps, bpm)
         if match2 is not None:
             measured, match = m2, match2
+    mult = {'x1': 1.0, 'x2': 2.0, 'x0.5': 0.5}.get(match)
+    if mult:
+        # Cut on the track's own beat, not the requested one: a 0.1 % tempo error is 17 ms at an
+        # 8-bar seam. The period is fitted to the window's beats on the requested grid (so the
+        # octave is the request's); loopBpm is the tempo the cut loop plays at. An input that is
+        # already the loop keeps its length, and its drift says how far it is off its own beat.
+        period = _beat_period(mono, sr, s, 60.0 * sr / (measured / mult), beats)
+        if period is not None and abs(60.0 * sr / period / bpm - 1) <= BPM_TOL:
+            measured = 60.0 * sr / period * mult
+        L_meas = int(round(beats * 60.0 / (measured / mult) * sr))
+        if not info['whole'] and s + L_meas <= n:
+            L = L_meas
 
     loop, seam = _cut(x, s, L, sr)
     y, lufs = _normalise(loop, sr)
@@ -970,17 +1077,17 @@ def post(in_path, out_path, bpm, bars, beats_per_bar, key, scale):
     ob = min(len(f.onset), int(f.o_frame((s + L) / float(sr))))
     timbre = _timbre(f, y, sr, oa, ob, ta, tb)
 
-    mult = {'x1': 1.0, 'x2': 2.0, 'x0.5': 0.5}.get(match)
     drift_ms = None
     if mult:
-        true_len = bars * bpb * 60.0 / (measured / mult)
+        true_len = beats * 60.0 / (measured / mult)
         drift_ms = round((true_len - L / float(sr)) * 1000.0, 1)
     return {
         'ok': True,
         'reason': None,
         'bpm': bpm_out,
-        'bpmMeasured': round(measured, 2) if measured else None,
+        'bpmMeasured': round(measured, 3) if measured else None,
         'bpmMatch': match,
+        'loopBpm': round(beats * 60.0 * sr / L, 3),
         'driftMs': drift_ms,
         'loopStartSec': round(s / float(sr), 4),
         'loopSamples': L,

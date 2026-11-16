@@ -113,7 +113,9 @@ class TrackPostTest(unittest.TestCase):
         data, clicks = make_track(100, 10, C_MAJOR, lead=1.0, tail=2.0)
         res, out = self._post(data, 100, 8)
         self.assertTrue(res['ok'], res)
-        self.assertEqual(res['loopSamples'], int(round(8 * 4 * 60.0 / 100 * SR)))
+        # cut on the measured beat: within 0.2 ms of the rendered 8 bars (chord changes bias the
+        # beat placement by a sample or two)
+        self.assertAlmostEqual(res['loopSamples'], 8 * 4 * 60.0 / 100 * SR, delta=10)
         self.assertEqual(res['sampleRate'], SR)
         after = [c for c in clicks if c >= 1.0]
         nearest = min(abs(res['loopStartSec'] - c) for c in after)
@@ -122,6 +124,20 @@ class TrackPostTest(unittest.TestCase):
         audio, sr = sf.read(out, always_2d=True)
         self.assertEqual(sr, SR)
         self.assertEqual(audio.shape, (res['loopSamples'], 2))
+
+    def test_loop_follows_the_tracks_own_tempo(self):
+        # clicks over a held chord rendered at 100.1 bpm, asked for 100: a loop cut at 100 would be
+        # 17 ms long at the seam
+        data, _ = make_track(100.1, 10, [A_MINOR[0]], lead=1.0, tail=2.0, hats=True)
+        res, out = self._post(data, 100, 8, 'A', 'minor')
+        self.assertTrue(res['ok'], res)
+        self.assertEqual(res['bpm'], 100)
+        self.assertEqual(res['bpmMatch'], 'x1')
+        self.assertAlmostEqual(res['loopSamples'], 8 * 4 * 60.0 / 100.1 * SR, delta=1.0)
+        self.assertAlmostEqual(res['loopBpm'], 100.1, delta=0.002)
+        self.assertLess(abs(res['driftMs']), 0.1)
+        audio, _ = sf.read(out, always_2d=True)
+        self.assertEqual(audio.shape[0], res['loopSamples'])
 
     def test_seam_is_continuous(self):
         data, _ = make_track(100, 10, C_MAJOR, lead=1.0, tail=2.0)

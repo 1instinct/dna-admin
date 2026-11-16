@@ -13,7 +13,9 @@ python3 lib/user_tracks/track_post.py --in in.flac --out loop.flac \
 
 - Input: anything libsndfile reads (FLAC, WAV; not MP3), mono or stereo.
 - Output: `loop.flac`, 16-bit stereo at the input's sample rate (48 kHz for the model's FLAC),
-  exactly `round(bars × beats-per-bar × 60 / bpm × sampleRate)` samples long.
+  `bars` bars long at the track's own tempo: `round(bars × beats-per-bar × 60 / measured bpm ×
+  sampleRate)` samples when the measured tempo matches the request (see Loop length), else at the
+  requested bpm. `loopBpm` is the tempo it plays at; store that as the loop's bpm.
 - `--key` takes a note name (`A`, `Bb`, `C#`) or a pitch class `0`–`11`; `--scale` is `major` or
   `minor`. They are the request: the key is measured regardless, and `keyMatch` compares.
 - It prints one JSON object on stdout. An unusable track is `{"ok": false, "reason": ...}` with
@@ -29,9 +31,10 @@ python3-soundfile`). About 2 s and 160 MB for a 120 s input.
 |---|---|
 | `ok`, `reason` | `reason` is `no_loop_window` when no window qualifies (too short, mostly silent, a gap or fade at every possible seam). |
 | `bpm` | The requested bpm. |
-| `bpmMeasured` | The strongest periodicity, measured over the loop (over the whole input when there is no loop). |
+| `bpmMeasured` | The track's tempo, measured over the loop (over the whole input when there is no loop), to 3 decimals: the beat-line fit when it holds, else the onset comb (see Loop length). |
 | `bpmMatch` | `"x1"`, `"x2"` or `"x0.5"` when `bpmMeasured` is within 1 % of that multiple of `bpm`, else `null` (the track drifted or has another tempo). |
-| `driftMs` | How far the loop's length is from `bars` bars at the measured tempo; the timing error at the seam. |
+| `loopBpm` | The tempo the loop plays at: `bars × beats-per-bar × 60 × sampleRate / loopSamples`, 3 decimals. Equals `bpmMeasured` (octave-corrected to the request) when `bpmMatch` is set, the request otherwise. The player stretches from this to the session tempo. |
+| `driftMs` | How far the loop's length is from `bars` bars at the measured tempo; the timing error left at the seam. About 0 for a cut window; for an input taken whole (its length is kept) it is that input's own error. |
 | `loopStartSec`, `loopSamples`, `sampleRate` | Where the loop was cut from the input, and its exact length. |
 | `loopStartBar` | Which bar of the music (0 = the first sounding bar) the loop starts on. |
 | `seam` | `after`: the audio after the window was crossfaded into its head; `before`: the audio before it into its tail (the music stops at the window's end); `none`: no neighbour sounds (the input is already the loop, or the music starts and ends on silence). |
@@ -80,6 +83,16 @@ its start), and on starting a 4-bar phrase, each term relative to its median ove
 candidates. The winner's start is then refined on the window's own beat phase. An input that is
 already `bars` long (within 0.1 s) is taken whole.
 
+**Loop length.** A generated track's tempo is often a hair off the request (0.09 % is 17 ms at an
+8-bar seam, an audible flam), so when `bpmMatch` is set the loop is cut at the track's own beat.
+The window's beats (on the requested grid, so ×2 and ×½ tracks keep the requested octave) are
+placed on a 1 ms onset signal (the onset flux above at a 1 ms hop, less its ±50 ms mean) by
+matching each to the window's average beat, to a fraction of a millisecond; a line through them,
+outliers dropped, gives the period. Clean beats pin the loop to a few samples (about 1 ms on
+mixed music). When the attacks are too soft or smeared for a steady line (a beat scatter over 1 %
+of the period) the comb's tempo over the loop is used instead, good to a few milliseconds. An
+input taken whole keeps its length.
+
 **Seam.** The window is cut at exact samples. The 30 ms after it are crossfaded (equal power) over
 its head, so its last sample runs into its first as the track ran on. If the music stops there,
 the 30 ms before the window go over its tail instead.
@@ -111,5 +124,6 @@ uv run --with numpy --with soundfile python -m unittest lib/user_tracks/test_tra
 ```
 
 The tests generate their audio (clicks, hats and sustained triads at a known tempo and key), so
-there are no fixture files. Check the syntax floor with
+there are no fixture files. One renders clicks over a held chord at 100.1 bpm and asks for 100:
+the loop must be within a sample of 8 bars at 100.1 and report `loopBpm` 100.1. Check the syntax floor with
 `uvx vermin --target=3.7- --no-tips --violations lib/user_tracks/`.
