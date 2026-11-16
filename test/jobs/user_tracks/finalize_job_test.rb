@@ -34,6 +34,22 @@ class UserTracks::FinalizeJobTest < ActiveJob::TestCase
     assert_equal 1, calls.size
   end
 
+  test 'a loop cut at the measured beat period stores loopBpm as the profile bpm; the request keeps the asked bpm' do
+    stub_fal_done
+    stub_post_runner(track_analysis('loopBpm' => 100.42, 'loopSamples' => 1_835_515))
+    UserTracks::FinalizeJob.perform_now(@track.id)
+
+    @track.reload
+    assert_equal 'ready', @track.status
+    assert_equal 100.42, @track.profile['bpm']
+    assert_equal 'measured', @track.profile['profileSource']['bpm']
+    assert_equal 100, @track.request['bpm']
+    assert_equal 1_835_515, @track.loop_info['loopSamples']
+    get_json = UserTracks::Presenter.call(@track)
+    assert_equal 100.42, get_json[:profile]['bpm']
+    assert_equal 100, get_json[:request]['bpm']
+  end
+
   test 'the downloaded file is what the script reads' do
     stub_fal_done
     seen = nil

@@ -26,11 +26,23 @@ class UserTracks::DecideTest < ActiveSupport::TestCase
     assert_equal 100, profile['bpm']
     assert_equal 9, profile['key']
     assert_equal 'minor', profile['scale']
-    assert_equal({ 'bpm' => 'checked', 'key' => 'measured' }, profile['profileSource'])
+    assert_equal({ 'bpm' => 'checked', 'key' => 'measured' }, profile['profileSource']) # no loopBpm
     assert_equal 0.86, profile['keyConfidence']
     assert_nil profile['keyNote']
     assert_equal [33, 57, 81], profile.values_at('lowNote', 'medianNote', 'highNote')
     assert_equal 60, profile['timbre']['brightness']
+  end
+
+  test 'loopBpm, when the analysis gives one, is the profile bpm (measured)' do
+    profile = UserTracks::Decide.call(track, track_analysis('loopBpm' => 99.8734)).profile
+    assert_equal 99.873, profile['bpm']
+    assert_equal 'measured', profile['profileSource']['bpm']
+
+    [nil, 'fast', 0, 1000].each do |bad|
+      profile = UserTracks::Decide.call(track, track_analysis('loopBpm' => bad)).profile
+      assert_equal 100, profile['bpm'], "loopBpm #{bad.inspect}"
+      assert_equal 'checked', profile['profileSource']['bpm']
+    end
   end
 
   test 'confident other key on the first attempt: regenerate, keeping this loop as a fallback' do

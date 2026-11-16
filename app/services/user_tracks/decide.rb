@@ -86,21 +86,29 @@ module UserTracks
     end
 
     # The stored profile: a TrackProfile (bpm, key, scale, lowNote, medianNote, highNote, timbre)
-    # plus profileSource, keyConfidence and keyNote. bpm is the requested tempo, which the loop is
-    # cut to and was checked against ("checked").
+    # plus profileSource, keyConfidence and keyNote. bpm is the tempo the loop was cut at: the
+    # analysis' loopBpm (the measured beat period, which the engine time-stretches from;
+    # profileSource.bpm "measured") when it gives one, else the requested tempo it was checked
+    # against ("checked"). The request keeps the bpm as asked.
     def profile(track, analysis, key, key_source, note: false)
+      loop_bpm = loop_bpm(analysis)
       {
-        'bpm' => track.bpm,
+        'bpm' => loop_bpm || track.bpm,
         'key' => key[0],
         'scale' => key[1],
         'lowNote' => midi(analysis['lowNote']),
         'medianNote' => midi(analysis['medianNote']),
         'highNote' => midi(analysis['highNote']),
         'timbre' => analysis['timbre'].is_a?(Hash) ? analysis['timbre'] : nil,
-        'profileSource' => { 'bpm' => 'checked', 'key' => key_source },
+        'profileSource' => { 'bpm' => loop_bpm ? 'measured' : 'checked', 'key' => key_source },
         'keyConfidence' => analysis['keyScore'].is_a?(Numeric) ? analysis['keyScore'].round(3) : nil,
         'keyNote' => note ? "Came out in #{UserTracks::Keys.label(key[0], key[1])}" : nil
       }
+    end
+
+    def loop_bpm(analysis)
+      value = analysis['loopBpm']
+      value.is_a?(Numeric) && value.finite? && value.between?(20, 400) ? value.round(3) : nil
     end
 
     def midi(value)
