@@ -13,6 +13,7 @@ module Spree
       #   DELETE /api/v1/user_tracks/:id           204
       #   POST   /api/v1/user_tracks/:id/variation same request, new seed, one credit (as create)
       #   GET    /api/v1/user_tracks/:id/audio     302 to a short-lived signed URL (ready only)
+      #   GET    /api/v1/user_tracks/:id/audio_url { url, expiresAt }: the same URL as JSON (ready only)
       #   GET    /api/v1/user_tracks/styles        [{ id, label, bpmRange, defaultMoods, caption }]
       #   GET    /api/v1/user_tracks/moods         [{ id, label }]
       #   GET    /api/v1/user_tracks/quota         { remaining, monthlyFree, resetsAt }
@@ -50,21 +51,26 @@ module Spree
         end
 
         # A 302 to a signed URL valid for UserTracks.config.signed_url_ttl. The Location header is
-        # set by hand (redirect_to logs its target) and URL generation runs with DEBUG logging off
-        # (ActiveStorage logs generated URLs), so the signed URL never reaches the log.
+        # set by hand (redirect_to logs its target) and the URL comes from signed_audio_url, so it
+        # never reaches the log.
         def audio
-          found = track
-          return render_not_found unless found.ready? && found.audio.attached?
+          url, = signed_audio_url
+          return render_not_found unless url
 
-          url = UserTracks.quietly do
-            ActiveStorage::Current.set(host: request.base_url) do
-              found.audio.blob.url(expires_in: UserTracks.config.signed_url_ttl, disposition: :inline,
-                                   filename: ActiveStorage::Filename.new("track-#{found.id}.flac"))
-            end
-          end
           response.headers['Location'] = url
           response.headers['Cache-Control'] = 'no-store'
           head :found
+        end
+
+        # The same signed URL as JSON, { url, expiresAt }, for clients that shouldn't follow (or
+        # HEAD) a redirect: an S3 presigned URL is signed for GET only. Response bodies are never
+        # logged.
+        def audio_url
+          url, expires_at = signed_audio_url
+          return render_not_found unless url
+
+          response.headers['Cache-Control'] = 'no-store'
+          render json: { url: url, expiresAt: expires_at.utc.iso8601 }
         end
 
         def styles
@@ -120,6 +126,23 @@ module Spree
           UserTracks::Reconcile.call(current_api_user)
         rescue StandardError => e
           Rails.logger.error("[user_tracks] reconcile failed: #{e.class}")
+        end
+
+        # [url, expires_at] for the owner's ready track's audio, or nil. Generated with DEBUG
+        # logging off (ActiveStorage logs generated URLs there), so it never reaches the log.
+        def signed_audio_url
+          found = track
+          return unless found.ready? && found.audio.attached?
+
+          ttl = UserTracks.config.signed_url_ttl
+          expires_at = Time.current + ttl
+          url = UserTracks.quietly do
+            ActiveStorage::Current.set(host: request.base_url) do
+              found.audio.blob.url(expires_in: ttl, disposition: :inline,
+                                   filename: ActiveStorage::Filename.new("track-#{found.id}.flac"))
+            end
+          end
+          [url, expires_at]
         end
 
         def quota_header

@@ -185,6 +185,47 @@ class Spree::Api::V1::UserTracksControllerTest < ActionDispatch::IntegrationTest
     refute_includes log, signed
   end
 
+  test 'audio_url answers the signed URL and its expiry as JSON, never logged' do
+    track = create_user_track(@user)
+    track.audio.attach(io: StringIO.new('fLaC-bytes'), filename: 'loop.flac', content_type: 'audio/flac')
+    finish(track)
+
+    log = nil
+    freeze_time do
+      log = captured_log { get "/api/v1/user_tracks/#{track.id}/audio_url", headers: @headers }
+      assert_response :ok
+      assert_equal %w[expiresAt url], json.keys.sort
+      assert_equal (Time.current + UserTracks.config.signed_url_ttl).utc.iso8601, json['expiresAt']
+    end
+    assert_match %r{/rails/active_storage/disk/}, json['url']
+    assert_equal 'no-store', response.headers['Cache-Control']
+    signed = json['url'].split('/rails/active_storage/disk/').last.split('/').first
+    assert_includes log, "/api/v1/user_tracks/#{track.id}/audio_url"
+    refute_includes log, signed
+
+    # The URL serves the audio with a plain GET.
+    get json['url']
+    assert_response :ok
+    assert_equal 'fLaC-bytes', response.body
+  end
+
+  test 'audio_url is 404 until the track is ready, for deleted tracks and for other users' do
+    track = create_user_track(@user)
+    track.audio.attach(io: StringIO.new('fLaC-bytes'), filename: 'loop.flac', content_type: 'audio/flac')
+    get "/api/v1/user_tracks/#{track.id}/audio_url", headers: @headers
+    assert_response :not_found
+
+    finish(track)
+    get "/api/v1/user_tracks/#{track.id}/audio_url", headers: auth(create(:user))
+    assert_response :not_found
+    get "/api/v1/user_tracks/#{track.id}/audio_url"
+    assert_response :unauthorized
+
+    UserTracks::Removal.call(track)
+    get "/api/v1/user_tracks/#{track.id}/audio_url", headers: @headers
+    assert_response :not_found
+  end
+
   test 'audio is 404 until the track is ready, and for other users' do
     track = create_user_track(@user)
     track.audio.attach(io: StringIO.new('fLaC-bytes'), filename: 'loop.flac', content_type: 'audio/flac')

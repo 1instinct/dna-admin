@@ -227,6 +227,7 @@ Spree::Core::Engine.add_routes do
         member do
           post :variation
           get :audio
+          get :audio_url
         end
       end
     end
