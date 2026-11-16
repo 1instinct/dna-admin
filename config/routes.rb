@@ -211,3 +211,22 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# AI backing tracks: the app's endpoints and the generator's webhook.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      resources :user_tracks, only: %i[index show create destroy] do
+        collection do
+          get :styles
+          get :moods
+          get :quota
+        end
+        member do
+          post :variation
+          get :audio
+        end
+      end
+    end
+  end
+end

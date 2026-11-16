@@ -14,6 +14,7 @@
 #             (moderation record: reason and target snapshot stay).
 # Feedback:   app feedback the user sent is deleted with its screenshots; anonymous feedback
 #             from the same install can't be tied to the account and stays.
+# Tracks:     the user's AI backing tracks are deleted with their audio.
 #
 # Refused (AccountDeletion::Refused, with a message for the user) for admin accounts.
 class AccountDeletion
@@ -88,6 +89,7 @@ class AccountDeletion
     Message.where(sender: user).or(Message.where(receiver: user)).delete_all
     delete_profile_data
     delete_feedback
+    delete_user_tracks
     # In-app purchase receipts are payment records: when that module lands, keep them for
     # accounting and detach or anonymize them here rather than deleting.
   end
@@ -116,6 +118,18 @@ class AccountDeletion
         feedback.screenshot.detach
       end
       feedback.delete
+    end
+  end
+
+  # The user's AI backing tracks (soft-deleted ones too), with their audio purged after commit. A
+  # generation still running finds no track when it finishes and does nothing.
+  def delete_user_tracks
+    Spree::UserTrack.where(user_id: user.id).find_each do |track|
+      if track.audio.attached?
+        avatar_blobs << track.audio.blob
+        track.audio.detach
+      end
+      track.delete
     end
   end
 

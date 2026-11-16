@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_08_210000) do
+ActiveRecord::Schema.define(version: 2026_11_16_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1671,6 +1671,29 @@ ActiveRecord::Schema.define(version: 2026_11_08_210000) do
     t.index ["user_id"], name: "index_spree_user_profiles_on_user_id", unique: true
   end
 
+  create_table "spree_user_tracks", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "source", default: "ai", null: false
+    t.string "status", default: "queued", null: false
+    t.string "title"
+    t.jsonb "request", default: {}, null: false
+    t.jsonb "generation", default: {}, null: false
+    t.jsonb "profile"
+    t.jsonb "loop_info"
+    t.text "error"
+    t.string "webhook_secret", null: false
+    t.datetime "submitted_at"
+    t.datetime "checked_at"
+    t.datetime "ready_at"
+    t.datetime "credit_refunded_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["created_at"], name: "index_spree_user_tracks_on_created_at"
+    t.index ["status", "submitted_at"], name: "index_spree_user_tracks_on_status_and_submitted_at"
+    t.index ["user_id", "created_at"], name: "index_spree_user_tracks_on_user_id_and_created_at"
+  end
+
   create_table "spree_users", id: :serial, force: :cascade do |t|
     t.string "encrypted_password", limit: 128
     t.string "password_salt", limit: 128
@@ -1792,4 +1815,5 @@ ActiveRecord::Schema.define(version: 2026_11_08_210000) do
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
   add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"
+  add_foreign_key "spree_user_tracks", "spree_users", column: "user_id", on_delete: :cascade
 end

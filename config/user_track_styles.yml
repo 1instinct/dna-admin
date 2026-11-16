@@ -1,0 +1,35 @@
+# Style vocabulary for AI backing tracks (UserTracks::Styles). A generic example with two styles:
+# an app replaces this file with its own (or points USER_TRACK_STYLES at another one).
+#
+# moods: chips a player may add (0-2 per track); `words` go into the prompt after the caption.
+# styles:
+#   id            stable chip id the app sends as `style`
+#   label         chip text, also the track title ("Chillhop in A minor")
+#   bpmRange      [low, high] within 40-240; with "Match my session" off the app asks for the middle
+#   defaultMoods  moods preselected for the style (and used when a request sends none)
+#   caption       the prompt's opening: genre, instruments, sound. No artist names.
+moods:
+  - id: warm
+    label: Warm
+    words: warm, mellow
+  - id: bright
+    label: Bright
+    words: bright, uplifting
+  - id: dark
+    label: Dark
+    words: dark, brooding
+  - id: driving
+    label: Driving
+    words: driving, energetic
+
+styles:
+  - id: chillhop
+    label: Chillhop
+    bpmRange: [80, 96]
+    defaultMoods: [warm]
+    caption: chillhop beat, dusty boom bap drums, warm electric piano chords, round bass
+  - id: synthpop
+    label: Synthpop
+    bpmRange: [100, 124]
+    defaultMoods: [bright]
+    caption: synthpop, punchy drum machine, bright analog synth chords, pulsing synth bass
