@@ -1,6 +1,6 @@
 require 'test_helper'
 
-# POST /api/v1/user_tracks/webhook/:token: fal's callback. No auth; the token names the track.
+# POST /api/v1/user_tracks/webhook?webhook_token=: fal's callback. No auth; the token names the track.
 # It only triggers finalising: Rails fetches the result with its own key, never from the body.
 class Spree::Api::V1::UserTrackWebhooksControllerTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
@@ -14,7 +14,7 @@ class Spree::Api::V1::UserTrackWebhooksControllerTest < ActionDispatch::Integrat
   teardown { reset_user_tracks! }
 
   def hook(token, body = {})
-    post "/api/v1/user_tracks/webhook/#{token}", params: body, as: :json
+    post "/api/v1/user_tracks/webhook?webhook_token=#{CGI.escape(token.to_s)}", params: body, as: :json
   end
 
   # What fal posts, with a result that must not be used.
@@ -41,6 +41,19 @@ class Spree::Api::V1::UserTrackWebhooksControllerTest < ActionDispatch::Integrat
     hook('garbage')
     assert_response :not_found
     assert_no_enqueued_jobs
+  end
+
+  test 'a token in the body is not used' do
+    post '/api/v1/user_tracks/webhook', params: { webhook_token: @track.webhook_token }, as: :json
+    assert_response :not_found
+    assert_no_enqueued_jobs
+  end
+
+  test 'the token never reaches the log' do
+    log = captured_log { hook(@track.webhook_token, forged_body) }
+    assert_response :ok
+    assert_includes log, '/api/v1/user_tracks/webhook?webhook_token=[FILTERED]'
+    refute_includes log, @track.webhook_secret
   end
 
   # Review Focus 1.

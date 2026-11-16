@@ -216,7 +216,8 @@ end
 Spree::Core::Engine.add_routes do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
-      post 'user_tracks/webhook/:token', to: 'user_track_webhooks#create', as: :user_track_webhook
+      # The token rides in the query (?webhook_token=), which filter_parameters masks in the log.
+      post 'user_tracks/webhook', to: 'user_track_webhooks#create', as: :user_track_webhook
       resources :user_tracks, only: %i[index show create destroy] do
         collection do
           get :styles

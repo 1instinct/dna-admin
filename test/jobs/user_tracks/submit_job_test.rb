@@ -21,7 +21,7 @@ class UserTracks::SubmitJobTest < ActiveJob::TestCase
     stub = stub_submit
     UserTracks::SubmitJob.perform_now(@track.id)
 
-    hook = "https://admin.example.test/api/v1/user_tracks/webhook/#{@track.webhook_token}"
+    hook = "https://admin.example.test/api/v1/user_tracks/webhook?webhook_token=#{@track.webhook_token}"
     assert_requested(:post, BASE, query: { 'fal_webhook' => hook }, times: 1) do |req|
       body = JSON.parse(req.body)
       assert_equal %w[bpm duration key_scale lyrics prompt seed thinking time_signature], body.keys.sort
