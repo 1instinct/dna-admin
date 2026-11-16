@@ -99,8 +99,8 @@ module Spree
 
     # Where the provider calls back when a generation finishes, or nil without
     # USER_TRACKS_WEBHOOK_HOST (the track then finishes through reconcile). The token is a query
-    # parameter, not a path segment, so Rails logs it as [FILTERED] (filter_parameters covers
-    # "token"); fal posts to the exact URL registered.
+    # parameter, not a path segment, so Rails logs it as [FILTERED] (config/initializers/
+    # user_tracks.rb adds it to filter_parameters); fal posts to the exact URL registered.
     def webhook_url
       host = UserTracks.config.webhook_host
       "#{host}/api/v1/user_tracks/webhook?webhook_token=#{CGI.escape(webhook_token)}" if host

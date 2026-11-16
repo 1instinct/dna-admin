@@ -11,7 +11,7 @@ module Spree
       # fal with Rails' own key. 200 { ok: true } (also for a deleted or already finished track, so
       # fal stops retrying); 404 for an unknown token.
       class UserTrackWebhooksController < Spree::Api::BaseController
-        include Spree::Api::V1::UserAuthentication
+        skip_before_action :authenticate_user
 
         def create
           track = Spree::UserTrack.find_by_webhook_token(request.query_parameters['webhook_token'])
