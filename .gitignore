@@ -92,3 +92,5 @@ secret.yaml
 docker-compose.yml.local
 
 .anima/
+# Python bytecode (lib/user_tracks)
+__pycache__/
