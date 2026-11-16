@@ -85,6 +85,34 @@ class Spree::Api::V1::UserTracksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'quota', json['error']
   end
 
+  test 'create queues the generation once the track is saved, with its cost reserved' do
+    make
+    track = Spree::UserTrack.last
+    assert_enqueued_with(job: UserTracks::SubmitJob, args: [track.id])
+    assert_in_delta 0.0144, track.generation['costUsd'], 1e-9
+  end
+
+  test 'over the daily spend budget create is 503 busy and debits nothing' do
+    UserTracks.config.daily_budget_usd = 0.02
+    create_user_track(create(:user), generation: { 'costUsd' => 0.01 })
+    assert_no_difference -> { Spree::UserTrack.count } do
+      make
+    end
+    assert_response :service_unavailable
+    assert_equal 'busy', json['error']
+    assert_equal 20, UserTracks::Quota.remaining(@user)
+    assert_no_enqueued_jobs only: UserTracks::SubmitJob
+  end
+
+  test 'without a provider key create is 503 unavailable' do
+    UserTracks.config.fal_key = nil
+    assert_no_difference -> { Spree::UserTrack.count } do
+      make
+    end
+    assert_response :service_unavailable
+    assert_equal 'unavailable', json['error']
+  end
+
   test 'more than the hourly limit of creates is 429, deleted tracks included' do
     UserTracks.config.hourly_limit = 2
     2.times { UserTracks::Removal.call(create_user_track(@user)) }

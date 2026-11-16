@@ -97,6 +97,13 @@ module Spree
       "#{id}-#{webhook_secret}"
     end
 
+    # Where the provider calls back when a generation finishes, or nil without
+    # USER_TRACKS_WEBHOOK_HOST (the track then finishes through reconcile).
+    def webhook_url
+      host = UserTracks.config.webhook_host
+      "#{host}/api/v1/user_tracks/webhook/#{webhook_token}" if host
+    end
+
     # The track a webhook token names, or nil; the secret is compared in constant time.
     def self.find_by_webhook_token(token)
       id, secret = token.to_s.split('-', 2)

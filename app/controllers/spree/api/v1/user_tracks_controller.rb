@@ -8,7 +8,8 @@ module Spree
       #   GET    /api/v1/user_tracks/:id
       #   POST   /api/v1/user_tracks               { style, moods[], bars, bpm, key, scale, timeSig }
       #                                            201 queued | 422 { error, fields } | 409 in_flight
-      #                                            | 429 rate_limited | 402 quota | 503 busy
+      #                                            | 429 rate_limited | 402 quota | 503 busy (daily
+      #                                            spend breaker) | 503 unavailable (no FAL_KEY)
       #   DELETE /api/v1/user_tracks/:id           204
       #   POST   /api/v1/user_tracks/:id/variation same request, new seed, one credit (as create)
       #   GET    /api/v1/user_tracks/:id/audio     302 to a short-lived signed URL (ready only)
@@ -106,6 +107,10 @@ module Spree
           render_error('rate_limited', :too_many_requests)
         rescue UserTracks::Quota::Exhausted
           render_error('quota', :payment_required)
+        rescue UserTracks::Start::Busy
+          render_error('busy', :service_unavailable)
+        rescue UserTracks::Start::Unavailable
+          render_error('unavailable', :service_unavailable)
         end
 
         def quota_header
