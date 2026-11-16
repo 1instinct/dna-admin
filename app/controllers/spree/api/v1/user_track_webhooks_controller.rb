@@ -10,8 +10,13 @@ module Spree
       # is taken from the query string only), and FinalizeJob fetches the status and result from
       # fal with Rails' own key. 200 { ok: true } (also for a deleted or already finished track, so
       # fal stops retrying); 404 for an unknown token.
+      #
+      # fal's body carries the generated audio's URL, so this action logs no parameter values: the
+      # request's parameter filter masks every key ("Parameters" shows [FILTERED] throughout).
       class UserTrackWebhooksController < Spree::Api::BaseController
         skip_before_action :authenticate_user
+
+        ALL_PARAMETERS = [/./].freeze
 
         def create
           track = Spree::UserTrack.find_by_webhook_token(request.query_parameters['webhook_token'])
@@ -19,6 +24,13 @@ module Spree
 
           UserTracks::FinalizeJob.perform_later(track.id) if track.generating? && track.deleted_at.nil?
           render json: { ok: true }
+        end
+
+        private
+
+        def process_action(*)
+          request.set_header('action_dispatch.parameter_filter', ALL_PARAMETERS)
+          super
         end
       end
     end

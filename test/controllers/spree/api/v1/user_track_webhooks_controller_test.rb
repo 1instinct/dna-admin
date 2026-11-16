@@ -56,6 +56,17 @@ class Spree::Api::V1::UserTrackWebhooksControllerTest < ActionDispatch::Integrat
     refute_includes log, @track.webhook_secret
   end
 
+  test 'the body (fal\'s audio URL) never reaches the log' do
+    body = { request_id: 'req-1', status: 'OK', error: nil,
+             payload: { audio: { url: 'https://v3.fal.media/files/secret-result-path.flac', file_size: 123 } } }
+    log = captured_log { hook(@track.webhook_token, body) }
+    assert_response :ok
+    assert_includes log, 'Parameters:'
+    refute_includes log, 'secret-result-path'
+    refute_includes log, 'v3.fal.media'
+    refute_includes log, 'req-1'
+  end
+
   # Review Focus 1.
   test 'a double webhook finalises once: one attachment, one status change' do
     stub_fal_done

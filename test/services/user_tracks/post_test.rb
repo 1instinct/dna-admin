@@ -40,6 +40,30 @@ class UserTracks::PostTest < ActiveSupport::TestCase
     assert_raises(UserTracks::Post::Error) { run_post }
   end
 
+  test 'one run at a time per process: a second caller waits for the first' do
+    running = 0
+    most = 0
+    counter = Mutex.new
+    UserTracks::Post.runner = lambda do |argv|
+      counter.synchronize { most = [most, running += 1].max }
+      sleep 0.2
+      counter.synchronize { running -= 1 }
+      File.binwrite(argv[argv.index('--out') + 1], 'fLaC')
+      JSON.generate(track_analysis)
+    end
+
+    dirs = Array.new(3) { Dir.mktmpdir }
+    threads = dirs.map do |dir|
+      Thread.new do
+        UserTracks::Post.call(in_path: File.join(dir, 'in.flac'), out_path: File.join(dir, 'loop.flac'), track: @track)
+      end
+    end
+    assert_equal %w[A A A], threads.map { |thread| thread.value['key'] }
+    assert_equal 1, most
+  ensure
+    dirs&.each { |dir| FileUtils.remove_entry(dir) }
+  end
+
   # The production runner, with ruby standing in for python: a script that answers, one that
   # crashes and one that hangs past the timeout.
   test 'the default runner runs the command, and fails on a crash or a timeout' do

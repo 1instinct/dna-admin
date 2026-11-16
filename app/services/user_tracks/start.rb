@@ -2,7 +2,8 @@ module UserTracks
   # Starts a new track for its user: checks the limits, debits a credit (saves the track, with its
   # first attempt's cost estimate reserved for the spend breaker) and queues its generation. The
   # checks and the save run under a per-user advisory lock, so two requests at once can't both
-  # pass the in-flight, hourly or quota checks.
+  # pass the in-flight, hourly or quota checks, and the budget check and reserve under
+  # UserTracks::Budget.lock! (taken after the user lock, the only order either is taken in).
   #
   #   UserTracks::Start.call(track) # => track, or raises one of the errors below
   #
@@ -30,6 +31,7 @@ module UserTracks
       track.generation = track.generation.merge('costUsd' => cost)
       Spree::UserTrack.transaction do
         lock(track.user_id)
+        UserTracks::Budget.lock!
         raise InFlight if Spree::UserTrack.kept.in_flight.where(user_id: track.user_id).exists?
         raise RateLimited if started_last_hour(track.user_id, now) >= UserTracks.config.hourly_limit
         raise UserTracks::Quota::Exhausted unless UserTracks::Quota.remaining(track.user, now: now) > 0

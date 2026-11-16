@@ -1,17 +1,19 @@
 module UserTracks
   # How a track ends when it doesn't become ready: failed, with plain words for its owner and the
-  # credit refunded (once). Runs under the track's row lock; a deleted track, or one already
-  # finished, is left as it is.
+  # credit refunded (once). Runs under the track's row lock; a deleted track (soft-deleted, or its
+  # row gone with its account), or one already finished, is left as it is.
   module Outcome
     MESSAGES = {
       'provider_unavailable' => "The track generator isn't available right now.",
       'provider_failed' => "The generator couldn't make this track.",
       'download_failed' => "The track couldn't be fetched from the generator.",
       'analysis_failed' => "The track couldn't be checked.",
+      'finalize_failed' => "The track couldn't be finished.",
       'tempo_drift' => "It didn't hold the tempo, so it wouldn't loop in time.",
       'no_loop_window' => "No clean loop came out of it.",
       'timeout' => 'It took too long to make.',
-      'lost' => 'It got lost on the way. Try again.'
+      'lost' => 'It got lost on the way. Try again.',
+      'busy' => 'Too many tracks are being made today. Try again tomorrow.'
     }.freeze
 
     module_function
@@ -40,6 +42,8 @@ module UserTracks
       UserTracks::Removal.purge(blob, track)
       Rails.logger.info("[user_tracks] track #{track.id} failed: #{code}, credit refunded")
       true
+    rescue ActiveRecord::RecordNotFound
+      false
     end
   end
 end

@@ -57,6 +57,21 @@ class Spree::Api::V1::UserTracksControllerTest < ActionDispatch::IntegrationTest
     assert json['fields']['style'].present?
   end
 
+  test 'a length that cannot fit the generator maximum is 422 too_long with maxBars, before any debit' do
+    assert_no_difference -> { Spree::UserTrack.count } do
+      assert_no_enqueued_jobs do
+        make(track_request('bars' => 32, 'bpm' => 64, 'timeSig' => '4/4'))
+      end
+    end
+    assert_response :unprocessable_entity
+    assert_equal 'too_long', json['error']
+    assert_equal 16, json['maxBars']
+    assert_equal 120.0, json['limits']['maxSeconds']
+    assert_equal 4, json['limits']['spareBars']
+    assert json['fields']['bars'].present?
+    assert_equal 20, UserTracks::Quota.remaining(@user)
+  end
+
   test 'a second create while one is in flight is 409' do
     make
     assert_response :created
@@ -258,6 +273,8 @@ class Spree::Api::V1::UserTracksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 19, json['remaining']
     assert_equal 20, json['monthlyFree']
     assert_equal Time.current.utc.beginning_of_month.next_month.iso8601, json['resetsAt']
+    assert_equal({ 'maxSeconds' => 120.0, 'spareBars' => 4, 'bars' => [8, 16, 32], 'bpmRange' => [40, 240],
+                   'timeSignatures' => %w[2/4 3/4 4/4 6/8] }, json['limits'])
   end
 
   test 'variation copies the request into a new track and debits a credit' do

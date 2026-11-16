@@ -5,9 +5,12 @@ module UserTracks
   #
   # - queued for longer than reconcile_after: SubmitJob again (its claim makes a repeat harmless);
   # - finalizing for longer than finalizing_stale_after: back to generating, then as below;
-  # - generating with no request id for longer than reconcile_after (lost mid-submit): failed;
+  # - generating with no request id for longer than reconcile_after since SubmitJob claimed it
+  #   (lost mid-submit): failed;
+  # - generating, already claimed FinalizeJob::MAX_ATTEMPTS times: failed ("finalize_failed");
   # - generating, submitted more than reconcile_after ago and not checked within check_every: ask
-  #   fal. Completed: FinalizeJob. Failed: failed. Still running past give_up_after: failed
+  #   fal. Completed: FinalizeJob, unless a finalise was already tried and it is past
+  #   give_up_after (failed, "timeout"). Failed: failed. Still running past give_up_after: failed
   #   ("timeout"). fal unreachable: left for next time.
   # Failed tracks get their credit back. Deleted tracks are left alone.
   module Reconcile
@@ -33,16 +36,32 @@ module UserTracks
     def check(track, now, config)
       request_id = track.generation['requestId']
       return UserTracks::Outcome.fail!(track, 'lost') if request_id.blank?
+      if finalize_attempts(track) >= UserTracks::FinalizeJob::MAX_ATTEMPTS
+        return UserTracks::Outcome.fail!(track, 'finalize_failed')
+      end
 
       track.update_columns(checked_at: now)
       case UserTracks::Fal.new.status(request_id)
-      when :completed then UserTracks::FinalizeJob.perform_later(track.id)
+      when :completed
+        if finalize_attempts(track).positive? && past_limit?(track, now, config)
+          return UserTracks::Outcome.fail!(track, 'timeout')
+        end
+
+        UserTracks::FinalizeJob.perform_later(track.id)
       when :failed then UserTracks::Outcome.fail!(track, 'provider_failed')
       else
-        UserTracks::Outcome.fail!(track, 'timeout') if track.submitted_at && track.submitted_at < now - config.give_up_after
+        UserTracks::Outcome.fail!(track, 'timeout') if past_limit?(track, now, config)
       end
     rescue UserTracks::Fal::Error => e
       Rails.logger.warn("[user_tracks] reconcile of track #{track.id} skipped: #{e.code}")
+    end
+
+    def finalize_attempts(track)
+      track.generation['finalizeAttempts'].to_i
+    end
+
+    def past_limit?(track, now, config)
+      track.submitted_at.present? && track.submitted_at < now - config.give_up_after
     end
   end
 end

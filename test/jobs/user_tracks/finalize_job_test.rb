@@ -85,6 +85,38 @@ class UserTracks::FinalizeJobTest < ActiveJob::TestCase
     assert_nil @track.credit_refunded_at
   end
 
+  test 'each claim counts; after 3 finalises that could not reach fal the track fails with a refund' do
+    status = stub_request(:get, "#{FAL_QUEUE}/requests/req-1/status").to_return(status: 502)
+    3.times do |i|
+      UserTracks::FinalizeJob.perform_now(@track.id)
+      @track.reload
+      assert_equal 'generating', @track.status
+      assert_equal i + 1, @track.generation['finalizeAttempts']
+    end
+    assert_requested status, times: 3
+
+    UserTracks::FinalizeJob.perform_now(@track.id)
+    assert_requested status, times: 3
+    @track.reload
+    assert_equal 'failed', @track.status
+    assert_equal 'finalize_failed', @track.generation['failure']
+    assert @track.credit_refunded_at
+    refute Spree::UserTrack.kept.in_flight.where(user_id: @user.id).exists?
+  end
+
+  test 'a track whose row goes with its account mid-finalise leaves no blob behind' do
+    stub_fal_done
+    stub_post_runner(lambda { |_argv|
+      Spree::UserTrack.where(id: @track.id).delete_all
+      track_analysis
+    })
+    UserTracks::FinalizeJob.perform_now(@track.id)
+    refute Spree::UserTrack.exists?(@track.id)
+    assert_equal 0, ActiveStorage::Blob.count
+    assert_equal 0, ActiveStorage::Attachment.count
+    refute UserTracks::Outcome.fail!(@track, 'lost')
+  end
+
   test 'a script crash fails the track with a refund' do
     stub_fal_done
     UserTracks::Post.runner = ->(_argv) { raise UserTracks::Post::Error, 'track_post exited 1' }

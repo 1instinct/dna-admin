@@ -12,8 +12,13 @@ module UserTracks
   # UserTracks::Post.runner takes the argv and answers the script's stdout; tests replace it. The
   # default runs the command with UserTracks.config.post_timeout and raises Post::Error on a
   # non-zero exit (a crash: an unusable track is `ok: false` with exit 0) or a timeout.
+  #
+  # One run at a time per process (LOCK): the script's memory is what limits a dyno, so a second
+  # finalise waits for the first run to end.
   module Post
     class Error < StandardError; end
+
+    LOCK = Mutex.new
 
     DEFAULT_RUNNER = ->(argv) { UserTracks::Post.run(argv, UserTracks.config.post_timeout) }
 
@@ -27,7 +32,8 @@ module UserTracks
       # The parsed result, a Hash with string keys. Raises Error when the output isn't one JSON
       # object, or says ok without writing the loop.
       def call(in_path:, out_path:, track:)
-        result = parse(runner.call(argv(in_path, out_path, track)))
+        command = argv(in_path, out_path, track)
+        result = parse(LOCK.synchronize { runner.call(command) })
         raise Error, 'track_post said ok but wrote no loop' if result['ok'] && !File.size?(out_path)
 
         result

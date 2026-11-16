@@ -55,6 +55,33 @@ class Spree::UserTrackTest < ActiveSupport::TestCase
     assert build_track(track_request('moods' => [])).valid?
   end
 
+  test 'a length that cannot fit the generator maximum with its spare bars is too long' do
+    # (bars + 4) * beats * 60 / bpm must be <= 120 s.
+    { [32, 71, '4/4'] => 16, [32, 107, '6/8'] => 16, [16, 59, '6/8'] => 8, [32, 53, '3/4'] => 16 }.
+      each do |(bars, bpm, sig), max|
+        track = build_track(track_request('bars' => bars, 'bpm' => bpm, 'timeSig' => sig))
+        refute track.valid?, "#{bars} bars at #{bpm} in #{sig} should be too long"
+        detail = track.errors.details[:bars].find { |d| d[:error] == :too_long }
+        assert_equal max, detail[:max_bars], "#{bars} bars at #{bpm} in #{sig}"
+        assert_equal max, Spree::UserTrack.max_bars(bpm, track.beats_per_bar)
+      end
+
+    [[32, 72, '4/4'], [32, 108, '6/8'], [16, 60, '6/8'], [8, 40, '6/8'], [32, 40, '2/4']].each do |bars, bpm, sig|
+      track = build_track(track_request('bars' => bars, 'bpm' => bpm, 'timeSig' => sig))
+      assert track.valid?, "#{bars} bars at #{bpm} in #{sig}: #{track.errors.full_messages.inspect}"
+    end
+
+    # A bad bpm is refused for the bpm alone.
+    track = build_track(track_request('bars' => 32, 'bpm' => 30))
+    refute track.valid?
+    assert_empty track.errors[:bars]
+  end
+
+  test 'limits describe the length rule for clients' do
+    assert_equal({ maxSeconds: 120.0, spareBars: 4, bars: [8, 16, 32], bpmRange: [40, 240],
+                   timeSignatures: %w[2/4 3/4 4/4 6/8] }, Spree::UserTrack.limits)
+  end
+
   test 'title names the style and key' do
     track = build_track(track_request('key' => 6, 'scale' => 'major'))
     assert_equal 'Chillhop in F# major', track.default_title

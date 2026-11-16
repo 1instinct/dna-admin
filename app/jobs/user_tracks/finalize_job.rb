@@ -5,6 +5,9 @@ module UserTracks
   #
   # 1. Claims it: generating -> finalizing with one conditional update. A second webhook, a
   #    reconcile after the webhook, or a deleted track finds nothing to claim and does nothing.
+  #    Each claim counts in generation.finalizeAttempts (reset by each new submit): a track that
+  #    has been claimed MAX_ATTEMPTS times (fal or the download unreachable each time, or the dyno
+  #    restarting mid-finalise) is failed with its credit refunded instead of claimed again.
   # 2. Asks fal for the status and the result with Rails' own key (a webhook body is never used).
   #    Still running: back to generating. Failed: failed, credit refunded. fal unreachable: back to
   #    generating, for reconcile to try again.
@@ -14,9 +17,15 @@ module UserTracks
   #    failed with the credit refunded.
   #
   # The new blob is uploaded before the row lock and attached under it; when the track was
-  # deleted meanwhile the blob is purged, so nothing is left behind.
+  # deleted meanwhile (soft, or its row gone with its account) the blob is purged, so nothing is
+  # left behind.
   class FinalizeJob < ApplicationJob
     queue_as :default
+
+    MAX_ATTEMPTS = 3
+    ATTEMPTS_SQL = "COALESCE((generation->>'finalizeAttempts')::int, 0)".freeze
+    CLAIM_SQL = "status = 'finalizing', updated_at = ?, " \
+                "generation = jsonb_set(generation, '{finalizeAttempts}', to_jsonb(#{ATTEMPTS_SQL} + 1))".freeze
 
     def perform(track_id)
       track = claim(track_id)
@@ -39,10 +48,17 @@ module UserTracks
     private
 
     def claim(track_id)
-      claimed = Spree::UserTrack.where(id: track_id, status: 'generating', deleted_at: nil).
-                where("generation->>'requestId' IS NOT NULL").
-                update_all(status: 'finalizing', updated_at: Time.current)
-      Spree::UserTrack.find(track_id) if claimed == 1
+      claimable = Spree::UserTrack.where(id: track_id, status: 'generating', deleted_at: nil).
+                  where("generation->>'requestId' IS NOT NULL")
+      claimed = claimable.where("#{ATTEMPTS_SQL} < ?", MAX_ATTEMPTS).update_all([CLAIM_SQL, Time.current])
+      return Spree::UserTrack.find(track_id) if claimed == 1
+
+      exhausted = claimable.find_by(id: track_id)
+      return unless exhausted
+
+      Rails.logger.warn("[user_tracks] track #{track_id} not finalised after #{MAX_ATTEMPTS} attempts")
+      UserTracks::Outcome.fail!(exhausted, 'finalize_failed')
+      nil
     end
 
     def release(track)
@@ -123,19 +139,24 @@ module UserTracks
     def update_locked(track, blob)
       old_blob = nil
       applied = false
-      track.with_lock do
-        if track.finalizing? && !track.deleted_at
-          # Attachment rows by hand: audio.attach would save the record (and re-run validations).
-          if blob
-            old = track.audio_attachment
-            old_blob = old&.blob
-            old&.delete
-            ActiveStorage::Attachment.create!(name: 'audio', record: track, blob: blob)
-            track.reload
+      begin
+        track.with_lock do
+          if track.finalizing? && !track.deleted_at
+            # Attachment rows by hand: audio.attach would save the record (and re-run validations).
+            if blob
+              old = track.audio_attachment
+              old_blob = old&.blob
+              old&.delete
+              ActiveStorage::Attachment.create!(name: 'audio', record: track, blob: blob)
+              track.reload
+            end
+            yield track, Time.current
+            applied = true
           end
-          yield track, Time.current
-          applied = true
         end
+      rescue ActiveRecord::RecordNotFound
+        # The row went with its account (AccountDeletion) after the upload.
+        Rails.logger.info("[user_tracks] track #{track.id} was removed while finalising")
       end
       UserTracks::Removal.purge(applied ? old_blob : blob, track)
       applied

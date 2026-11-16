@@ -92,6 +92,25 @@ module Spree
       number && number.finite? ? number.round : value
     end
 
+    # The most bars (of BARS) a track at `bpm` with `beats_per_bar` can have, or nil: the generated
+    # length, the bars plus UserTracks::Prompt::SPARE_BARS, must fit UserTracks.config.max_duration
+    # (else the loop can't be cut whole and every attempt fails).
+    def self.max_bars(bpm, beats_per_bar)
+      BARS.select { |bars| fits?(bars, bpm, beats_per_bar) }.max
+    end
+
+    def self.fits?(bars, bpm, beats_per_bar)
+      seconds = (bars + UserTracks::Prompt::SPARE_BARS) * beats_per_bar * 60.0 / bpm
+      seconds <= UserTracks.config.max_duration.to_f + 1e-6
+    end
+
+    # The bars limit for clients, so impossible lengths can be disabled: maxSeconds, spareBars and
+    # the bar choices (a length fits when (bars + spareBars) * beats per bar * 60 / bpm <= maxSeconds).
+    def self.limits
+      { maxSeconds: UserTracks.config.max_duration.to_f, spareBars: UserTracks::Prompt::SPARE_BARS, bars: BARS,
+        bpmRange: [BPM_RANGE.min, BPM_RANGE.max], timeSignatures: TIME_SIGNATURES }
+    end
+
     # "<id>-<secret>", the provider webhook URL's webhook_token query parameter.
     def webhook_token
       "#{id}-#{webhook_secret}"
@@ -166,6 +185,19 @@ module Spree
       errors.add(:key, 'must be a pitch class from 0 (C) to 11 (B)') unless r['key'].is_a?(Integer) && (0..11).cover?(r['key'])
       errors.add(:scale, 'must be major or minor') unless UserTracks::Keys::SCALES.include?(r['scale'])
       errors.add(:timeSig, "must be one of #{TIME_SIGNATURES.join(', ')}") unless TIME_SIGNATURES.include?(r['timeSig'])
+      validate_length(r)
+    end
+
+    # Only once bars, bpm and timeSig are each valid.
+    def validate_length(r)
+      return if errors.key?(:bars) || errors.key?(:bpm) || errors.key?(:timeSig)
+
+      beats = r['timeSig'].split('/').first.to_i
+      return if self.class.fits?(r['bars'], r['bpm'], beats)
+
+      max = self.class.max_bars(r['bpm'], beats)
+      errors.add(:bars, :too_long, max_bars: max,
+                                   message: "is too long at #{r['bpm']} bpm in #{r['timeSig']}: at most #{max} bars")
     end
 
     def validate_moods(moods)

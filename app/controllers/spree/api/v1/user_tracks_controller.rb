@@ -7,7 +7,8 @@ module Spree
       #                                            are overdue are checked with the provider first)
       #   GET    /api/v1/user_tracks/:id
       #   POST   /api/v1/user_tracks               { style, moods[], bars, bpm, key, scale, timeSig }
-      #                                            201 queued | 422 { error, fields } | 409 in_flight
+      #                                            201 queued | 422 { error, fields } | 422 too_long
+      #                                            { error, maxBars, limits, fields } | 409 in_flight
       #                                            | 429 rate_limited | 402 quota | 503 busy (daily
       #                                            spend breaker) | 503 unavailable (no FAL_KEY)
       #   DELETE /api/v1/user_tracks/:id           204
@@ -16,7 +17,8 @@ module Spree
       #   GET    /api/v1/user_tracks/:id/audio_url { url, expiresAt }: the same URL as JSON (ready only)
       #   GET    /api/v1/user_tracks/styles        [{ id, label, bpmRange, defaultMoods, caption }]
       #   GET    /api/v1/user_tracks/moods         [{ id, label }]
-      #   GET    /api/v1/user_tracks/quota         { remaining, monthlyFree, resetsAt }
+      #   GET    /api/v1/user_tracks/quota         { remaining, monthlyFree, resetsAt, limits: { maxSeconds,
+      #                                            spareBars, bars, bpmRange, timeSignatures } }
       #
       # index, create and variation also send X-Quota-Remaining.
       class UserTracksController < Spree::Api::BaseController
@@ -84,7 +86,7 @@ module Spree
         def quota
           render json: { remaining: UserTracks::Quota.remaining(current_api_user),
                          monthlyFree: UserTracks.config.monthly_free,
-                         resetsAt: UserTracks::Quota.resets_at.iso8601 }
+                         resetsAt: UserTracks::Quota.resets_at.iso8601, limits: Spree::UserTrack.limits }
         end
 
         private
@@ -103,7 +105,7 @@ module Spree
 
         def start(request)
           new_track = Spree::UserTrack.new(user: current_api_user, source: 'ai', request: request)
-          return render_record_errors(new_track, 'Track could not be made') unless new_track.valid?
+          return refuse(new_track) unless new_track.valid?
 
           UserTracks::Start.call(new_track)
           quota_header
@@ -118,6 +120,16 @@ module Spree
           render_error('busy', :service_unavailable)
         rescue UserTracks::Start::Unavailable
           render_error('unavailable', :service_unavailable)
+        end
+
+        # 422. A length that can't fit the generator's maximum is { error: "too_long", maxBars, limits,
+        # fields }; anything else { error, fields }.
+        def refuse(new_track)
+          detail = new_track.errors.details[:bars].find { |d| d[:error] == :too_long }
+          return render_record_errors(new_track, 'Track could not be made') unless detail
+
+          render json: { error: 'too_long', maxBars: detail[:max_bars], limits: Spree::UserTrack.limits,
+                         fields: new_track.errors.to_hash }, status: :unprocessable_entity
         end
 
         # Overdue tracks are checked with the provider before listing; a failure here never fails
