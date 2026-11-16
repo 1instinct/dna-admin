@@ -10,6 +10,8 @@ prints one JSON object to stdout (see README.md for every field). An unusable tr
 Also importable: post(in_path, out_path, bpm, bars, beats_per_bar, key, scale) -> dict.
 
 Runs on Python 3.7 with numpy 1.16 and soundfile (libsndfile 1.0.28: FLAC and WAV in, FLAC out).
+Memory stays flat: the analysis holds one float32 mono copy of the input, the cut holds the
+float32 stereo loop, and everything that walks the whole signal does it in chunks.
 """
 from __future__ import division, print_function
 
@@ -52,6 +54,8 @@ KEY_ROOT_RANGE = 0.3      # ... and only for keys whose fit is within this of th
 BASS_LO_MIDI = 36         # bass notes are read from C2 ...
 BASS_HI_MIDI = 55         # ... to G3
 BASS_REL = 0.35           # a bass peak within -9 dB of the strongest pitch in that range
+
+CHUNK = 1 << 18           # samples per chunk for anything that walks the whole signal
 
 
 # Every key of the printed object, in order (README "Output").
@@ -100,21 +104,51 @@ def _to127(x):
 
 
 def _stft_reduce(x, n_fft, hop, reducer, n_frames):
-    """Hann-windowed power spectra of mono x, frames centred on t * hop, handed to
-    `reducer(power[chunk, n_fft // 2 + 1]) -> array[chunk, k]` in chunks; returns the stacked
-    results. Keeps memory flat for long inputs."""
+    """Hann-windowed power spectra of mono x, frames centred on t * hop (zeros beyond its ends),
+    handed to `reducer(power[chunk, n_fft // 2 + 1]) -> array[chunk, k]` in chunks; returns the
+    stacked results. Memory stays flat for long inputs: each chunk copies only its own samples."""
     pad = n_fft // 2
-    xp = np.zeros(len(x) + n_fft + hop * 2, np.float32)
-    xp[pad:pad + len(x)] = x
-    frames = np.lib.stride_tricks.as_strided(
-        xp, shape=(n_frames, n_fft), strides=(xp.strides[0] * hop, xp.strides[0]))
+    n = len(x)
     win = np.hanning(n_fft + 1)[:-1].astype(np.float32)
-    chunk = max(4, (1 << 21) // n_fft)
+    chunk = max(4, (1 << 19) // n_fft)
     out = []
     for i in range(0, n_frames, chunk):
-        spec = np.fft.rfft(frames[i:i + chunk] * win, axis=1)
+        m = min(chunk, n_frames - i)
+        a = i * hop - pad
+        b = a + (m - 1) * hop + n_fft
+        seg = np.zeros(b - a, np.float32)
+        lo, hi = max(a, 0), min(b, n)
+        if hi > lo:
+            seg[lo - a:hi - a] = x[lo:hi]
+        frames = np.lib.stride_tricks.as_strided(
+            seg, shape=(m, n_fft), strides=(seg.strides[0] * hop, seg.strides[0]))
+        spec = np.fft.rfft(frames * win, axis=1)
         out.append(reducer((spec.real ** 2 + spec.imag ** 2).astype(np.float32)))
+        del spec, frames, seg
     return np.concatenate(out, axis=0)
+
+
+def _block_ms(x, blk, nb):
+    """Mean square of x (1-D, or 2-D averaged over channels first) in nb blocks of blk samples."""
+    out = np.empty(nb)
+    step = max(1, CHUNK // blk)
+    for i in range(0, nb, step):
+        j = min(nb, i + step)
+        seg = x[i * blk:j * blk]
+        if seg.ndim == 2:
+            seg = seg.mean(axis=1)
+        seg = seg.astype(np.float64).reshape(j - i, blk)
+        out[i:j] = (seg * seg).mean(axis=1)
+    return out
+
+
+def _mean_square(x):
+    """Mean of x ** 2 over every element, in chunks."""
+    tot = 0.0
+    for a in range(0, len(x), CHUNK):
+        seg = x[a:a + CHUNK].astype(np.float64)
+        tot += float(np.sum(seg * seg))
+    return tot / max(1, x.size)
 
 
 def _semitone_reducer(sr, n_fft, midi_lo, midi_hi):
@@ -199,38 +233,44 @@ def _k_weight_power(freqs, sr):
     return shelf * hp
 
 
-def _k_weighted_squares(x, sr):
-    """Sum over channels of the squared K-weighted signal (filtered in the frequency domain,
-    circularly: the loop is circular anyway)."""
+def _k_energy(x, sr, gain=None):
+    """K-weighted energy per 100 ms step (summed over channels) of the circular signal x
+    (samples, channels), or of x * gain(indices) when a per-sample gain is given. Filtered in the
+    frequency domain chunk by chunk, each with the 170 ms before it (circularly: the loop is
+    circular) to settle the filter, so memory stays flat."""
     n = x.shape[0]
-    nf = _fast_len(n)
-    freqs = np.fft.rfftfreq(nf, 1.0 / sr)
-    gain = np.sqrt(_k_weight_power(freqs, sr))
-    out = np.zeros(n)
-    for ch in range(x.shape[1]):
-        spec = np.fft.rfft(x[:, ch].astype(np.float64), nf)
-        y = np.fft.irfft(spec * gain, nf)[:n]
-        out += y * y
-    return out
-
-
-def integrated_lufs(x, sr):
-    """Integrated loudness (LUFS) of a (samples, channels) array: K-weighted, 400 ms blocks with
-    75 % overlap, absolute gate -70 LUFS, relative gate -10 LU."""
-    x = np.asarray(x, dtype=np.float64)
-    if x.ndim == 1:
-        x = x[:, None]
-    n = x.shape[0]
-    block = int(round(0.4 * sr))
     step = int(round(0.1 * sr))
-    if n < block or n == 0:
+    margin = _pow2(0.17 * sr)
+    core = max(1 << 17, 4 * margin) - margin
+    e = np.zeros((n + step - 1) // step)
+    cache = {}
+    for a in range(0, n, core):
+        b = min(n, a + core)
+        idx = np.arange(a - margin, b) % n
+        seg = x[idx].astype(np.float64)
+        if gain is not None:
+            seg *= gain(idx)[:, None]
+        nf = _fast_len(len(idx))
+        if nf not in cache:
+            cache[nf] = np.sqrt(_k_weight_power(np.fft.rfftfreq(nf, 1.0 / sr), sr))[:, None]
+        y = np.fft.irfft(np.fft.rfft(seg, nf, axis=0) * cache[nf], nf, axis=0)
+        y = y[margin:margin + b - a]
+        sq = (y * y).sum(axis=1)
+        k = np.arange(a, b) // step
+        e[k[0]:k[-1] + 1] += np.bincount(k - k[0], weights=sq)
+    return e
+
+
+def _gated_lufs(e, n, sr):
+    """BS.1770 gating of 100 ms step energies: 400 ms blocks (4 steps, 75 % overlap) inside the
+    n samples, absolute gate -70 LUFS, relative gate -10 LU."""
+    step = int(round(0.1 * sr))
+    full = n // step
+    if full < 4:
         return float('-inf')
-    sq = _k_weighted_squares(x, sr)
-    cs = np.concatenate([[0.0], np.cumsum(sq)])
-    starts = np.arange(0, n - block + 1, step)
-    z = (cs[starts + block] - cs[starts]) / block
-    lk = -0.691 + _db(z, 1e-20)
-    z = z[lk > -70.0]
+    e = e[:full]
+    z = (e[:-3] + e[1:-2] + e[2:-1] + e[3:]) / (4.0 * step)
+    z = z[-0.691 + _db(z, 1e-20) > -70.0]
     if len(z) == 0:
         return float('-inf')
     rel = -0.691 + _db(z.mean(), 1e-20) - 10.0
@@ -238,6 +278,17 @@ def integrated_lufs(x, sr):
     if len(z) == 0:
         return float('-inf')
     return float(-0.691 + _db(z.mean(), 1e-20))
+
+
+def integrated_lufs(x, sr):
+    """Integrated loudness (LUFS) of a (samples, channels) array: K-weighted, 400 ms blocks with
+    75 % overlap, absolute gate -70 LUFS, relative gate -10 LU."""
+    x = np.asarray(x)
+    if x.ndim == 1:
+        x = x[:, None]
+    if x.shape[0] == 0:
+        return float('-inf')
+    return _gated_lufs(_k_energy(x, sr), x.shape[0], sr)
 
 
 def _sliding_min_circular(r, w):
@@ -252,35 +303,76 @@ def _sliding_min_circular(r, w):
     return np.roll(m, w // 2)
 
 
-def _limit(y, sr, ceiling):
-    """Peak limiter for a circular signal: the per-sample gain needed to keep under the ceiling,
-    min-filtered over 10 ms and box-smoothed over 10 ms (so it never exceeds the need)."""
-    peak = np.abs(y).max(axis=1)
-    if peak.max() <= ceiling:
-        return y
-    need = np.minimum(1.0, ceiling / np.maximum(peak, 1e-12))
-    w = max(3, int(round(0.010 * sr)) | 1)
-    m = _sliding_min_circular(need, w)
-    h = w // 2
+def _block_peaks(x, blk):
+    """Peak |x| over channels in each blk-sample block (the last one may be short)."""
+    n = x.shape[0]
+    nb = (n + blk - 1) // blk
+    pk = np.zeros(nb, np.float32)
+    step = max(1, CHUNK // blk)
+    for i in range(0, nb, step):
+        j = min(nb, i + step)
+        seg = np.abs(x[i * blk:min(n, j * blk)]).max(axis=1)
+        if len(seg) < (j - i) * blk:
+            seg = np.concatenate([seg, np.zeros((j - i) * blk - len(seg), seg.dtype)])
+        pk[i:j] = seg.reshape(j - i, blk).max(axis=1)
+    return pk
+
+
+def _limiter(pk, blk, n, level, ceiling, sr):
+    """The gain, as a function of sample indices, that scales a circular signal by `level` and
+    keeps it under the ceiling: the gain each 1 ms block (peaks `pk`) needs, min-filtered over
+    12 ms and box-smoothed over 10 ms, then interpolated between block centres. The min reaches
+    one block past the smoothing on each side, so no sample gets more gain than it needs."""
+    need = np.minimum(1.0, ceiling / np.maximum(level * pk.astype(np.float64), 1e-12))
+    nb = len(need)
+    h = max(1, int(round(0.005 * sr / blk)))
+    if need.min() >= 1.0 or nb < 2 * h + 4:
+        flat = level * float(need.min())
+        return lambda idx: np.full(len(idx), flat)
+    m = _sliding_min_circular(need, 2 * (h + 1) + 1)
     mp = np.concatenate([m[-h:], m, m[:h]])
     cs = np.concatenate([[0.0], np.cumsum(mp)])
-    g = (cs[w:] - cs[:-w]) / w
-    g = np.minimum(g[:len(y)], 1.0)
-    return y * g[:, None]
+    g = np.minimum((cs[2 * h + 1:] - cs[:-2 * h - 1]) / (2 * h + 1), 1.0)
+    centres = np.arange(nb) * blk + (blk - 1) / 2.0
+    centres[-1] = ((nb - 1) * blk + n - 1) / 2.0
+    xp = np.concatenate([[centres[-1] - n], centres, [centres[0] + n]])
+    fp = level * np.concatenate([[g[-1]], g, [g[0]]])
+    return lambda idx: np.interp(idx, xp, fp)
 
 
 def _normalise(loop, sr):
+    """Gain the loop (float32, in place) to TARGET_LUFS under a circular look-ahead limiter at
+    PEAK_DBFS. Returns its loudness."""
     ceiling = 10 ** (PEAK_DBFS / 20.0) * 0.985  # margin for 16-bit rounding
-    y = loop.astype(np.float64)
-    lufs = integrated_lufs(y, sr)
+    n = loop.shape[0]
+    lufs = integrated_lufs(loop, sr)
     if not np.isfinite(lufs):
-        return y, lufs
-    for _ in range(3):
-        y = _limit(y * 10 ** ((TARGET_LUFS - lufs) / 20.0), sr, ceiling)
-        lufs = integrated_lufs(y, sr)
-        if abs(lufs - TARGET_LUFS) <= 0.2:
+        return lufs
+    blk = max(1, int(round(0.001 * sr)))
+    pk = _block_peaks(loop, blk)
+    level = 10 ** ((TARGET_LUFS - lufs) / 20.0)
+    for i in range(3):
+        gain = _limiter(pk, blk, n, level, ceiling, sr)
+        lufs = _gated_lufs(_k_energy(loop, sr, gain), n, sr)
+        if abs(lufs - TARGET_LUFS) <= 0.2 or i == 2:
             break
-    return y, lufs
+        level *= 10 ** ((TARGET_LUFS - lufs) / 20.0)
+    for a in range(0, n, CHUNK):
+        b = min(n, a + CHUNK)
+        loop[a:b] *= gain(np.arange(a, b)).astype(np.float32)[:, None]
+    return lufs
+
+
+def _write_pcm16(path, y, sr):
+    """y (float, samples x channels) as 16-bit FLAC, in chunks. Returns the sample peak (0-1)."""
+    peak = 0
+    with sf.SoundFile(path, 'w', sr, y.shape[1], 'PCM_16', format='FLAC') as fh:
+        for a in range(0, y.shape[0], CHUNK):
+            pcm = np.clip(np.round(y[a:a + CHUNK] * 32767.0), -32768, 32767).astype(np.int16)
+            if len(pcm):
+                peak = max(peak, int(np.abs(pcm.astype(np.int32)).max()))
+            fh.write(pcm)
+    return peak / 32768.0
 
 
 # ── analysis ─────────────────────────────────────────────────────────────
@@ -294,7 +386,7 @@ class _Features(object):
         # level: 10 ms blocks
         self.blk = int(round(0.01 * sr))
         nb = self.n // self.blk
-        self.blk_ms = (mono[:nb * self.blk].astype(np.float64).reshape(nb, self.blk) ** 2).mean(axis=1)
+        self.blk_ms = _block_ms(mono, self.blk, nb)
 
         # onsets: ~21 ms frames, ~5 ms hop, 36 log bands from 30 Hz
         n_fft = _pow2(0.0213 * sr)
@@ -610,7 +702,7 @@ def _timbre(f, loop, sr, oa, ob, ta, tb):
     parts) and the input's frames over the window (spectral parts)."""
     gate = 1e-6  # -60 dBFS
     # frames active in the normalised loop: the input frames, rescaled to its level
-    scale = (loop.astype(np.float64) ** 2).mean() / max(1e-20, float(f.t_ms[ta:tb].mean()))
+    scale = _mean_square(loop) / max(1e-20, float(f.t_ms[ta:tb].mean()))
     act = f.t_ms[ta:tb] * scale > gate
     if act.sum() < 10:
         return None
@@ -632,10 +724,9 @@ def _timbre(f, loop, sr, oa, ob, ta, tb):
     density = _to127(onsets / seconds / 8.0) if seconds > 0 else 0
 
     # attack slope and decay on a 4 ms level envelope (12 ms mean square, 0.5 dB steps)
-    mono = loop.mean(axis=1)
     blk = int(round(0.004 * sr))
-    nb = len(mono) // blk
-    e = (mono[:nb * blk].astype(np.float64).reshape(nb, blk) ** 2).mean(axis=1)
+    nb = len(loop) // blk
+    e = _block_ms(loop, blk, nb)  # of the mono mix
     e3 = (e + np.concatenate([[0.0], e[:-1]]) + np.concatenate([[0.0, 0.0], e[:-2]])) / 3.0
     env = np.clip(2 * (_db(e3) + 100), 0, 255).astype(int)
     g = int(2 * (-60 + 100))
@@ -876,14 +967,18 @@ def _fine_onsets(mono, sr, a, b, hop):
     edges_hz = np.geomspace(30.0, min(16000.0, sr * 0.475), 37)
     edges = np.unique(np.clip(np.round(edges_hz * n_fft / sr).astype(int), 1, n_fft // 2))
 
-    def bands(power):
-        return np.add.reduceat(power, edges, axis=1)[:, :-1]
+    def bands_db(power):
+        return _db(np.add.reduceat(power, edges, axis=1)[:, :-1], 1e-30).astype(np.float32)
     seg = mono[max(0, a):b]
-    be = _stft_reduce(seg, n_fft, hop, bands, 1 + len(seg) // hop)
-    db = _db(be / max(float(be.max()), 1e-12), 1e-8)
+    db = _stft_reduce(seg, n_fft, hop, bands_db, 1 + len(seg) // hop)
+    db -= max(float(db.max()), -120.0)  # 0 dB at the loudest band, floor -80
+    np.maximum(db, -80.0, out=db)
     lag = max(1, int(round(0.005 * sr / hop)))
     o = np.zeros(len(db))
-    o[lag:] = np.maximum(db[lag:] - db[:-lag], 0).mean(axis=1)
+    rows = max(1, CHUNK // db.shape[1])
+    for i in range(lag, len(db), rows):
+        j = min(len(db), i + rows)
+        o[i:j] = np.maximum(db[i:j] - db[i - lag:j - lag], 0).mean(axis=1)
     # less its +-50 ms mean, so a busy mix's steady flux doesn't swamp the beats
     h = max(1, int(round(0.05 * sr / hop)))
     cs = np.concatenate([[0.0], np.cumsum(o)])
@@ -963,14 +1058,42 @@ def _beat_period(mono, sr, start, period, count):
     return float(slope)
 
 
+def _read_mono(path):
+    """(float32 mono mix of the first two channels, sample rate), read in blocks so the whole
+    stereo file is never held."""
+    with sf.SoundFile(path) as fh:
+        sr, ch = fh.samplerate, fh.channels
+        mono = np.empty(max(0, fh.frames), np.float32)
+        i = 0
+        while True:
+            blk = fh.read(CHUNK, dtype='float32', always_2d=True)
+            if not len(blk):
+                break
+            m = blk[:, :2].mean(axis=1) if ch >= 2 else blk[:, 0]
+            if i + len(m) > len(mono):
+                mono = np.concatenate([mono[:i], np.empty(i + len(m) - len(mono), np.float32)])
+            mono[i:i + len(m)] = m
+            i += len(m)
+    return mono[:i], sr
+
+
+def _read_stereo(path, a, b):
+    """Samples a..b of the file as float32 stereo (mono duplicated, extra channels dropped)."""
+    with sf.SoundFile(path) as fh:
+        fh.seek(a)
+        x = fh.read(b - a, dtype='float32', always_2d=True)
+    if x.shape[1] == 1:
+        return np.repeat(x, 2, axis=1)
+    return np.ascontiguousarray(x[:, :2]) if x.shape[1] > 2 else x
+
+
 def _cut(x, s, L, sr):
     """x[s:s+L] with an equal-power crossfade at the seam. The audio that follows the window fades
     out over its head, so the last sample flows into the first; when the track ends there (the
     music stops), the audio before the window fades into its tail instead; when neither
     neighbour sounds, the window already starts and ends on silence and is left as it is."""
-    n = x.shape[0]
     F = int(round(SEAM_SEC * sr))
-    loop = x[s:s + L].astype(np.float64).copy()
+    loop = x[s:s + L]  # a view: x is this call's own copy of the region, crossfaded in place
     if F >= L:
         return loop, 'none'
 
@@ -1024,14 +1147,10 @@ def post(in_path, out_path, bpm, bars, beats_per_bar, key, scale):
         raise ValueError('scale must be major or minor')
     bpm_out = int(bpm) if bpm == int(bpm) else bpm
 
-    x, sr = sf.read(in_path, dtype='float32', always_2d=True)
-    if x.shape[1] == 1:
-        x = np.repeat(x, 2, axis=1)
-    x = x[:, :2]
-    n = x.shape[0]
+    mono, sr = _read_mono(in_path)
+    n = len(mono)
     if n < sr:
         return _empty(bpm_out, 'no_loop_window')
-    mono = x.mean(axis=1)
     f = _Features(mono, sr)
 
     s, info = _find_window(f, bpm, bars, bpb, n)
@@ -1063,11 +1182,12 @@ def post(in_path, out_path, bpm, bars, beats_per_bar, key, scale):
         if not info['whole'] and s + L_meas <= n:
             L = L_meas
 
-    loop, seam = _cut(x, s, L, sr)
-    y, lufs = _normalise(loop, sr)
-    pcm = np.clip(np.round(y * 32767.0), -32768, 32767).astype(np.int16)
-    sf.write(out_path, pcm, sr, format='FLAC', subtype='PCM_16')
-    peak = float(np.abs(pcm).max()) / 32768.0
+    del mono
+    F = int(round(SEAM_SEC * sr))
+    ra, rb = max(0, s - F), min(n, s + L + F)
+    loop, seam = _cut(_read_stereo(in_path, ra, rb), s - ra, L, sr)
+    lufs = _normalise(loop, sr)  # in place
+    peak = _write_pcm16(out_path, loop, sr)
 
     ta, tb = int(s / float(sr) * f.t_fps), max(int((s + L) / float(sr) * f.t_fps), int(s / float(sr) * f.t_fps) + 3)
     tb = min(tb, len(f.t_ms))
@@ -1075,7 +1195,7 @@ def post(in_path, out_path, bpm, bars, beats_per_bar, key, scale):
     low, med, high = _range(f, ta, tb, bass_notes)
     oa = max(0, int(f.o_frame(s / float(sr))))
     ob = min(len(f.onset), int(f.o_frame((s + L) / float(sr))))
-    timbre = _timbre(f, y, sr, oa, ob, ta, tb)
+    timbre = _timbre(f, loop, sr, oa, ob, ta, tb)
 
     drift_ms = None
     if mult:

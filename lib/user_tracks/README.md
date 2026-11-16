@@ -23,7 +23,10 @@ python3 lib/user_tracks/track_post.py --in in.flac --out loop.flac \
 - Importable too: `post(in_path, out_path, bpm, bars, beats_per_bar, key, scale) -> dict`.
 
 Runtime: Python 3.7+, numpy 1.16+ and soundfile (Debian Buster: `python3 python3-numpy
-python3-soundfile`). About 2 s and 160 MB for a 120 s input.
+python3-soundfile`). About 2 s and under 120 MB peak RSS for a 120 s 48 kHz stereo input at any
+bars and bpm (it is meant to run beside a web process). The analysis holds one float32 mono copy
+of the input (read in blocks), the cut reads only the loop's samples back as float32 stereo, and
+everything that walks the whole signal (spectra, loudness, limiter, write) runs in chunks.
 
 ## Output
 
@@ -97,10 +100,12 @@ input taken whole keeps its length.
 its head, so its last sample runs into its first as the track ran on. If the music stops there,
 the 30 ms before the window go over its tail instead.
 
-**Loudness.** ITU-R BS.1770-4: K-weighting (applied in the frequency domain), 400 ms blocks with
-75 % overlap, −70 LUFS absolute and −10 LU relative gates. The loop is gained to −16 LUFS, and a
-look-ahead limiter (10 ms minimum, 10 ms smoothing, circular so the seam stays continuous)
-keeps the sample peak ≤ −1 dBFS; this repeats until within 0.2 LU.
+**Loudness.** ITU-R BS.1770-4: K-weighting (applied in the frequency domain, in chunks that each
+carry the 170 ms before them to settle the filter), 400 ms blocks with 75 % overlap, −70 LUFS
+absolute and −10 LU relative gates. The loop is gained to −16 LUFS, and a look-ahead limiter
+keeps the sample peak ≤ −1 dBFS: the gain each 1 ms block needs, min-filtered over 12 ms,
+box-smoothed over 10 ms and interpolated between blocks, circular so the seam stays continuous.
+The gain is re-aimed until the limited loop is within 0.2 LU (at most three passes).
 
 **Key.**
 - `fit`: Krumhansl–Kessler correlation of the harmonic chroma from C3 up (each frame scaled to its
