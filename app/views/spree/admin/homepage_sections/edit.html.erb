@@ -31,12 +31,18 @@
       <small class="form-text text-muted">Main content for this section</small>
     <% end %>
 
-    <%= f.field_container :settings, class: ['form-group'] do %>
-      <%= f.label :settings, 'Settings (JSON)' %>
-      <%= f.text_area :settings, class: 'form-control', rows: 6, placeholder: '{ "key": "value" }' %>
-      <%= f.error_message_on :settings %>
-      <small class="form-text text-muted">Additional configuration in JSON format. Example: {"background_color": "#fff", "text_color": "#000"}</small>
+    <%# announcement_bar and app_links compose their settings from the discrete
+        fieldsets below; the raw textarea would only let an operator clobber them. %>
+    <% unless @homepage_section.composed_settings? %>
+      <%= f.field_container :settings, class: ['form-group'] do %>
+        <%= f.label :settings, 'Settings (JSON) — other section types only' %>
+        <%= f.text_area :settings, class: 'form-control', rows: 6, placeholder: '{ "key": "value" }' %>
+        <%= f.error_message_on :settings %>
+        <small class="form-text text-muted">Additional configuration in JSON format. Example: {"background_color": "#fff", "text_color": "#000"}</small>
+      <% end %>
     <% end %>
+
+    <%= render partial: 'spree/admin/homepage_sections/callout_settings_fields', locals: { f: f } %>
 
     <%= f.field_container :position, class: ['form-group'] do %>
       <%= f.label :position, 'Position' %>
