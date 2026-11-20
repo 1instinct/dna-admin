@@ -4,8 +4,8 @@ class ApidocsController < ActionController::Base
     key :swagger, '2.0'
     info do
       key :version, '1.0.0'
-      key :title, 'POL Ecommerce website'
-      key :description, 'POL App and Website. Types of user in this are User.'
+      key :title, 'Ecommerce website'
+      key :description, 'App and Website. Types of user in this are User.'
       contact do
         key :name, 'Mayank Gandhi'
       end

@@ -1,4 +1,5 @@
 require 'test_helper'
+require_relative '../trunk/product_name_guard'
 
 # The ENV.fetch fallbacks in the login, forbidden and unauthorized views are only live in production:
 # config/initializers/dotenv.rb requires COMPANY_LOGO and COMPANY_BACKGROUND in development and test.
@@ -17,7 +18,7 @@ class DefaultBrandingTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_match %r{<img[^>]+src="[^"]*instinct_logo[^"]*\.png"}, html
     assert_match %r{url\("[^"]*background[^"]*\.jpg"\)}, html
-    assert_no_match(/beeper/i, html)
+    assert_no_match(ProductNameGuard.pattern, html)
   end
 
   test 'the forbidden and unauthorized pages fall back to the neutral background' do
@@ -25,7 +26,7 @@ class DefaultBrandingTest < ActionDispatch::IntegrationTest
       html = without_branding_env { get(path); response.body }
 
       assert_match %r{url\("[^"]*background[^"]*\.jpg"\)}, html, path
-      assert_no_match(/beeper/i, html, path)
+      assert_no_match(ProductNameGuard.pattern, html, path)
     end
   end
 
