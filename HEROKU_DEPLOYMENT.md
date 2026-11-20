@@ -1,6 +1,6 @@
 # Heroku Deployment Guide
 
-This guide will help you deploy Beeper Admin to Heroku using Docker containers with the smallest Postgres instance.
+This guide will help you deploy the Admin app to Heroku using Docker containers with the smallest Postgres instance.
 
 ## Prerequisites
 
@@ -55,12 +55,12 @@ heroku config:set RAILS_LOG_TO_STDOUT=true -a $APP_NAME
 heroku config:set RAILS_SERVE_STATIC_FILES=true -a $APP_NAME
 
 # Branding
-heroku config:set COMPANY_LOGO=/assets/beeper_logo.png -a $APP_NAME
-heroku config:set LOGIN_BACKGROUND=/assets/beeper-login-background.jpg -a $APP_NAME
-heroku config:set COMPANY_BACKGROUND=/assets/beeper-login-background.jpg -a $APP_NAME
+heroku config:set COMPANY_LOGO=/assets/instinct_logo.png -a $APP_NAME
+heroku config:set LOGIN_BACKGROUND=/assets/background.jpg -a $APP_NAME
+heroku config:set COMPANY_BACKGROUND=/assets/background.jpg -a $APP_NAME
 
 # Site configuration
-heroku config:set SITE_TITLE="Beeper Admin" -a $APP_NAME
+heroku config:set SITE_TITLE="Admin" -a $APP_NAME
 heroku config:set SITE_ADMIN_NAME="Admin" -a $APP_NAME
 ```
 
@@ -132,8 +132,8 @@ done
 # Connect to your existing app (if not already connected)
 heroku git:remote -a your-app-name
 
-# Example for beeper-admin-prod:
-# heroku git:remote -a beeper-admin-prod
+# Example for your-admin-prod:
+# heroku git:remote -a your-admin-prod
 
 # Make sure you're on the correct branch
 git checkout main  # or master

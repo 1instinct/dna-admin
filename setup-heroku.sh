@@ -1,10 +1,10 @@
 #!/bin/bash
-# Quick Heroku Setup for Beeper Admin
+# Quick Heroku Setup for Admin
 # This script helps you set up a new Heroku deployment interactively
 
 set -e
 
-echo "🎯 Beeper Admin - Heroku Setup Wizard"
+echo "🎯 Admin - Heroku Setup Wizard"
 echo "======================================"
 echo ""
 
@@ -84,10 +84,10 @@ echo "   ✓ Secrets configured"
 echo ""
 echo "5️⃣  Setting default branding..."
 heroku config:set \
-  COMPANY_LOGO=/assets/beeper_logo.png \
-  LOGIN_BACKGROUND=/assets/beeper-login-background.jpg \
-  COMPANY_BACKGROUND=/assets/beeper-login-background.jpg \
-  SITE_TITLE="Beeper Admin" \
+  COMPANY_LOGO=/assets/instinct_logo.png \
+  LOGIN_BACKGROUND=/assets/background.jpg \
+  COMPANY_BACKGROUND=/assets/background.jpg \
+  SITE_TITLE="Admin" \
   SITE_ADMIN_NAME="Admin" \
   -a $APP_NAME
 
