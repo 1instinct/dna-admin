@@ -21,8 +21,12 @@ module SeedOrdinals
 
   module_function
 
+  def config_path
+    File.join(ROOT, "config/product_name.yml")
+  end
+
   def own_name
-    YAML.load_file(File.join(ROOT, "config/product_name.yml")).fetch("product_name").to_s.downcase
+    YAML.load_file(config_path).fetch("product_name").to_s.downcase
   end
 
   def range_for(product_name)
