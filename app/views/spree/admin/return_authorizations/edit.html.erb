@@ -7,8 +7,8 @@
 <%= render partial: 'spree/admin/shared/order_tabs', locals: { current: :return_authorizations } %>
 
 <% content_for :page_title do %>
-  / <%= link_to Spree.t(:return_authorizations), spree.admin_order_return_authorizations_url %>
-  / <%= @return_authorization.number %> (<%= Spree.t(@return_authorization.state.downcase) %>)
+  <%= link_to Spree.t(:return_authorizations), spree.admin_order_return_authorizations_url %>
+  <%= @return_authorization.number %> (<%= Spree.t(@return_authorization.state.downcase) %>)
 <% end %>
 
 <%= render partial: 'spree/admin/shared/error_messages', locals: { target: @return_authorization } %>

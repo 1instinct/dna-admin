@@ -2,7 +2,8 @@
 
 This repo is using Spree 4.2.4
 
-## Build
+# Local Docker Development
+This repo is using Spree 4.2.4
 
 This should only have to be done once, or whenever the Gemfile is updated.
 
@@ -17,8 +18,6 @@ The manual way:
 ```shell
 docker-compose build
 ```
-
-## Create Containers
 
 ```shell
 docker-compose up
@@ -101,7 +100,15 @@ page for each project.  This only needs to be done once after spree is installed
 1. Create or reset a **New Admin User**: `docker-compose exec web rails spree_auth:admin:create`
 1. Load Spree sample data & seed data: `rake db:seed && rails spree_sample:load`
 
-## Deploy
+## Deploy to Pi Cluster (MicroK8s)
+
+Deployment is run from the parent `dna-infra` repo: `make build-admin && make deploy-admin`.
+
+> **Custom domains / store forks (e.g. saltea-admin):** If deploying a fork under a custom domain, you must also add the domain to the CoreDNS `hosts` ConfigMap and your Mac's `/etc/hosts`. Without this, TLS certs won't issue and the site is unreachable from the LAN. See `K8_NOTES.md` § "Adding a New Site / Domain" in `dna-infra`.
+
+Don't forget to add the new store's frontend origins to `ALLOWED_ORIGINS` in the admin secrets for CORS.
+
+## Deploy (Legacy — Heroku)
 
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.
@@ -109,7 +116,7 @@ on github is hooked in to the deployment.
 ### Heroku
 
 1. Create a new pipeline & app
-2. Add Postgres: `heroku addons:create heroku-postgresql:hobby-dev`
+2. Add Postgres: `heroku addons:create heroku-postgresql:essential-0 -a dna-admin-staging`
 3. Grab ENV vars from another app: `heroku config -s -a dna-admin-staging > config.txt`
 4. Grab the DB creds from <heroku.com>, add them to `config.txt`
 5. Edit other vars locally

@@ -1,0 +1,19 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :videos } %>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @product_video } %>
+
+<% content_for :page_title do %>
+  <%= Spree.t(:new_product_video, default: 'New Video') %>
+<% end %>
+
+<%= form_for @product_video, url: spree.admin_product_product_videos_url(@product), html: { multipart: true } do |f| %>
+  <fieldset data-hook="new_product_video">
+    <%= render partial: 'form', locals: { f: f } %>
+
+    <div class="form-actions" data-hook="buttons">
+      <%= button Spree.t('actions.create'), 'save.svg' %>
+      <span class="or"><%= Spree.t(:or) %></span>
+      <%= button_link_to Spree.t('actions.cancel'), spree.admin_product_product_videos_url(@product), icon: 'delete.svg', id: 'cancel_link' %>
+    </div>
+  </fieldset>
+<% end %>
