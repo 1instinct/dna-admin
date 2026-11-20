@@ -16,6 +16,15 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, Spree::IapTransaction %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarIapOrders">
+      <%# Built by hand: the tab helper titleizes labels ("Iap Orders"). %>
+      <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if %w[iap_transactions iap_products].include?(controller_name) %>">
+        <%= link_to_with_icon 'list.svg', 'IAP Orders', spree.admin_iap_transactions_path, class: 'w-100 p-3 d-flex align-items-center' %>
+      </li>
+    </ul>
+  <% end %>
+
   <% if can?(:admin, Spree::ReturnAuthorization) || can?(:admin, Spree::CustomerReturn) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarReturn">
       <%= main_menu_tree Spree.t(:returns), icon: "returns.svg", sub_menu: "returns", url: "#sidebar-returns" %>
@@ -70,6 +79,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, ContentAsset %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarContentAssets">
+      <%= tab :content_assets, icon: 'page.svg', url: admin_content_assets_path %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, ThreadTable %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarThreadTable">
       <%= tab :threads, icon: 'thread.svg', url: admin_threads_path %>
@@ -79,6 +94,18 @@
   <% if Spree.user_class && can?(:admin, Spree.user_class) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarUser">
       <%= tab *Spree::BackendConfiguration::USER_TABS, url: spree.admin_users_path, icon: 'users.svg' %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, Spree::ContentReport %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarContentReports">
+      <%= tab :content_reports, label: 'Content reports', icon: 'report.svg', url: spree.admin_content_reports_path %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, AppFeedback %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAppFeedback">
+      <%= tab :app_feedbacks, label: 'Feedback', icon: 'message.svg', url: spree.admin_app_feedbacks_path %>
     </ul>
   <% end %>
 

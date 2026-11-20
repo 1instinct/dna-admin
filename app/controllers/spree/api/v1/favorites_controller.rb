@@ -128,8 +128,9 @@ module Spree
 
         # GET /api/v1/favorites
         def index
-          @favorites = current_api_user.favorites
-                                   .includes(variant: [:product, :images, :prices])
+          favorites = current_api_user.favorites
+          favorites = favorites.joins(variant: :product).merge(Spree::Product.publicly_visible) unless catalog_admin?
+          @favorites = favorites.includes(variant: [:product, :images, :prices])
                                    .recent
                                    .page(params[:page])
                                    .per(params[:per_page] || 25)
@@ -160,8 +161,8 @@ module Spree
         # GET /api/v1/favorites/check
         def check
           variant = Spree::Variant.find_by(id: params[:variant_id])
-          return error_model(404, "Variant not found") unless variant
-          
+          return error_model(404, "Variant not found") unless variant && catalog_visible?(variant)
+
           is_favorited = Favorite.favorited?(current_api_user, variant)
           
           render json: {
@@ -175,7 +176,14 @@ module Spree
 
         def load_variant
           @variant = Spree::Variant.find_by(id: params[:variant_id])
-          return error_model(404, "Variant not found") unless @variant
+          # A favorite made before its product was hidden can still be taken off.
+          return if @variant && (catalog_visible?(@variant) || Favorite.favorited?(current_api_user, @variant))
+
+          error_model(404, "Variant not found")
+        end
+
+        def catalog_visible?(variant)
+          catalog_admin? || variant.product&.available?
         end
 
         def load_favorite

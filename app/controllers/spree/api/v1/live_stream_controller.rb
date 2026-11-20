@@ -102,17 +102,24 @@ module Spree::Api::V1
       property :id do
         key :type, :integer
       end
+      property :display_name do
+        key :type, :string
+      end
       property :email do
         key :type, :string
+        key :description, 'Always empty (kept for older clients)'
       end
       property :first_name do
         key :type, :string
+        key :description, 'Always empty (kept for older clients)'
       end
       property :last_name do
         key :type, :string
+        key :description, 'Always empty (kept for older clients)'
       end
       property :phone do
         key :type, :string
+        key :description, 'Always empty (kept for older clients)'
       end
     end
 

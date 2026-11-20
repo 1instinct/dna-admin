@@ -44,7 +44,7 @@
     background: rgba(33, 150, 243, 0.85);
     font-family: "Open Sans", sans-serif;
     height: 100vh;
-    background-image: url("https://i.imgur.com/yzS1Nse.jpeg");
+    background-image: url("<%= asset_path(ENV.fetch('COMPANY_BACKGROUND', 'beeper-login-background.jpg')) %>");
     background-size: cover;
   }
 

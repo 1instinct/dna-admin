@@ -31,6 +31,12 @@ Rails.application.configure do
     # Store uploaded files on the local file system in a temporary directory
     config.active_storage.service = :test
 
+    # Admin pages render in tests without compiling the backend asset bundle (it requires a
+    # stylesheet from a gem this app no longer bundles).
+    config.assets.compile = false
+    config.assets.check_precompiled_asset = false
+    config.assets.unknown_asset_fallback = true
+
     config.action_mailer.perform_caching = false
 
     # Tell Action Mailer not to deliver emails to the real world.
@@ -43,4 +49,7 @@ Rails.application.configure do
 
     # Raises error for missing translations
     # config.action_view.raise_on_missing_translations = true
+
+    config.action_mailer.default_url_options = { host: "localhost" }
+    Rails.application.routes.default_url_options = { host: "localhost" }
 end

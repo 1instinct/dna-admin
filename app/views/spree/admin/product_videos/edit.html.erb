@@ -1,0 +1,37 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :videos } %>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @product_video } %>
+
+<%= form_for @product_video, url: spree.admin_product_product_video_url(@product, @product_video), method: :patch, html: { multipart: true } do |f| %>
+  <div data-hook="edit_product_video" class="card mb-3">
+    <div class="card-header">
+      <h1 class="card-title mb-0 h5">
+        <%= @product_video.video.attached? ? @product_video.video.filename.to_s : Spree.t(:product_video, default: 'Video') %>
+      </h1>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <div data-hook="poster" class="col-12 col-lg-3 text-center">
+          <%# After a rejected upload the attachment holds the new, unsaved blob: no preview for it. %>
+          <% if @product_video.poster.attached? && @product_video.poster.blob.persisted? && @product_video.poster.variable? %>
+            <%= f.label Spree.t(:poster, default: 'Poster') %>
+            <%= image_tag(main_app.url_for(@product_video.poster.variant(resize: '240x240>'))) %>
+          <% end %>
+          <% if @product_video.video.attached? && @product_video.video.blob.persisted? %>
+            <p class="mt-2"><%= link_to Spree.t(:view_video, default: 'View video'), main_app.rails_blob_url(@product_video.video) %></p>
+          <% end %>
+        </div>
+        <div class="col-12 col-lg-9">
+          <p class="text-muted"><%= Spree.t(:replace_files_hint, default: 'Leave a file field empty to keep the current file.') %></p>
+          <%= render partial: 'form', locals: { f: f } %>
+        </div>
+
+        <div class="form-actions" data-hook="buttons">
+          <%= button Spree.t('actions.update'), 'save.svg' %>
+          <span class="or"><%= Spree.t(:or) %></span>
+          <%= button_link_to Spree.t('actions.cancel'), spree.admin_product_product_videos_url(@product), id: 'cancel_link', icon: 'cancel.svg' %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
