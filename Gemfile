@@ -95,7 +95,10 @@ group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
   gem 'matrix'
-  gem 'selenium-webdriver'
+  # Pinned to 3.x: chromedriver-helper 2.1.1 calls
+  # Selenium::WebDriver::Chrome.driver_path= at load, which Selenium 4 removed,
+  # so an unpinned resolve to 4.x breaks `rails test` at boot.
+  gem 'selenium-webdriver', '~> 3.142'
   # Easy installation and use of chromedriver to run system tests with Chrome
   gem 'chromedriver-helper'
 end
