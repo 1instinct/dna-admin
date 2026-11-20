@@ -228,6 +228,8 @@ en:
         one: Line Item
         other: Line Items
       spree/navigator:
+        one: Menu
+        other: Menus
       spree/option_type:
         one: Option Type
         other: Option Types
@@ -1709,3 +1711,9 @@ en:
     zone: Zone
     zones: Zones
     start_at: Start Date Time
+    homepage_sections: Homepage Sections
+    homepage_section:
+      added_success: Homepage section was successfully created.
+      update_success: Homepage section was successfully updated.
+      deleted_success: Homepage section was successfully deleted.
+      delete_failed: Homepage section could not be deleted.

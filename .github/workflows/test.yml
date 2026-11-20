@@ -1,0 +1,82 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  test:
+    # Pinned: ruby/setup-ruby does not ship Ruby 2.7.2 for ubuntu-24.04 (ubuntu-latest).
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dna_admin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      # config/database.yml reads these.
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
+      DATABASE_USER: postgres
+      DATABASE_PASS: postgres
+      DATABASE_NAME: dna_admin_test
+      # config/initializers/dotenv.rb requires this one as well; keep it consistent with the above.
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/dna_admin_test
+      # config/initializers/dotenv.rb requires every key below in development and test.
+      # Dummy values only: this file is public, never put a real credential here.
+      AWS_ACCESS_KEY_ID: dummy-access-key-id
+      AWS_SECRET_ACCESS_KEY: dummy-secret-access-key
+      AWS_BUCKET_NAME: dummy-bucket
+      AWS_REGION_NAME: us-east-1
+      COMPANY_LOGO: https://example.com/logo.png
+      COMPANY_BACKGROUND: https://example.com/background.png
+      DEVISE_SECRET_KEY: dummy-devise-secret-key
+      PUSHER_APP_ID: "0"
+      PUSHER_KEY: dummy-pusher-key
+      PUSHER_SECRET: dummy-pusher-secret
+      PUSHER_CLUSTER: mt1
+      TOKEN_EXPIRATION: "3600"
+      TOKEN_KEY_BASE: dummy-token-key-base
+      DNA_API_URL: https://example.com
+      DNA_API_KEY: dummy-dna-api-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # image_processing / paperclip shell out to libvips or ImageMagick; libpq for the pg gem.
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev libvips-dev imagemagick
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          # Version comes from .ruby-version (2.7.2).
+          bundler-cache: true
+
+      # bundler-cache installs gems into vendor/bundle, which RubyGems cannot see before Bundler.setup, so
+      # the early `require "uri"` made by `bundle exec` activates the Ruby 2.7.2 default uri 0.10.0 and
+      # then aborts on the Gemfile.lock pin of uri 1.1.1. Installing the pinned version system-wide
+      # (as on a developer machine) lets that require pick 1.1.1.
+      - name: Install the locked uri gem system-wide
+        run: gem install uri -v "$(awk '/^    uri \(/ {gsub(/[()]/,"",$2); print $2}' Gemfile.lock)" --no-document
+
+      # db:test:prepare, not db:migrate: migrate replays migrations that collide with a
+      # schema.rb already containing spree_digitals (PG::DuplicateTable).
+      - name: Prepare database
+        run: bundle exec rails db:test:prepare
+
+      - name: Run tests
+        run: bundle exec rails test

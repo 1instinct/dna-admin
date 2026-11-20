@@ -2,6 +2,12 @@ require_relative 'boot'
 
 require 'rails/all'
 
+# ostruct is stdlib but not autoloaded. The homepage_sections composed-settings fieldsets build an
+# OpenStruct for fields_for, so require it explicitly rather than relying on some other gem having
+# done so (a gem set that does not will fail with "uninitialized constant OpenStruct"). Ruby 3.4
+# also moves ostruct to a bundled gem, where it is no longer available without being required.
+require 'ostruct'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)

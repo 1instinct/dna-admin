@@ -1,0 +1,2 @@
+<!-- insert_after "[data-hook='admin_user_order_history']" -->
+<%= render partial: 'spree/admin/users/in_app_purchases', locals: { user: @user } %>

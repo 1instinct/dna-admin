@@ -1,0 +1,14 @@
+New report #<%= @report.id %> (<%= @report.created_at.utc.iso8601 %>)
+
+Reason: <%= @report.reason %>
+Details: <%= @report.details.presence || '(none)' %>
+Reported by: <%= @reporter_handle ? "@#{@reporter_handle}" : "user without a handle" %>
+
+Profile at report time
+  Handle: @<%= @snapshot['handle'] %>
+  Name: <%= @snapshot['name'] %>
+  Bio: <%= @snapshot['bio'] %>
+  Website: <%= @snapshot['website'] %>
+  Photo: <%= @snapshot['avatar'] ? 'yes' : 'no' %>
+
+Review it in the admin: <%= @admin_path %>

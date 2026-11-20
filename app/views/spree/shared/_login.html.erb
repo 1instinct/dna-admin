@@ -1,6 +1,6 @@
 <div class="divclass">
   <div class="wrapper">
-    <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag 'instinct_logo.png', :style => "height: 100px;" %></h3>
+    <h3 class="spree-mb-large spree-mt-large spree-header" style="color: aliceblue;"><%= image_tag ENV.fetch('COMPANY_LOGO', 'instinct_logo.png'), :style => "height: 100px;" %></h3>
     <%= form_for Spree.user_class.new, as: :spree_user, url: spree_login_path do |f| %>
       <div id="password-credentials" class="mb-4">
         <div class="form-group mb-4">
@@ -39,11 +39,20 @@
   <%= render partial: 'spree/shared/copyright' %>
 </div>
 
-
-
-
 <style type="text/css">
-  $primary: #2196F3;
+  @import url('https://fonts.googleapis.com/css?family=Rubik&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Mono+One&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Microbe&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Glitch&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Wet+Paint&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Bubbles&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Rubik+Puddles&display=swap');
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
 
   html, body {
     margin: 0 !important;
@@ -89,7 +98,7 @@
     margin: 0;
     background: rgba(33, 150, 243, 0.85);
     font-family: "Open Sans", sans-serif;
-    background-image: url("https://i.imgur.com/yzS1Nse.jpeg");
+    background-image: url("<%= asset_path(ENV.fetch('COMPANY_BACKGROUND', 'background.jpg')) %>");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -111,7 +120,6 @@
   .new_spree_user {
     border-radius: 2px 2px 5px 5px;
     padding: 10px 20px 20px 20px;
-    width: 90%;
     max-width: 320px;
     background: #ffffff;
     position: relative;

@@ -8,13 +8,13 @@
   <% if content_for? :title %>
     <%= yield :title %>
   <% else %>
-    <%= "Spree #{Spree.t('administration')}: " %>
+    <%= "#{AdminTheme.current.brand_name} | " %>
     <%= Spree.t(controller.controller_name, default: controller.controller_name.titleize) %>
   <% end %>
 </title>
 
 <%= stylesheet_link_tag 'spree/backend/all', media: :all %>
-
+<%= render 'spree/admin/shared/theme_variables' %>
 <%= render 'spree/shared/paths' %>
 <%= javascript_include_tag 'spree/backend/all' %>
 <%= render "spree/admin/shared/translations" %>
