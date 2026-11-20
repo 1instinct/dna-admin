@@ -38,6 +38,20 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
     assert_equal [30_000, 30_000], Profiles::AvatarUpload.new(@profile, file).send(:header_dimensions)
   end
 
+  test 'an identify failure while reading the header is a 422, not an unrescued raise' do
+    file = bytes_upload(png_bomb(10, 10), 'image/png', 'small.png')
+    identify = MiniMagick::Tool::Identify
+    identify.define_singleton_method(:new) { |*| raise MiniMagick::Error, 'identify failed with status: 1' }
+
+    error = assert_raises(Profiles::AvatarUpload::Error) { Profiles::AvatarUpload.new(@profile, file).call }
+
+    assert_equal 422, error.status
+    assert_equal "avatar couldn't be read as an image", error.message
+    refute @profile.reload.avatar.attached?
+  ensure
+    identify&.singleton_class&.send(:remove_method, :new)
+  end
+
   test 'an image over the pixel limit is refused without being processed' do
     file = bytes_upload(png_bomb(5000, 5000), 'image/png', 'bomb.png')
     assert_operator file.size, :<, 1.megabyte
