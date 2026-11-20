@@ -26,6 +26,8 @@ class HomepageSection < Spree::Base
     live_streams
     categories
     custom
+    announcement_bar
+    app_links
   ].freeze
   
   validates :section_type, inclusion: { in: SECTION_TYPES }
