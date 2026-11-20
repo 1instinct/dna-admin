@@ -10,8 +10,35 @@ Rails.application.routes.draw do
 end
 
 Spree::Core::Engine.add_routes do
+  # In-app purchases (App Store / Google Play): app API, store notifications, admin.
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      namespace :iap do
+        resources :transactions, only: %i[index show create]
+        resources :entitlements, only: :index
+        resources :products, only: :index
+        post :restore, to: 'restores#create'
+        get :account_token, to: 'account_tokens#show'
+        post 'apple/notifications', to: 'apple_notifications#create', as: :apple_notifications
+        post 'google/notifications', to: 'google_notifications#create', as: :google_notifications
+      end
+    end
+  end
+
   namespace :admin, path: Spree.admin_path do
-    resources :messages do      
+    resources :iap_transactions, only: %i[index show] do
+      member { post :revoke }
+    end
+    resources :iap_products, except: :show
+    resources :entitlements, only: [] do
+      member { post :revoke }
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resource :theme, only: [:show, :update], controller: 'theme'
+
+    resources :messages do
       collection do
         get :conversation
         get :conversations
@@ -40,8 +67,19 @@ Spree::Core::Engine.add_routes do
         patch :toggle_visibility
       end
     end
-    
+
+    resources :content_assets, except: [:show]
+
     resources :contacts
+
+    resources :products, only: [] do
+      resources :product_videos, except: :show do
+        collection do
+          post :update_positions
+        end
+      end
+    end
+
     resources :threads do
       member do
         get :conversation
@@ -55,6 +93,26 @@ Spree::Core::Engine.add_routes do
       member do
         get :children
       end
+    end
+
+    # Profile moderation.
+    resources :content_reports, only: [:index, :show] do
+      member do
+        post :dismiss
+        post :hide_profile
+        post :remove_photo
+        post :clear_bio
+        post :lock_account
+      end
+    end
+    resources :user_profiles, only: [] do
+      member do
+        post :hide
+        post :unhide
+      end
+    end
+    resources :users, only: [] do
+      resource :account_lock, only: [:create, :destroy]
     end
   end
   namespace :admin do
@@ -74,6 +132,7 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :homepage_sections
+      resources :content_assets, only: [:index, :show, :create, :update, :destroy]
       resources :favorites, only: [:index, :destroy] do
         collection do
           post :toggle
@@ -95,6 +154,26 @@ Spree::Core::Engine.add_routes do
         end
       end
       resources :pages, only: [:index, :show], controller: 'pages', param: :slug
+      # The signed-in user deletes their own account (OAuth bearer required).
+      resource :account, only: [:destroy], controller: 'account', defaults: { format: 'json' }
+      # Public profiles, follows, blocks and reports.
+      defaults format: 'json' do
+        resource :profile, only: [:show, :update], controller: 'profile' do
+          put :avatar, action: :update_avatar
+          delete :avatar, action: :destroy_avatar
+        end
+        resources :profiles, only: [:show], param: :handle do
+          collection do
+            get :handle_available
+          end
+          member do
+            post :follow
+            delete :follow, action: :unfollow
+          end
+        end
+        resources :blocks, only: [:index, :create, :destroy], param: :handle
+        resources :reports, only: [:create]
+      end
       resources :contacts
       resources :messages
       resources :threads
@@ -113,6 +192,43 @@ Spree::Core::Engine.add_routes do
     namespace :v2 do
       namespace :storefront do
         resource :store, only: [:show], path: 'default_store', as: :default_store, controller: 'store'
+      end
+    end
+  end
+end
+
+# App feedback: the app's endpoint and the admin's Feedback tab.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      post :feedback, to: 'feedback#create', as: :feedback
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resources :app_feedbacks, path: 'feedback', only: %i[index show update] do
+      collection { post :bulk_archive }
+    end
+  end
+end
+
+# AI backing tracks: the app's endpoints and the generator's webhook.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      # The token rides in the query (?webhook_token=), which filter_parameters masks in the log.
+      post 'user_tracks/webhook', to: 'user_track_webhooks#create', as: :user_track_webhook
+      resources :user_tracks, only: %i[index show create destroy] do
+        collection do
+          get :styles
+          get :moods
+          get :quota
+        end
+        member do
+          post :variation
+          get :audio
+          get :audio_url
+        end
       end
     end
   end

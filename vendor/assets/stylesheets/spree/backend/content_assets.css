@@ -1,0 +1,24 @@
+.content-asset-thumb:hover {
+  border-color: #adb5bd !important;
+}
+
+.content-asset-thumb.selected {
+  border-color: #007bff !important;
+}
+
+.content-asset-grid {
+  scrollbar-width: thin;
+}
+
+.content-asset-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-asset-grid::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.content-asset-preview img {
+  vertical-align: middle;
+}

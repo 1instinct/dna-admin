@@ -1,0 +1,24 @@
+# Styles for the user track tests (UserTracks.config.styles_path points here), so tests don't
+# depend on the vocabulary an app ships in config/user_track_styles.yml.
+moods:
+  - id: warm
+    label: Warm
+    words: warm, mellow
+  - id: dark
+    label: Dark
+    words: dark, brooding
+  - id: driving
+    label: Driving
+    words: driving, energetic
+
+styles:
+  - id: chillhop
+    label: Chillhop
+    bpmRange: [80, 96]
+    defaultMoods: [warm]
+    caption: chillhop beat, dusty boom bap drums, warm electric piano chords, round bass
+  - id: synthpop
+    label: Synthpop
+    bpmRange: [100, 124]
+    defaultMoods: [driving]
+    caption: synthpop, punchy drum machine, bright analog synth chords, pulsing bass

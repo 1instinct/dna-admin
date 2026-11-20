@@ -1,0 +1,43 @@
+    <%# Discrete fields for announcement_bar and app_links: composed into a real Hash by the controller. Both are always shown. %>
+    <% settings_hash = @homepage_section.settings.is_a?(Hash) ? @homepage_section.settings : {} %>
+    <%= f.fields_for :settings_fields, OpenStruct.new(settings_hash) do |sf| %>
+      <fieldset class="form-group">
+        <legend>Announcement bar <small class="text-muted">(only used when Section Type is "Announcement Bar")</small></legend>
+        <div class="form-group">
+          <%= sf.label :message, 'Message' %>
+          <%= sf.text_field :message, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= sf.label :cta_label, 'Button label' %>
+          <%= sf.text_field :cta_label, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= sf.label :cta_href, 'Button link' %>
+          <%= sf.text_field :cta_href, class: 'form-control', placeholder: 'https://...' %>
+        </div>
+        <div class="form-check">
+          <%= sf.check_box :dismissible, { class: 'form-check-input', checked: ActiveModel::Type::Boolean.new.cast(settings_hash['dismissible']) }, '1', '0' %>
+          <%= sf.label :dismissible, 'Visitors can dismiss it', class: 'form-check-label' %>
+        </div>
+        <div class="form-group">
+          <%= sf.label :starts_at, 'Show from' %>
+          <%= sf.text_field :starts_at, class: 'form-control', placeholder: '2026-12-01T09:00:00Z (optional)' %>
+        </div>
+        <div class="form-group">
+          <%= sf.label :ends_at, 'Show until' %>
+          <%= sf.text_field :ends_at, class: 'form-control', placeholder: '2026-12-31T23:59:00Z (optional)' %>
+        </div>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <legend>App store links <small class="text-muted">(only used when Section Type is "App Links")</small></legend>
+        <div class="form-group">
+          <%= sf.label :ios_url, 'iOS App Store URL' %>
+          <%= sf.text_field :ios_url, class: 'form-control', placeholder: 'https://apps.apple.com/...' %>
+        </div>
+        <div class="form-group">
+          <%= sf.label :android_url, 'Google Play URL' %>
+          <%= sf.text_field :android_url, class: 'form-control', placeholder: 'https://play.google.com/...' %>
+        </div>
+      </fieldset>
+    <% end %>

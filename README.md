@@ -100,7 +100,15 @@ page for each project.  This only needs to be done once after spree is installed
 1. Create or reset a **New Admin User**: `docker-compose exec web rails spree_auth:admin:create`
 1. Load Spree sample data & seed data: `rake db:seed && rails spree_sample:load`
 
-## Deploy
+## Deploy to Pi Cluster (MicroK8s)
+
+Deployment is run from the parent `dna-infra` repo: `make build-admin && make deploy-admin`.
+
+> **Custom domains / store forks (e.g. saltea-admin):** If deploying a fork under a custom domain, you must also add the domain to the CoreDNS `hosts` ConfigMap and your Mac's `/etc/hosts`. Without this, TLS certs won't issue and the site is unreachable from the LAN. See `K8_NOTES.md` § "Adding a New Site / Domain" in `dna-infra`.
+
+Don't forget to add the new store's frontend origins to `ALLOWED_ORIGINS` in the admin secrets for CORS.
+
+## Deploy (Legacy — Heroku)
 
 This uses heroku ruby buildpack on the heroku-20 stack.  The `master` branch
 on github is hooked in to the deployment.

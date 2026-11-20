@@ -1,0 +1,100 @@
+<% content_for :page_title do %>
+  <%= link_to 'Feedback', spree.admin_app_feedbacks_path %> &raquo; #<%= @feedback.id %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <% if @feedback.sentry_url %>
+    <%= link_to 'Open in Sentry', @feedback.sentry_url, class: 'btn btn-outline-secondary', target: '_blank', rel: 'noopener noreferrer', id: 'open_in_sentry' %>
+  <% end %>
+<% end %>
+
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center">
+        <h1 class="card-title mb-0 h5 mr-2">Feedback</h1>
+        <%= feedback_kind_badge(@feedback) %>
+        <span class="ml-2"><%= feedback_rating_dots(@feedback.rating) %></span>
+        <span class="ml-auto"><%= feedback_status_badge(@feedback) %></span>
+      </div>
+      <div class="card-body">
+        <% if @feedback.moment.present? %>
+          <p class="text-muted mb-2">After: <%= @feedback.moment %></p>
+        <% end %>
+        <div class="feedback-message" style="white-space: pre-wrap;"><%= @feedback.message.presence || '(no message)' %></div>
+      </div>
+    </div>
+
+    <% if @feedback.screenshot.attached? %>
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Screenshot</h2></div>
+        <div class="card-body">
+          <% shot = main_app.rails_storage_proxy_path(@feedback.screenshot, disposition: 'inline') %>
+          <%= link_to image_tag(shot, alt: 'Screenshot', id: 'feedback_screenshot', style: 'max-width: 100%; max-height: 480px;'),
+                      shot, target: '_blank', rel: 'noopener', title: 'Open full size' %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Diagnostics</h2></div>
+      <div class="card-body">
+        <% if @feedback.diagnostics.present? %>
+          <details id="feedback_diagnostics">
+            <summary><%= number_to_human_size(@feedback.diagnostics_bytes) %> of diagnostics</summary>
+            <pre class="mt-2 mb-0" style="max-height: 600px; overflow: auto;"><%= JSON.pretty_generate(@feedback.diagnostics) %></pre>
+          </details>
+        <% else %>
+          <p class="mb-0 text-muted">None sent.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Triage</h2></div>
+      <div class="card-body">
+        <%= form_with model: @feedback, url: spree.admin_app_feedback_path(@feedback), method: :patch, local: true, id: 'feedback_triage' do |f| %>
+          <div class="form-group">
+            <%= f.label :status, 'Status' %>
+            <%= f.select :status, AppFeedback::STATUSES.map { |s| [s.capitalize, s] }, {}, class: 'form-control' %>
+          </div>
+          <div class="form-group">
+            <%= f.label :admin_note, 'Admin note' %>
+            <%= f.text_area :admin_note, rows: 3, class: 'form-control' %>
+          </div>
+          <%= f.submit 'Save', class: 'btn btn-primary' %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Who and where</h2></div>
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt>Sent</dt><dd><%= l(@feedback.created_at, format: :long) %></dd>
+          <dt>From</dt>
+          <dd>
+            <% if @feedback.user %>
+              <%= link_to @feedback.user.email, spree.edit_admin_user_path(@feedback.user), id: 'feedback_user' %>
+            <% elsif @feedback.user_id %>
+              user <%= @feedback.user_id %> (deleted)
+            <% else %>
+              Not signed in
+            <% end %>
+          </dd>
+          <% if @feedback.email.present? %>
+            <dt>Reply email</dt><dd><%= mail_to @feedback.email %></dd>
+          <% end %>
+          <dt>Install id</dt><dd><code><%= @feedback.install_id.presence || '-' %></code></dd>
+          <dt>App</dt><dd><%= [@feedback.app_version, @feedback.build_number.presence && "build #{@feedback.build_number}"].compact.join(', ').presence || '-' %></dd>
+          <dt>Channel</dt><dd><%= @feedback.channel.presence || '-' %></dd>
+          <dt>Device</dt><dd><%= [@feedback.platform, @feedback.os_version, @feedback.device_model].compact.join(' / ').presence || '-' %></dd>
+          <dt>Locale</dt><dd><%= @feedback.locale.presence || '-' %></dd>
+          <dt>Sentry event</dt><dd><code><%= @feedback.sentry_event_id.presence || '-' %></code></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
