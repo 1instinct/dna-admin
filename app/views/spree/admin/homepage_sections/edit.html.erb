@@ -32,11 +32,13 @@
     <% end %>
 
     <%= f.field_container :settings, class: ['form-group'] do %>
-      <%= f.label :settings, 'Settings (JSON)' %>
+      <%= f.label :settings, 'Settings (JSON) — other section types only' %>
       <%= f.text_area :settings, class: 'form-control', rows: 6, placeholder: '{ "key": "value" }' %>
       <%= f.error_message_on :settings %>
       <small class="form-text text-muted">Additional configuration in JSON format. Example: {"background_color": "#fff", "text_color": "#000"}</small>
     <% end %>
+
+    <%= render partial: 'spree/admin/homepage_sections/callout_settings_fields', locals: { f: f } %>
 
     <%= f.field_container :position, class: ['form-group'] do %>
       <%= f.label :position, 'Position' %>
