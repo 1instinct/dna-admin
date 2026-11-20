@@ -21,9 +21,11 @@ WORKDIR /beeper-admin
 COPY Gemfile /beeper-admin/Gemfile
 COPY Gemfile.lock /beeper-admin/Gemfile.lock
 
-RUN gem install bundler -v 2.4.22 && bundle install
+RUN gem install bundler -v 2.4.22 && \
+    bundle config set force_ruby_platform true && \
+    bundle install
 
 COPY . /beeper-admin
 
 EXPOSE 3000
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
+CMD rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0
