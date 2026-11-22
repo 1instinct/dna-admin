@@ -1,0 +1,727 @@
+/* ==========================================================================
+   dna-modern.css — Linear/Vercel-inspired admin visual overhaul
+   All selectors scoped to body.admin for specificity.
+   CSS custom properties defined in _theme_variables.html.erb partial.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base & Reset
+   -------------------------------------------------------------------------- */
+
+body.admin {
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--admin-font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.admin *,
+body.admin *::before,
+body.admin *::after {
+  box-sizing: border-box;
+}
+
+/* Kill all animations when data-reduce-motion is set */
+[data-reduce-motion] * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* --------------------------------------------------------------------------
+   Layout — Main Wrapper
+   -------------------------------------------------------------------------- */
+
+body.admin #wrapper,
+body.admin .admin-body-wrapper {
+  background-color: var(--admin-bg);
+  min-height: 100vh;
+}
+
+body.admin #content {
+  background-color: var(--admin-bg);
+  padding: 24px 28px;
+}
+
+body.admin #page-header {
+  background-color: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  padding: 12px 28px;
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Header / Navbar
+   -------------------------------------------------------------------------- */
+
+body.admin header.header {
+  background-color: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+  z-index: 1000;
+}
+
+body.admin header.header .navbar {
+  background-color: var(--admin-surface);
+  padding: 0 16px;
+  min-height: 56px;
+  border: none;
+  box-shadow: none;
+}
+
+body.admin header.header .navbar-dark {
+  background-color: var(--admin-surface);
+}
+
+body.admin .admin-logo {
+  height: 32px;
+  object-fit: contain;
+  display: inline-block;
+}
+
+body.admin .admin-brand-text {
+  color: var(--admin-text);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar
+   -------------------------------------------------------------------------- */
+
+body.admin #main-sidebar {
+  background-color: var(--admin-sidebar);
+  border-right: 1px solid var(--admin-border);
+  width: 220px;
+  padding-top: 8px;
+}
+
+body.admin #main-sidebar .sidebar-menu {
+  padding: 0 8px;
+}
+
+body.admin #main-sidebar .sidebar-menu > li > a,
+body.admin #main-sidebar .sidebar-menu > li > span {
+  color: var(--admin-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--admin-radius);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  /* fallback before color-mix */
+  background-color: transparent;
+}
+
+body.admin #main-sidebar .sidebar-menu > li > a:hover {
+  color: var(--admin-text);
+  /* fallback */
+  background-color: rgba(255, 255, 255, 0.06);
+  background-color: color-mix(in srgb, var(--admin-primary) 8%, transparent);
+}
+
+body.admin #main-sidebar .sidebar-menu > li.active > a,
+body.admin #main-sidebar .sidebar-menu > li.selected > a {
+  color: var(--admin-primary);
+  /* fallback */
+  background-color: rgba(99, 102, 241, 0.12);
+  background-color: color-mix(in srgb, var(--admin-primary) 12%, transparent);
+  font-weight: 600;
+}
+
+body.admin #main-sidebar .sidebar-menu > li.active > a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background-color: var(--admin-primary);
+  border-radius: 0 2px 2px 0;
+}
+
+body.admin #main-sidebar .sidebar-menu > li {
+  position: relative;
+  margin-bottom: 2px;
+}
+
+body.admin #main-sidebar .sidebar-menu > li .icon {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+body.admin #main-sidebar .sidebar-menu > li.active .icon,
+body.admin #main-sidebar .sidebar-menu > li:hover .icon {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+body.admin table.index {
+  background-color: var(--admin-surface);
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  overflow: hidden;
+  box-shadow: var(--admin-shadow);
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body.admin table.index thead th {
+  background-color: var(--admin-surface-raised);
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--admin-border);
+  white-space: nowrap;
+}
+
+body.admin table.index tbody tr {
+  border-bottom: 1px solid var(--admin-border);
+  /* fallback */
+  background-color: transparent;
+}
+
+body.admin table.index tbody tr:last-child {
+  border-bottom: none;
+}
+
+body.admin table.index tbody tr:hover {
+  /* fallback */
+  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--admin-primary) 4%, transparent);
+}
+
+body.admin table.index td {
+  padding: 12px 16px;
+  color: var(--admin-text);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+body.admin table.index td a {
+  color: var(--admin-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+body.admin table.index td a:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+body.admin .btn,
+body.admin button,
+body.admin input[type="submit"],
+body.admin input[type="button"] {
+  border-radius: var(--admin-radius);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.admin .btn-primary,
+body.admin input[type="submit"].btn-primary {
+  background-color: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: #ffffff;
+  box-shadow: var(--admin-glow);
+}
+
+body.admin .btn-primary:hover,
+body.admin input[type="submit"].btn-primary:hover {
+  background-color: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+  color: #ffffff;
+}
+
+body.admin .btn-default,
+body.admin .btn-secondary {
+  /* fallback */
+  background-color: rgba(255, 255, 255, 0.06);
+  background-color: color-mix(in srgb, var(--admin-text) 8%, transparent);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+body.admin .btn-default:hover,
+body.admin .btn-secondary:hover {
+  /* fallback */
+  background-color: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--admin-text) 12%, transparent);
+  color: var(--admin-text);
+}
+
+body.admin .btn-danger {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+body.admin .btn-danger:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+body.admin .btn-sm {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+
+body.admin .field,
+body.admin .form-group {
+  margin-bottom: 16px;
+}
+
+body.admin label {
+  color: var(--admin-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+body.admin input[type="text"],
+body.admin input[type="email"],
+body.admin input[type="password"],
+body.admin input[type="number"],
+body.admin input[type="search"],
+body.admin input[type="url"],
+body.admin select,
+body.admin textarea {
+  background-color: var(--admin-surface-raised);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-text);
+  font-family: var(--admin-font);
+  font-size: 13px;
+  padding: 8px 12px;
+  width: 100%;
+  outline: none;
+  box-shadow: none;
+}
+
+body.admin input[type="text"]:focus,
+body.admin input[type="email"]:focus,
+body.admin input[type="password"]:focus,
+body.admin input[type="number"]:focus,
+body.admin input[type="search"]:focus,
+body.admin input[type="url"]:focus,
+body.admin select:focus,
+body.admin textarea:focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-primary) 25%, transparent);
+}
+
+body.admin input[type="text"]::placeholder,
+body.admin input[type="email"]::placeholder,
+body.admin input[type="search"]::placeholder,
+body.admin textarea::placeholder {
+  color: var(--admin-text-muted);
+  opacity: 0.6;
+}
+
+body.admin select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+/* --------------------------------------------------------------------------
+   Cards & Panels
+   -------------------------------------------------------------------------- */
+
+body.admin .panel,
+body.admin .admin-box,
+body.admin .card {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  margin-bottom: 20px;
+}
+
+body.admin .panel-heading,
+body.admin .admin-box .admin-box-title,
+body.admin .card-header {
+  background-color: var(--admin-surface-raised);
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius) var(--admin-radius) 0 0;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+}
+
+body.admin .panel-body,
+body.admin .card-body {
+  padding: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Flash Messages / Alerts
+   -------------------------------------------------------------------------- */
+
+body.admin .flash,
+body.admin .alert {
+  border-radius: var(--admin-radius);
+  border: 1px solid transparent;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+body.admin .flash.notice,
+body.admin .alert-success {
+  background-color: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+}
+
+body.admin .flash.error,
+body.admin .alert-danger,
+body.admin .alert-error {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+body.admin .flash.warning,
+body.admin .alert-warning {
+  background-color: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.25);
+  color: #facc15;
+}
+
+body.admin .flash.info,
+body.admin .alert-info {
+  background-color: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.25);
+  color: var(--admin-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Badges & Status Pills
+   -------------------------------------------------------------------------- */
+
+body.admin .state,
+body.admin .badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+body.admin .state.complete,
+body.admin .badge-success {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+body.admin .state.canceled,
+body.admin .badge-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+body.admin .state.pending,
+body.admin .badge-warning {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+}
+
+body.admin .state.processing,
+body.admin .badge-info {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: var(--admin-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Pagination
+   -------------------------------------------------------------------------- */
+
+body.admin .pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+body.admin .pagination li a,
+body.admin .pagination li span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--admin-radius);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  /* fallback */
+  background-color: transparent;
+}
+
+body.admin .pagination li a:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-color: color-mix(in srgb, var(--admin-primary) 8%, transparent);
+  color: var(--admin-text);
+}
+
+body.admin .pagination li.active span,
+body.admin .pagination li.current span {
+  background-color: var(--admin-primary);
+  color: #ffffff;
+  border-color: var(--admin-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Tabs
+   -------------------------------------------------------------------------- */
+
+body.admin .nav-tabs {
+  border-bottom: 1px solid var(--admin-border);
+  display: flex;
+  gap: 0;
+  padding: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+body.admin .nav-tabs li a {
+  display: block;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+body.admin .nav-tabs li a:hover {
+  color: var(--admin-text);
+  border-bottom-color: var(--admin-border);
+}
+
+body.admin .nav-tabs li.active a,
+body.admin .nav-tabs li.is-active a {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+  font-weight: 600;
+}
+
+body.admin .tab-content {
+  padding: 20px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Sorting / Column Headers
+   -------------------------------------------------------------------------- */
+
+body.admin table.index thead th a {
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+body.admin table.index thead th a:hover {
+  color: var(--admin-text);
+}
+
+body.admin table.index thead th.current a {
+  color: var(--admin-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Search Bar
+   -------------------------------------------------------------------------- */
+
+body.admin #search-form {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--admin-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   Dropdown Menus
+   -------------------------------------------------------------------------- */
+
+body.admin .dropdown-menu {
+  background-color: var(--admin-surface-raised);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  min-width: 180px;
+}
+
+body.admin .dropdown-menu li a {
+  color: var(--admin-text);
+  display: block;
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: calc(var(--admin-radius) - 2px);
+  text-decoration: none;
+}
+
+body.admin .dropdown-menu li a:hover {
+  /* fallback */
+  background-color: rgba(255, 255, 255, 0.06);
+  background-color: color-mix(in srgb, var(--admin-primary) 10%, transparent);
+  color: var(--admin-text);
+}
+
+body.admin .dropdown-menu .divider {
+  border-top: 1px solid var(--admin-border);
+  margin: 4px 0;
+}
+
+/* --------------------------------------------------------------------------
+   Tooltips
+   -------------------------------------------------------------------------- */
+
+body.admin .tooltip-inner {
+  background-color: var(--admin-surface-raised);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Miscellaneous — Links, HR, Breadcrumbs
+   -------------------------------------------------------------------------- */
+
+body.admin a {
+  color: var(--admin-primary);
+}
+
+body.admin a:hover {
+  color: var(--admin-primary-hover);
+}
+
+body.admin hr {
+  border-color: var(--admin-border);
+  margin: 20px 0;
+}
+
+body.admin .breadcrumb {
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+body.admin .breadcrumb li {
+  color: var(--admin-text-muted);
+}
+
+body.admin .breadcrumb li a {
+  color: var(--admin-text-muted);
+  text-decoration: none;
+}
+
+body.admin .breadcrumb li a:hover {
+  color: var(--admin-text);
+}
+
+body.admin .breadcrumb li.active {
+  color: var(--admin-text);
+}
+
+body.admin .breadcrumb-separator {
+  color: var(--admin-text-muted);
+  opacity: 0.4;
+}
+
+/* --------------------------------------------------------------------------
+   Animations — gated by prefers-reduced-motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  body.admin .btn,
+  body.admin input[type="submit"] {
+    transition: background-color 150ms ease, border-color 150ms ease,
+                box-shadow 150ms ease, color 150ms ease;
+  }
+
+  body.admin input[type="text"],
+  body.admin input[type="email"],
+  body.admin input[type="password"],
+  body.admin input[type="number"],
+  body.admin input[type="search"],
+  body.admin input[type="url"],
+  body.admin select,
+  body.admin textarea {
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  body.admin #main-sidebar .sidebar-menu > li > a {
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  body.admin table.index tbody tr {
+    transition: background-color 100ms ease;
+  }
+
+  body.admin .dropdown-menu li a {
+    transition: background-color 100ms ease;
+  }
+
+  body.admin .pagination li a {
+    transition: background-color 100ms ease, color 100ms ease;
+  }
+}

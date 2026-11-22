@@ -12,40 +12,20 @@ RUN apt-get update -qq && apt-get install -y \
     npm \
     curl \
     && rm -rf /var/lib/apt/lists/*
+    
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
 
-# This is given by the Ruby Image.
-# This will be the de-facto directory that
-# all the contents are going to be stored.
-WORKDIR /dna
+RUN mkdir /beeper-admin
+WORKDIR /beeper-admin
 
-# We are copying the Gemfile first, so we can install
-# all the dependencies without any issues
-# Rils will be installed once you load it from the Gemfile
-# This will also ensure that gems are cached and only updated when
-# they change.
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile /beeper-admin/Gemfile
+COPY Gemfile.lock /beeper-admin/Gemfile.lock
 
-# Note that dotenv is NOT used in production.  Environment
-# comes from the deployment.
-COPY .env.development .env.development
+RUN gem install bundler -v 2.4.22 && \
+    bundle config set force_ruby_platform true && \
+    bundle install
 
-# Install the Gems
-RUN gem install bundler:2.4.13
+COPY . /beeper-admin
 
-RUN bundle config set force_ruby_platform true
-
-RUN bundle install
-
-COPY . ./
-
-# Precompile assets
-# RUN RAILS_ENV=production bundle exec rake assets:precompile
-
-# Add a script to be executed every time the container starts.
-COPY entrypoint.sh /usr/bin/
-RUN chmod +x /usr/bin/entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
 EXPOSE 3000
-
-# Start the main process.
-CMD ["rails", "server", "-b", "0.0.0.0"]
+CMD rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0

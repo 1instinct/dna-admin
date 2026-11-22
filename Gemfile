@@ -6,7 +6,8 @@ ruby '2.7.2'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 6.1.3'
 # Use postgresql as the database for Active Record
-gem 'pg'
+gem 'pg', '~> 1.5.0'
+gem "ffi", "< 1.17.0"
 # Use Puma as the app server
 gem 'puma', '~> 4.3'
 # Use SCSS for stylesheets
@@ -28,14 +29,13 @@ gem 'jbuilder', '~> 2.5'
 # gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
+gem 'rack-cors'
+
 # Use ActiveStorage variant
 # gem 'mini_magick', '~> 4.8'
-
+gem 'image_processing', '~> 1.2'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
-
-# Handle CORs request errors
-gem 'rack-cors', :require => 'rack/cors'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '~> 1.8.1'
@@ -44,10 +44,12 @@ gem "aws-sdk-s3", '~> 1.96'
 
 gem "net-http"
 
-gem 'spree', github: '1instinct/spree', branch: 'instinct-dna'
+gem 'spree', github: '1instinct/spree', branch: 'instinct-4.2.5'
 gem 'spree_auth_devise', '~> 4.3'
 gem 'spree_gateway', '~> 3.9'
+
 gem 'spree_static_content', github: 'spree-contrib/spree_static_content'
+
 # gem 'spree_digital', github: 'spree-contrib/spree_digital'
 gem 'spree_reffiliate', github: '1instinct/spree_reffiliate'
 gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
@@ -65,8 +67,12 @@ gem 'paperclip', '~> 6.1.0'
 gem 'sprockets-helpers', '~> 1.2.1'
 
 gem 'rest-client'
+
+# In-app purchase verification (StoreKit 2 JWS, App Store Server API, Google Play service-account tokens)
+gem 'jwt', '~> 2.7'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
+# gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -91,9 +97,15 @@ end
 group :test do
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 2.15'
-  gem 'selenium-webdriver'
+  gem 'matrix'
+  # Pinned to 3.x: chromedriver-helper 2.1.1 calls
+  # Selenium::WebDriver::Chrome.driver_path= at load, which Selenium 4 removed,
+  # so an unpinned resolve to 4.x aborts `rails test` at boot.
+  gem 'selenium-webdriver', '~> 3.142'
   # Easy installation and use of chromedriver to run system tests with Chrome
   gem 'chromedriver-helper'
+  # Stub all outbound HTTP in tests (store APIs are never called for real)
+  gem 'webmock', '~> 3.18'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
