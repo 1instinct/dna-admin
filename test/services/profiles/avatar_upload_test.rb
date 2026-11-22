@@ -28,10 +28,28 @@ class Profiles::AvatarUploadTest < ActiveSupport::TestCase
   end
 
   test 'dimensions come from the header: a PNG with no usable pixel data still reports its size' do
+    # Environmental, pre-existing: ImageMagick 6 (Ubuntu 22.04, the CI image) ships a default policy.xml capping
+    # width and height at 16KP, so `identify` refuses this 30,000px header with status 1. ImageMagick 7
+    # (the macOS baseline) has no such cap. Not a regression; see the task-2 report for the production implication.
+    skip 'ImageMagick 6 default policy rejects a 30,000px-wide image (width/height capped at 16KP); passes on ImageMagick 7' if RUBY_PLATFORM.include?('linux')
     png = png_header(30_000, 30_000) + png_chunk('IDAT', Zlib.deflate('')) + png_chunk('IEND', ''.b)
     file = bytes_upload(png, 'image/png', 'huge.png')
 
     assert_equal [30_000, 30_000], Profiles::AvatarUpload.new(@profile, file).send(:header_dimensions)
+  end
+
+  test 'an identify failure while reading the header is a 422, not an unrescued raise' do
+    file = bytes_upload(png_bomb(10, 10), 'image/png', 'small.png')
+    identify = MiniMagick::Tool::Identify
+    identify.define_singleton_method(:new) { |*| raise MiniMagick::Error, 'identify failed with status: 1' }
+
+    error = assert_raises(Profiles::AvatarUpload::Error) { Profiles::AvatarUpload.new(@profile, file).call }
+
+    assert_equal 422, error.status
+    assert_equal "avatar couldn't be read as an image", error.message
+    refute @profile.reload.avatar.attached?
+  ensure
+    identify&.singleton_class&.send(:remove_method, :new)
   end
 
   test 'an image over the pixel limit is refused without being processed' do
