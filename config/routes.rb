@@ -245,6 +245,9 @@ Spree::Core::Engine.add_routes do
       get 'products/:product_id/review_form', to: 'account_reviews#form', as: :product_review_form
       get 'account/reviewables', to: 'account_reviews#reviewables', as: :account_reviewables
       get 'account/reviews', to: 'account_reviews#index', as: :account_reviews
+      # M4 email link (review request token). :review_token, since the API reads params[:token] as an API key.
+      get 'review_requests/:review_token', to: 'review_requests#show', as: :review_request_link
+      post 'review_requests/:review_token/opt_out', to: 'review_requests#opt_out', as: :review_request_opt_out
       resources :reviews, only: %i[create update destroy] do
         post :votes, on: :member
       end
@@ -269,6 +272,7 @@ Spree::Core::Engine.add_routes do
       end
     end
     # reviews-admin-routes: more review admin routes go below this line
+    resources :review_requests, only: %i[index]
     # Product "Reviews" tab: /admin/products/:product_id/reviews (stats, AI summary, that product's reviews).
     resources :products, only: [] do
       resources :product_reviews, only: :index, path: 'reviews' do

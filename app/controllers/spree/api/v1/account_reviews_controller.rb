@@ -48,7 +48,7 @@ module Spree
             questions: Spree::ReviewAttribute.for_product(product).map { |attribute| presenter.question(attribute) },
             display_name: existing&.display_name || Spree::Review.default_display_name(order: item&.order, user: current_api_user),
             points: presenter.points_offer,
-            limits: limits
+            limits: presenter.limits
           }
         rescue ActiveRecord::RecordNotFound
           render_not_found
@@ -79,12 +79,6 @@ module Spree
 
         def variant_label(variant)
           Spree::Review.new(variant: variant).variant_label
-        end
-
-        def limits
-          { max_photos: Spree::Review::MAX_PHOTOS, max_photo_mb: Spree::Review::PHOTO_MAX_BYTES / 1.megabyte,
-            title_max: Spree::Review::TITLE_MAX, body_max: Spree::Review::BODY_MAX,
-            photo_types: Spree::Review::PHOTO_CONTENT_TYPES }
         end
 
         def per_page

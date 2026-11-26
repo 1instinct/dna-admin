@@ -1,0 +1,74 @@
+<% content_for :page_title do %>
+  Review emails
+<% end %>
+
+<% content_for :page_actions do %>
+  <span class="text-muted small">
+    <%= @status_counts.fetch('scheduled', 0) %> scheduled · sent hourly by <code>rake reviews:dispatch</code>
+  </span>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_review_requests_filter">
+    <%= form_tag spree.admin_review_requests_path, method: :get do %>
+      <div class="row">
+        <div class="col-6 col-lg-3">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select(Spree::ReviewRequest::STATUSES.map { |s| ["#{s.humanize} (#{@status_counts.fetch(s, 0)})", s] }, @status),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<p class="mb-3" id="review_requests_funnel">
+  Last <%= @funnel[:days] %> days:
+  <strong><%= @funnel[:sent] %></strong> sent
+  → <strong><%= @funnel[:opened] %></strong> opened (<%= @funnel[:opened_pct] %>%)
+  → <strong><%= @funnel[:completed] %></strong> completed (<%= @funnel[:completed_pct] %>%)
+</p>
+
+<% if @review_requests.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_review_requests">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Send after</th>
+          <th>Sent</th>
+          <th>Reminded</th>
+          <th>Opened</th>
+          <th>Completed</th>
+          <th>Expires</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @review_requests.each do |review_request| %>
+          <tr id="review_request_<%= review_request.id %>">
+            <td>
+              <% if review_request.order %>
+                <%= link_to review_request.order.number, spree.edit_admin_order_path(review_request.order) %>
+              <% end %>
+            </td>
+            <td><%= review_request.email %></td>
+            <td><span class="badge badge-light"><%= review_request.status.humanize %></span></td>
+            <% %i[send_after sent_at reminded_at opened_at completed_at expires_at].each do |field| %>
+              <td class="text-nowrap"><%= review_request.public_send(field) ? l(review_request.public_send(field), format: :short) : '—' %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @review_requests %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No review emails match this filter.</div>
+<% end %>

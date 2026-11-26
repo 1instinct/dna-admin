@@ -1,0 +1,44 @@
+# Review request emails: runs `rake reviews:dispatch` hourly (send due requests and reminders,
+# expire and complete requests). The task is idempotent and safe to overlap, but Forbid keeps a
+# slow run from stacking up. Same image and secrets as the dna-admin Deployment (k8-deployment.yml).
+#
+#   kubectl apply -f k8-cronjob-reviews.yml
+#   kubectl create job --from=cronjob/dna-admin-reviews-dispatch reviews-dispatch-now   # run once now
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dna-admin-reviews-dispatch
+  namespace: default
+  labels:
+    app: dna-admin
+    component: reviews-dispatch
+spec:
+  schedule: "17 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 1800
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3000
+      template:
+        metadata:
+          labels:
+            app: dna-admin
+            component: reviews-dispatch
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: reviews-dispatch
+              image: localhost:32000/dna-admin:0.1
+              imagePullPolicy: Always
+              command: ["bundle", "exec", "rake", "reviews:dispatch"]
+              env:
+                - name: RAILS_ENV
+                  value: production
+                - name: RAILS_LOG_TO_STDOUT
+                  value: "true"
+              envFrom:
+                - secretRef:
+                    name: dna-admin-secrets

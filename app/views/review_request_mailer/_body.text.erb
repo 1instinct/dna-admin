@@ -1,0 +1,24 @@
+<%= @subject %>
+
+<% if @reminder -%>
+You can still rate the pieces from order <%= @order.number %>.
+<% else -%>
+Your order <%= @order.number %> shipped a little while ago. We'd like to know what you think.
+<% end -%>
+Pick a rating for each piece. You can add a few words or photos on the next page, or leave it at the stars.
+<% @items.each do |item| -%>
+
+<%= item[:name] %><%= " (#{item[:variant_label]})" if item[:variant_label].present? %>
+<% item[:stars].each do |star| -%>
+  <%= star[:rating] %> out of 5: <%= star[:url] %>
+<% end -%>
+<% end -%>
+
+Open your review page: <%= @review_url %>
+<% if @points -%>
+
+Members earn <%= @points %> points for every review<%= ", plus #{@photo_bonus} with a photo" if @photo_bonus %>, whatever the rating.
+<% end -%>
+
+This link is just for you<%= " and works until #{l(@expires_on, format: :long)}" if @expires_on %>.
+Don't want these emails? Stop review emails: <%= @opt_out_url %>

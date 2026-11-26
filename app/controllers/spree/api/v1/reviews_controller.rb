@@ -10,6 +10,13 @@ module Spree
       #
       # Bearer required except for votes. 503 { code: not_enabled } while reviews are switched off;
       # 403 { code: not_eligible | forbidden }; 422 { error, fields }; 429 over the rate limits.
+      #
+      # The email link (M4): POST and PATCH also accept `X-Review-Token: <token>` instead of a Bearer.
+      # The review is then for that request's order only (Reviews::Submit checks the item is on it),
+      # stamped source "email", and belongs to the order's account if it has one; a Bearer sent along
+      # never attaches a different account. PATCH reaches only reviews from that order or request.
+      # An unknown or expired link is 404 { code: invalid_token }; 20 submissions an hour per link.
+      # When every item on the order has a review, the request is marked completed.
       class ReviewsController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
@@ -19,9 +26,10 @@ module Spree
 
         skip_before_action :authenticate_user
         before_action :reject_bad_bearer
-        before_action :require_bearer_user, except: :votes
+        before_action :load_review_request, only: %i[create update]
+        before_action :require_bearer_user, except: :votes, unless: :review_link?
         before_action :load_own_review, only: %i[update destroy]
-        before_action -> { enforce_rate_limit(:review) }, only: %i[create update]
+        before_action :enforce_review_rate_limit, only: %i[create update]
 
         rescue_from Reviews::Error do |e|
           render json: { error: e.message, code: e.code.to_s }, status: ERROR_STATUS.fetch(e.code, :unprocessable_entity)
@@ -31,8 +39,10 @@ module Spree
           product = find_product(params.require(:product_id))
           return render_not_found unless product
 
-          result = Reviews::Submit.call(reviewable: product, user: current_api_user, params: review_params,
-                                        line_item_id: params[:line_item_id], ip: request.remote_ip, source: 'web')
+          result = Reviews::Submit.call(reviewable: product, user: submitting_user, review_request: @review_request,
+                                        params: review_params, line_item_id: params[:line_item_id],
+                                        ip: request.remote_ip, source: review_link? ? 'email' : 'web')
+          complete_review_request if result.success?
           render_result(result, created_status: :created)
         end
 
@@ -45,9 +55,11 @@ module Spree
                                 fields: { photos: ["can't be more than #{Spree::Review::MAX_PHOTOS}"] })
           end
 
-          result = Reviews::Submit.call(reviewable: @review.reviewable, user: current_api_user,
-                                        params: review_params, ip: request.remote_ip, source: @review.source)
+          result = Reviews::Submit.call(reviewable: @review.reviewable, user: submitting_user,
+                                        review_request: @review_request, params: review_params,
+                                        ip: request.remote_ip, source: @review.source)
           purge_photos(@review, removals) if result.success? && removals.any?
+          complete_review_request if result.success?
           render_result(result, created_status: :ok)
         end
 
@@ -100,8 +112,54 @@ module Spree
         end
 
         def load_own_review
-          @review = Spree::Review.find_by(id: params[:id], user_id: current_api_user.id)
+          @review = if review_link?
+                      Spree::Review.where(id: params[:id]).
+                        where('review_request_id = ? OR order_id = ?', @review_request.id, @review_request.order_id).first
+                    else
+                      Spree::Review.find_by(id: params[:id], user_id: current_api_user.id)
+                    end
           render_not_found unless @review
+        end
+
+        def review_token
+          request.headers['X-Review-Token'].to_s.strip.presence
+        end
+
+        # Only create and update take the email link; elsewhere the header is ignored.
+        def review_link?
+          @review_request.present?
+        end
+
+        def load_review_request
+          return unless review_token
+
+          @review_request = Spree::ReviewRequest.find_for_link(review_token)
+          return if @review_request
+
+          render json: { error: "This review link isn't valid any more", code: 'invalid_token' }, status: :not_found
+        end
+
+        # With the email link the review belongs to the order's buyer (nil for a guest checkout),
+        # whoever else is signed in.
+        def submitting_user
+          review_link? ? @review_request.order.user : current_api_user
+        end
+
+        def enforce_review_rate_limit
+          return enforce_rate_limit(:review) unless review_link?
+          return if ReviewRequests::RateLimit.allow?(@review_request)
+
+          render_error('Too many requests. Try again later.', :too_many_requests)
+        end
+
+        # The page was opened if a review came through it; completed once every item is reviewed.
+        def complete_review_request
+          return unless review_link?
+
+          @review_request.update_column(:opened_at, Time.current) if @review_request.opened_at.nil?
+          @review_request.complete_if_reviewed!
+        rescue StandardError => e
+          Rails.logger.error("[reviews] review request #{@review_request.id} completion check failed: #{e.class}")
         end
 
         def review_params

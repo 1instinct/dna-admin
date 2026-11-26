@@ -82,6 +82,13 @@ module Reviews
       { per_review: settings.points_per_review, photo_bonus: settings.points_photo_bonus }
     end
 
+    # What the composer enforces: photo count, size and types, text lengths.
+    def limits
+      { max_photos: Spree::Review::MAX_PHOTOS, max_photo_mb: Spree::Review::PHOTO_MAX_BYTES / 1.megabyte,
+        title_max: Spree::Review::TITLE_MAX, body_max: Spree::Review::BODY_MAX,
+        photo_types: Spree::Review::PHOTO_CONTENT_TYPES }
+    end
+
     def photo(attachment, review)
       urls = PHOTO_SIZES.to_h { |size| [:"#{size}_url", variant_url(review.photo_variant(attachment, size))] }
       { id: attachment.id, **urls, alt: "Customer photo of #{review.reviewable.try(:name) || 'this product'}" }

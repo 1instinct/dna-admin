@@ -236,6 +236,39 @@ heroku ps:scale web=1 -a $APP_NAME
 heroku restart -a $APP_NAME
 ```
 
+## Scheduled Tasks: Review Request Emails
+
+The "How's your order?" review emails are sent by a rake task, not a job queue (the app has no
+persistent queue). Run it every hour:
+
+```bash
+heroku addons:create scheduler:standard -a $APP_NAME
+heroku addons:open scheduler -a $APP_NAME
+```
+
+In the Scheduler dashboard, add a job:
+
+- Command: `bundle exec rake reviews:dispatch`
+- Frequency: every hour
+
+Each run sends due request emails and reminders, expires old requests and marks finished ones
+completed, then prints counts (`reviews:dispatch sent=3 reminded=1 ...`). It is safe to run twice or
+by hand (`heroku run bundle exec rake reviews:dispatch -a $APP_NAME`): nothing is sent twice. Nothing
+is sent while reviews are switched off in Reviews > Settings.
+
+Needs `SITE_URL` (the storefront's base URL; the email links go to `$SITE_URL/review/<token>`) and
+the Mailgun settings. Product images in the email need an absolute host in
+`Rails.application.routes.default_url_options`; without one the email is sent without images.
+
+At launch, schedule emails for orders that shipped in the last 30 days (sent over the next runs,
+200 an hour):
+
+```bash
+heroku run bundle exec rake "reviews:backfill[30]" -a $APP_NAME
+```
+
+On Kubernetes, `k8-cronjob-reviews.yml` runs the same task hourly as a CronJob.
+
 ## Troubleshooting
 
 ### "No default language could be detected" error
