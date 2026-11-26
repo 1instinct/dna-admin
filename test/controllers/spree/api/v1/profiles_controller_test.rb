@@ -124,6 +124,25 @@ class Spree::Api::V1::ProfilesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'handle_available: an admin may take reserved handles and prefixes; the other rules still apply' do
+    admin_headers = auth(make_admin(create(:user)))
+    member_headers = auth(@viewer)
+    with_moderation_lists(reserved: %w[admin], blocked: %w[badword]) do
+      Profiles.config.reserved_prefixes = %w[acme]
+      { 'admin' => [true, nil], 'Acme' => [true, nil], 'acme_hq' => [true, nil], 'acme123' => [true, nil],
+        'NOVA' => [false, 'taken'], 'a__b' => [false, 'invalid'], 'acme_' => [false, 'invalid'],
+        'xbadwordx' => [false, 'not_allowed'] }.each do |handle, (available, reason)|
+        get '/api/v1/profiles/handle_available', params: { handle: handle }, headers: admin_headers
+        assert_response :success
+        assert_equal({ 'available' => available, 'reason' => reason }, json, "admin #{handle}")
+      end
+      %w[admin acme acme_hq].each do |handle|
+        get '/api/v1/profiles/handle_available', params: { handle: handle }, headers: member_headers
+        assert_equal({ 'available' => false, 'reason' => 'reserved' }, json, "member #{handle}")
+      end
+    end
+  end
+
   test 'handle_available ignores the cooldown (the own profile reports handle_changeable_at)' do
     profile = @viewer.profile
     profile.update!(handle: 'viewer2')

@@ -9,6 +9,11 @@ module ProfilesTestHelper
     Profiles.reset_config!
   end
 
+  def make_admin(user)
+    user.spree_roles << Spree::Role.find_or_create_by!(name: 'admin')
+    user
+  end
+
   def token_for(user)
     record = Doorkeeper.config.access_token_model.create!(resource_owner_id: user.id, expires_in: 3600, scopes: '')
     record.respond_to?(:plaintext_token) && record.plaintext_token ? record.plaintext_token : record.token

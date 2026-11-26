@@ -83,6 +83,60 @@ class Profiles::HandlePolicyTest < ActiveSupport::TestCase
     assert_equal :ok, check('third', user: profile.user)
   end
 
+  test 'admins may take reserved handles and reserved-prefix handles' do
+    admin = make_admin(create(:user))
+    member = create(:user)
+    with_moderation_lists do
+      Profiles.config.reserved_prefixes = %w[acme]
+      %w[admin Support acme acme_hq acme123].each do |h|
+        assert_equal :ok, Profiles::HandlePolicy.check(h, user: admin), h
+        assert_equal :reserved, Profiles::HandlePolicy.check(h, user: member), h
+        assert_equal :reserved, Profiles::HandlePolicy.check(h, user: nil), h
+      end
+    end
+  end
+
+  test 'admins still get the format rules and blocked terms' do
+    admin = make_admin(create(:user))
+    with_moderation_lists do
+      Profiles.config.reserved_prefixes = %w[acme]
+      ['ab', 'a' * 31, '12345', '_admin', 'admin_', 'ad__min', 'acme-hq', ''].each do |h|
+        assert_equal :invalid, Profiles::HandlePolicy.check(h, user: admin), h.inspect
+      end
+      assert_equal :not_allowed, Profiles::HandlePolicy.check('xbadwordx', user: admin)
+      assert_equal :not_allowed, Profiles::HandlePolicy.check('acme_badword', user: admin)
+    end
+  end
+
+  test 'admins still cannot take a handle someone else holds, in any case' do
+    create(:user_profile, handle: 'nova')
+    admin = make_admin(create(:user))
+    assert_equal :taken, check('NOVA', user: admin)
+  end
+
+  test 'admins are still held to the cooldown' do
+    profile = create(:user_profile, user: make_admin(create(:user)), handle: 'first')
+    profile.update!(handle: 'second')
+    assert_equal :cooldown, check('admin', user: profile.user)
+    profile.update_column(:handle_changed_at, 15.days.ago)
+    assert_equal :ok, check('admin', user: profile.user)
+  end
+
+  test 'other roles do not unlock reserved handles' do
+    user = create(:user)
+    user.spree_roles << Spree::Role.find_or_create_by!(name: 'feed_author')
+    assert_equal :reserved, check('admin', user: user)
+  end
+
+  test 'refusal stays strict unless reserved handles are allowed' do
+    with_moderation_lists do
+      assert_equal :reserved, Profiles::HandlePolicy.refusal('admin')
+      assert_nil Profiles::HandlePolicy.refusal('admin', allow_reserved: true)
+      assert_equal :invalid, Profiles::HandlePolicy.refusal('a__b', allow_reserved: true)
+      assert_equal :not_allowed, Profiles::HandlePolicy.refusal('xbadwordx', allow_reserved: true)
+    end
+  end
+
   test 'a profile row without a handle can set one freely' do
     profile = create(:user_profile, handle: nil)
     assert_equal :ok, check('fresh', user: profile.user)
