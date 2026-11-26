@@ -1,0 +1,51 @@
+<% content_for :page_title do %>
+  <%= link_to 'Creator accounts', spree.admin_creator_accounts_path %> &raquo; <%= @account.user&.email || '(deleted user)' %>
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :accounts %>
+
+<div class="row">
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Terms and payout details</h1></div>
+      <div class="card-body">
+        <p>Status: <%= render 'spree/admin/creator_applications/status_badge', status: @account.status %>
+          <% unless Creators.creator?(@account.user) %><span class="text-muted">(creator role revoked)</span><% end %></p>
+        <%= form_for @account, url: spree.admin_creator_account_path(@account), method: :patch, as: :creator_account do |f| %>
+          <div class="form-group">
+            <%= f.label :revenue_share_bps, "Creator's share (basis points; 7000 = 70%)" %>
+            <%= f.number_field :revenue_share_bps, min: 0, max: 10_000, step: 1, class: 'form-control' %>
+          </div>
+          <div class="form-group">
+            <%= f.label :payout_email, 'Payout email' %>
+            <%= f.email_field :payout_email, class: 'form-control' %>
+          </div>
+          <div class="form-group">
+            <%= f.label :payout_notes, 'Payout notes' %>
+            <%= f.text_area :payout_notes, rows: 3, class: 'form-control' %>
+          </div>
+          <%= f.submit 'Save', class: 'btn btn-primary' %>
+        <% end %>
+        <p class="text-muted mt-3 mb-0">A new share applies to sales made after the change.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Access</h2></div>
+      <div class="card-body">
+        <% if @account.active? %>
+          <%= button_to 'Suspend', spree.suspend_admin_creator_account_path(@account), method: :post, class: 'btn btn-warning mb-2',
+                        data: { confirm: 'Suspend this creator? Their portal closes; their products stay as they are.' } %>
+        <% else %>
+          <%= button_to 'Reinstate', spree.reinstate_admin_creator_account_path(@account), method: :post, class: 'btn btn-success mb-2' %>
+        <% end %>
+        <% if Creators.creator?(@account.user) %>
+          <%= button_to 'Revoke creator role', spree.revoke_admin_creator_account_path(@account), method: :post, class: 'btn btn-danger',
+                        data: { confirm: 'Revoke the creator role? The account is suspended and earnings are kept.' } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

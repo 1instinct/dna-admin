@@ -1,0 +1,5 @@
+<% badge = { 'pending' => 'warning', 'approved' => 'success', 'active' => 'success', 'rejected' => 'danger',
+              'suspended' => 'danger', 'withdrawn' => 'secondary', 'submitted' => 'warning',
+              'changes_requested' => 'info', 'draft' => 'secondary', 'payable' => 'info', 'paid' => 'success',
+              'void' => 'secondary' }.fetch(status.to_s, 'secondary') %>
+<span class="badge badge-<%= badge %>"><%= status.to_s.tr('_', ' ').capitalize %></span>
