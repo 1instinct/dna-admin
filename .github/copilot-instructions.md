@@ -19,7 +19,7 @@ The application is containerized with Docker and deployed to both Heroku and Kub
 **DO NOT upgrade or suggest upgrading these dependencies:**
 - **Ruby**: 2.7.2 (locked)
 - **Rails**: ~> 6.1.3 (locked)
-- **Spree**: Uses custom fork at `github: '1instinct/spree', branch: 'instinct-dna'`
+- **Spree**: Uses custom fork at `github: '1instinct/spree', branch: 'instinct-4.2.5'`
 - **PostgreSQL**: Primary database
 - **Puma**: ~> 4.3 (web server)
 
@@ -32,7 +32,7 @@ The application is containerized with Docker and deployed to both Heroku and Kub
 - **Puma 4.3**: Application server
 
 ### Spree Commerce Platform
-- **Spree Core**: Custom fork from `1instinct/spree` (instinct-dna branch)
+- **Spree Core**: Custom fork from `1instinct/spree` (instinct-4.2.5 branch)
 - **Spree Auth Devise**: ~> 4.3 (Authentication)
 - **Spree Gateway**: ~> 3.9 (Payment processing)
 
@@ -586,7 +586,7 @@ Configuration files:
 ## Important Notes
 
 ### Spree Customization
-- Uses custom fork of Spree at `1instinct/spree` (instinct-dna branch)
+- Uses custom fork of Spree at `1instinct/spree` (instinct-4.2.5 branch)
 - Never upgrade Spree without testing thoroughly
 - Extensions are specifically versioned for Spree 4.2.x compatibility
 

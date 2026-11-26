@@ -71,6 +71,7 @@ Spree::Core::Engine.add_routes do
     resources :content_assets, except: [:show]
 
     resources :contacts
+    resources :app_settings, only: [:index, :create, :destroy]
 
     resources :products, only: [] do
       resources :product_videos, except: :show do
@@ -83,6 +84,13 @@ Spree::Core::Engine.add_routes do
     resources :threads do
       member do
         get :conversation
+      end
+    end
+
+    resources :push_notifications, only: [:index] do
+      collection do
+        post :send_notification
+        post :notify_product
       end
     end
 
@@ -176,6 +184,12 @@ Spree::Core::Engine.add_routes do
       end
       resources :contacts
       resources :messages
+      resources :push_subscriptions, only: [:create, :destroy]
+      resources :app_settings, only: [] do
+        collection do
+          get :latest
+        end
+      end
       resources :threads
       resources :menu_items, only: [:index, :show] do
         member do
@@ -286,6 +300,39 @@ Spree::Core::Engine.add_routes do
       post :void, on: :member
     end
     resources :creator_payouts, only: %i[index new create]
+  end
+end
+
+# Affiliate program: click tracking, order attribution, the affiliate's own API and the admin tab.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      post 'affiliate/clicks', to: 'affiliate_clicks#create', as: :affiliate_clicks
+      patch 'orders/current/affiliate', to: 'order_affiliates#update', as: :current_order_affiliate
+      resource :affiliate, only: %i[show create update], controller: 'affiliate' do
+        get :stats
+        get :commissions
+        get :payouts
+        get :code_available
+      end
+    end
+  end
+
+  # Not /admin/affiliates: the spree_reffiliate gem's admin pages live there, and its
+  # admin_affiliate_commissions route name is taken too.
+  namespace :admin, path: Spree.admin_path do
+    resources :affiliate_accounts, only: %i[index show update] do
+      member do
+        post :approve
+        post :reject
+        post :suspend
+        post :reinstate
+      end
+    end
+    resources :affiliate_commissions, only: :index, as: :affiliate_account_commissions do
+      member { post :void }
+    end
+    resources :affiliate_payouts, only: %i[index new create]
   end
 end
 

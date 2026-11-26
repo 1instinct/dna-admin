@@ -81,6 +81,72 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["singleton_guard"], name: "index_admin_themes_on_singleton_guard", unique: true
   end
 
+  create_table "affiliate_accounts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "code", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "commission_bps"
+    t.integer "cookie_days", default: 30, null: false
+    t.jsonb "application", default: {}, null: false
+    t.string "payout_email"
+    t.datetime "approved_at"
+    t.integer "reviewed_by_id"
+    t.text "review_note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["code"], name: "index_affiliate_accounts_on_code", unique: true
+    t.index ["status"], name: "index_affiliate_accounts_on_status"
+    t.index ["user_id"], name: "index_affiliate_accounts_on_user_id", unique: true
+  end
+
+  create_table "affiliate_clicks", force: :cascade do |t|
+    t.bigint "affiliate_account_id", null: false
+    t.string "landing_path"
+    t.string "referrer_host"
+    t.string "visitor_hash"
+    t.datetime "created_at", null: false
+    t.index ["affiliate_account_id", "created_at"], name: "index_affiliate_clicks_on_account_and_created_at"
+  end
+
+  create_table "affiliate_commissions", force: :cascade do |t|
+    t.bigint "affiliate_account_id", null: false
+    t.integer "order_id", null: false
+    t.decimal "base_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "commission_bps", null: false
+    t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "currency", null: false
+    t.string "state", default: "pending", null: false
+    t.string "void_reason"
+    t.datetime "approvable_at"
+    t.bigint "affiliate_payout_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["affiliate_account_id", "created_at"], name: "index_affiliate_commissions_on_account_and_created_at"
+    t.index ["affiliate_payout_id"], name: "index_affiliate_commissions_on_affiliate_payout_id"
+    t.index ["order_id"], name: "index_affiliate_commissions_on_order_id", unique: true
+    t.index ["state", "approvable_at"], name: "index_affiliate_commissions_on_state_and_approvable_at"
+  end
+
+  create_table "affiliate_payouts", force: :cascade do |t|
+    t.bigint "affiliate_account_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "currency", null: false
+    t.string "reference"
+    t.datetime "paid_at"
+    t.text "note"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["affiliate_account_id"], name: "index_affiliate_payouts_on_affiliate_account_id"
+  end
+
+  create_table "affiliate_rate_counters", force: :cascade do |t|
+    t.string "key", null: false
+    t.datetime "window_started_at", null: false
+    t.integer "hits", default: 0, null: false
+    t.index ["key"], name: "index_affiliate_rate_counters_on_key", unique: true
+    t.index ["window_started_at"], name: "index_affiliate_rate_counters_on_window_started_at"
+  end
+
   create_table "app_feedback_rate_counters", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "window_started_at", null: false
@@ -114,6 +180,15 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["kind", "created_at"], name: "index_app_feedbacks_on_kind_and_created_at"
     t.index ["status", "created_at"], name: "index_app_feedbacks_on_status_and_created_at"
     t.index ["user_id"], name: "index_app_feedbacks_on_user_id"
+  end
+
+  create_table "app_settings", force: :cascade do |t|
+    t.string "name"
+    t.string "platform", default: "ios-android"
+    t.string "version", default: "0.0.0", null: false
+    t.string "build"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -273,6 +348,40 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
     t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
+  end
+
+  create_table "push_notifications", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "body", null: false
+    t.string "notification_type", default: "custom"
+    t.jsonb "data", default: {}
+    t.string "target", default: "all"
+    t.bigint "target_user_id"
+    t.integer "sent_count", default: 0
+    t.integer "error_count", default: 0
+    t.text "errors_log"
+    t.string "status", default: "draft"
+    t.bigint "sent_by_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["notification_type"], name: "index_push_notifications_on_notification_type"
+    t.index ["sent_by_id"], name: "index_push_notifications_on_sent_by_id"
+    t.index ["status"], name: "index_push_notifications_on_status"
+    t.index ["target"], name: "index_push_notifications_on_target"
+  end
+
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.string "platform", null: false
+    t.string "device_name"
+    t.boolean "enabled", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["enabled"], name: "index_push_subscriptions_on_enabled"
+    t.index ["platform"], name: "index_push_subscriptions_on_platform"
+    t.index ["token"], name: "index_push_subscriptions_on_token", unique: true
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -940,6 +1049,9 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.boolean "store_owner_notification_delivered"
     t.integer "affiliate_id"
     t.datetime "paid_at"
+    t.bigint "affiliate_account_id"
+    t.datetime "affiliate_attributed_at"
+    t.index ["affiliate_account_id"], name: "index_spree_orders_on_affiliate_account_id"
     t.index ["affiliate_id"], name: "index_spree_orders_on_affiliate_id"
     t.index ["approver_id"], name: "index_spree_orders_on_approver_id"
     t.index ["bill_address_id"], name: "index_spree_orders_on_bill_address_id"
@@ -1899,6 +2011,11 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "affiliate_clicks", "affiliate_accounts", on_delete: :cascade
+  add_foreign_key "affiliate_commissions", "affiliate_accounts"
+  add_foreign_key "affiliate_commissions", "affiliate_payouts"
+  add_foreign_key "affiliate_commissions", "spree_orders", column: "order_id"
+  add_foreign_key "affiliate_payouts", "affiliate_accounts"
   add_foreign_key "app_feedbacks", "spree_users", column: "user_id", on_delete: :nullify
   add_foreign_key "favorites", "spree_users", column: "user_id"
   add_foreign_key "favorites", "spree_variants", column: "variant_id"
@@ -1907,6 +2024,8 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
   add_foreign_key "live_streams", "spree_users", column: "actor_id"
   add_foreign_key "live_streams", "thread_tables"
   add_foreign_key "messages", "thread_tables"
+  add_foreign_key "push_notifications", "spree_users", column: "sent_by_id"
+  add_foreign_key "push_subscriptions", "spree_users", column: "user_id"
   add_foreign_key "spree_content_reports", "spree_users", column: "reporter_id", on_delete: :nullify
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_creator_accounts", "spree_users", column: "user_id"
@@ -1919,6 +2038,7 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
   add_foreign_key "spree_digital_ownerships", "spree_variants", column: "variant_id"
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_orders", "affiliate_accounts", on_delete: :nullify
   add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
   add_foreign_key "spree_products", "spree_users", column: "creator_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"

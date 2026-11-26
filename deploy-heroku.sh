@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Heroku Deployment Script for Beeper Admin
+# Heroku Deployment Script for DNA Admin
 # Usage: ./deploy-heroku.sh <app-name>
 
 APP_NAME=$1

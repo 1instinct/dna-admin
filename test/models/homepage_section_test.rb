@@ -32,20 +32,20 @@ class HomepageSectionTest < ActiveSupport::TestCase
   end
 
   test 'app_links accepts absolute https urls' do
-    section = app_links('ios_url' => 'https://apps.apple.com/app/id1661874489',
-                        'android_url' => 'http://play.google.com/store/apps/details?id=com.beeper.Buzz')
+    section = app_links('ios_url' => 'https://apps.apple.com/app/id1234567890',
+                        'android_url' => 'http://play.google.com/store/apps/details?id=com.example.app')
     assert section.valid?, section.errors.full_messages.join(', ')
   end
 
   test 'app_links rejects a scheme-less ios url and names the field' do
-    section = app_links('ios_url' => 'apps.apple.com/app/id1661874489')
+    section = app_links('ios_url' => 'apps.apple.com/app/id1234567890')
     assert_not section.valid?
     assert_match(/iOS App Store URL/, section.errors.full_messages.join(', '))
     assert_match(%r{https://}, section.errors.full_messages.join(', '))
   end
 
   test 'app_links rejects a scheme-less android url and names the field' do
-    section = app_links('android_url' => 'play.google.com/store/apps/details?id=com.beeper.Buzz')
+    section = app_links('android_url' => 'play.google.com/store/apps/details?id=com.example.app')
     assert_not section.valid?
     assert_match(/Google Play URL/, section.errors.full_messages.join(', '))
   end
@@ -61,12 +61,12 @@ class HomepageSectionTest < ActiveSupport::TestCase
   end
 
   test 'announcement_bar accepts an absolute https cta_href' do
-    section = announcement_bar('message' => 'Hi', 'cta_href' => 'https://beeper.buzz/app')
+    section = announcement_bar('message' => 'Hi', 'cta_href' => 'https://example.com/app')
     assert section.valid?, section.errors.full_messages.join(', ')
   end
 
   test 'announcement_bar rejects a scheme-less cta_href and names the field' do
-    section = announcement_bar('message' => 'Hi', 'cta_href' => 'beeper.buzz/app')
+    section = announcement_bar('message' => 'Hi', 'cta_href' => 'example.com/app')
     assert_not section.valid?
     assert_match(/Button link/, section.errors.full_messages.join(', '))
   end

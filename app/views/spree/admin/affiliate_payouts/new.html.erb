@@ -1,0 +1,33 @@
+<% content_for :page_title do %>
+  <%= link_to 'Affiliate payouts', spree.admin_affiliate_payouts_path %> &raquo; <%= @account.code %>
+<% end %>
+
+<%= render 'spree/admin/affiliate_accounts/tabs', current: :payouts %>
+
+<div class="row">
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Record a payout</h1></div>
+      <div class="card-body">
+        <p>
+          Pay <strong><%= number_with_precision(@payable[@currency] || 0, precision: 2) %> <%= @currency %></strong>
+          to <strong><%= @account.payout_email.presence || '(no payout email)' %></strong> outside this admin, then record the
+          payment's reference here. Every approved <%= @currency %> commission of <code><%= @account.code %></code> is marked paid.
+        </p>
+        <%= form_tag spree.admin_affiliate_payouts_path, method: :post, id: 'affiliate_payout_form' do %>
+          <%= hidden_field_tag :affiliate_account_id, @account.id %>
+          <%= hidden_field_tag :currency, @currency %>
+          <div class="form-group">
+            <%= label_tag :reference, 'Payment reference' %>
+            <%= text_field_tag :reference, nil, required: true, class: 'form-control' %>
+          </div>
+          <div class="form-group">
+            <%= label_tag :note, 'Note' %>
+            <%= text_area_tag :note, nil, rows: 2, class: 'form-control' %>
+          </div>
+          <%= submit_tag 'Mark as paid', class: 'btn btn-primary', data: { confirm: 'Record this payout?' } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

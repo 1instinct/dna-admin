@@ -1,0 +1,227 @@
+<% content_for :page_title do %>
+  Push Notifications
+<% end %>
+
+<%# ── Stats Dashboard ──────────────────────────────────────────── %>
+<div class="row mb-4">
+  <div class="col-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2 class="text-primary"><%= @token_count %></h2>
+        <small class="text-muted">Total Devices</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2><%= @ios_count %></h2>
+        <small class="text-muted">iOS</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2 class="text-success"><%= @android_count %></h2>
+        <small class="text-muted">Android</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2 class="text-info"><%= @users_with_tokens %></h2>
+        <small class="text-muted">Unique Users</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ── Send Custom Notification ─────────────────────────────────── %>
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">Send Notification</h5>
+  </div>
+  <div class="card-body">
+    <%= form_tag send_notification_admin_push_notifications_path, method: :post do %>
+      <div class="row">
+        <div class="col-6">
+          <div class="form-group">
+            <%= label_tag :notification_type, 'Type', class: 'control-label' %>
+            <%= select_tag :notification_type,
+                options_for_select([
+                  ['Custom Message', 'custom'],
+                  ['Product Launch', 'product'],
+                  ['Promotion / Sale', 'promo'],
+                  ['Order Update', 'order']
+                ]),
+                class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-group">
+            <%= label_tag :target, 'Send To', class: 'control-label' %>
+            <%= select_tag :target,
+                options_for_select([
+                  ["All Devices (#{@token_count})", 'all'],
+                  ['Specific User', 'user']
+                ]),
+                class: 'form-control',
+                id: 'target-select' %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" id="user-select-group" style="display: none;">
+        <%= label_tag :target_user_id, 'User', class: 'control-label' %>
+        <%= select_tag :target_user_id,
+            options_from_collection_for_select(@users, :id, :email),
+            include_blank: '-- Select User --',
+            class: 'form-control' %>
+      </div>
+
+      <div class="form-group">
+        <%= label_tag :title, 'Title', class: 'control-label' %>
+        <%= text_field_tag :title, nil, class: 'form-control', placeholder: 'Notification title...' %>
+      </div>
+
+      <div class="form-group">
+        <%= label_tag :body, 'Body', class: 'control-label' %>
+        <%= text_area_tag :body, nil, rows: 3, class: 'form-control', placeholder: 'Notification message...' %>
+      </div>
+
+      <div class="row">
+        <div class="col-6">
+          <div class="form-group">
+            <%= label_tag :screen, 'Deep Link Screen (optional)', class: 'control-label' %>
+            <%= select_tag :screen,
+                options_for_select([
+                  ['None', ''],
+                  ['Home', 'Home'],
+                  ['Dashboard', 'Dashboard'],
+                  ['Shop', 'Shop'],
+                  ['Product Detail', 'ProductDetail'],
+                  ['Cart', 'Cart'],
+                  ['Social', 'Social'],
+                  ['Profile', 'Profile']
+                ]),
+                class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-group">
+            <%= label_tag :promo_code, 'Promo Code (optional)', class: 'control-label' %>
+            <%= text_field_tag :promo_code, nil, class: 'form-control', placeholder: 'e.g. BEEP20' %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= submit_tag 'Send Notification', class: 'btn btn-primary',
+            data: { confirm: 'Are you sure you want to send this notification?' } %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# ── Quick Notify: Recent Products ────────────────────────────── %>
+<% if @products.any? %>
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">Quick Notify: New Products</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <th>ID</th>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Created</th>
+          <th class="actions text-right">Action</th>
+        </thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td><%= product.id %></td>
+              <td><%= truncate(product.name, length: 50) %></td>
+              <td><%= product.display_price %></td>
+              <td><%= product.created_at.strftime('%b %d, %Y') %></td>
+              <td class="actions text-right">
+                <%= button_to 'Notify',
+                    notify_product_admin_push_notifications_path(product_id: product.id),
+                    method: :post,
+                    class: 'btn btn-success btn-sm',
+                    data: { confirm: "Send notification about '#{product.name}' to all devices?" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% end %>
+
+<%# ── Notification History ─────────────────────────────────────── %>
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">Notification History</h5>
+  </div>
+  <div class="card-body p-0">
+    <% if @notifications.any? %>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Target</th>
+            <th>Sent</th>
+            <th>Errors</th>
+            <th>Status</th>
+            <th>Sent By</th>
+            <th>Date</th>
+          </thead>
+          <tbody>
+            <% @notifications.each do |notif| %>
+              <tr>
+                <td><%= notif.id %></td>
+                <td><span class="badge badge-info"><%= notif.notification_type %></span></td>
+                <td><%= truncate(notif.title, length: 40) %></td>
+                <td><%= notif.target_description %></td>
+                <td><%= notif.sent_count %></td>
+                <td><%= notif.error_count %></td>
+                <td>
+                  <% case notif.status %>
+                  <% when 'sent' %>
+                    <span class="badge badge-success">Sent</span>
+                  <% when 'failed' %>
+                    <span class="badge badge-danger">Failed</span>
+                  <% when 'draft' %>
+                    <span class="badge badge-secondary">Draft</span>
+                  <% end %>
+                </td>
+                <td><%= notif.sent_by&.email || '—' %></td>
+                <td><%= notif.created_at.strftime('%b %d, %H:%M') %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <%= render partial: 'spree/admin/shared/index_table_options', locals: { collection: @notifications } %>
+    <% else %>
+      <div class="alert alert-info m-3">
+        No notifications sent yet.
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  document.getElementById('target-select').addEventListener('change', function() {
+    var userGroup = document.getElementById('user-select-group');
+    userGroup.style.display = this.value === 'user' ? 'block' : 'none';
+  });
+</script>

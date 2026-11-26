@@ -97,6 +97,18 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, PushNotification %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarPushNotifications">
+      <%= tab :push_notifications, icon: 'message.svg', url: admin_push_notifications_path %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, AppSetting %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAppSettings">
+      <%= tab :app_settings, icon: 'settings.svg', url: admin_app_settings_path %>
+    </ul>
+  <% end %>
+
   <% if Spree.user_class && can?(:admin, Spree.user_class) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarUser">
       <%= tab *Spree::BackendConfiguration::USER_TABS, url: spree.admin_users_path, icon: 'users.svg' %>
@@ -106,6 +118,12 @@
   <% if can? :admin, Spree::ContentReport %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarContentReports">
       <%= tab :content_reports, label: 'Content reports', icon: 'report.svg', url: spree.admin_content_reports_path %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, AffiliateAccount %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAffiliates">
+      <%= tab :affiliate_accounts, label: 'Affiliates', icon: 'money.svg', url: spree.admin_affiliate_accounts_path, match_path: Spree::Admin::AffiliatesTabHelper.affiliates_tab_match_path(spree.admin_path) %>
     </ul>
   <% end %>
 
