@@ -1,0 +1,48 @@
+<% ownerships = Spree::DigitalOwnership.where(user_id: user.id).includes(variant: :product).order(granted_at: :desc) %>
+<div data-hook="admin_user_digital_ownerships" id="admin_user_digital_ownerships" class="card mb-3">
+  <div class="card-header">
+    <h1 class="card-title mb-0 h5">Digital items</h1>
+  </div>
+  <div class="card-body">
+    <% if ownerships.empty? %>
+      <p>No digital items.</p>
+    <% else %>
+      <table class="table">
+        <thead>
+          <tr><th>Product</th><th>SKU</th><th>Source</th><th>Granted</th><th>Status</th><th class="actions"></th></tr>
+        </thead>
+        <tbody>
+          <% ownerships.each do |ownership| %>
+            <tr id="digital_ownership_<%= ownership.id %>">
+              <td><%= ownership.variant.product&.name %></td>
+              <td><%= ownership.variant.sku %></td>
+              <td><%= ownership.source %></td>
+              <td><%= l(ownership.granted_at, format: :short) %></td>
+              <td>
+                <% if ownership.revoked? %>
+                  revoked <%= l(ownership.revoked_at, format: :short) %> (<%= ownership.revoke_reason %>)
+                <% else %>
+                  active
+                <% end %>
+              </td>
+              <td class="actions text-right">
+                <% if ownership.active? %>
+                  <%= form_tag spree.revoke_admin_user_digital_ownership_path(user, ownership), method: :post, class: 'form-inline justify-content-end' do %>
+                    <%= text_field_tag :reason, nil, placeholder: 'Reason', class: 'form-control form-control-sm mr-1' %>
+                    <%= submit_tag 'Revoke', class: 'btn btn-danger btn-sm', data: { confirm: 'Revoke this item?' } %>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <%= form_tag spree.admin_user_digital_ownerships_path(user), method: :post, class: 'form-inline mt-3' do %>
+      <%= label_tag :variant, 'Grant variant (SKU or id)', class: 'mr-2' %>
+      <%= text_field_tag :variant, nil, class: 'form-control mr-2' %>
+      <%= submit_tag 'Grant', class: 'btn btn-primary' %>
+    <% end %>
+  </div>
+</div>

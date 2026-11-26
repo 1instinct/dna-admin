@@ -1,0 +1,13 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :digital_asset } %>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @asset } %>
+
+<h2 class="h5 mb-3">New digital asset draft</h2>
+
+<%= form_for @asset, as: :digital_asset, url: spree.admin_product_digital_assets_url(@product), method: :post, html: { multipart: true } do |f| %>
+  <%= render partial: 'form', locals: { f: f } %>
+  <div class="form-actions" data-hook="buttons">
+    <%= button 'Create draft', 'save.svg' %>
+    <%= link_to 'Cancel', spree.admin_product_digital_assets_url(@product), class: 'btn btn-light' %>
+  </div>
+<% end %>

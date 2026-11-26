@@ -1,0 +1,61 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :digital_asset } %>
+
+<%= render partial: 'spree/admin/shared/error_messages', locals: { target: @asset } %>
+
+<h2 class="h5 mb-3">
+  Digital asset <%= @asset.version ? "version #{@asset.version}" : 'draft' %> (<%= @asset.status %>), kind <%= @asset.kind %>
+</h2>
+
+<div class="card mb-3" id="digital_asset_files">
+  <div class="card-header"><h1 class="card-title mb-0 h5">Files</h1></div>
+  <div class="card-body">
+    <% entries = @asset.persisted? ? @asset.file_entries : [] %>
+    <% if entries.empty? %>
+      <p>No files yet.</p>
+    <% else %>
+      <table class="table">
+        <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>MD5</th><th>SHA-256</th><th class="actions"></th></tr></thead>
+        <tbody>
+          <% entries.each do |file| %>
+            <tr>
+              <td><%= file[:filename] %></td>
+              <td><%= file[:content_type] %></td>
+              <td><%= number_to_human_size(file[:byte_size]) %></td>
+              <td><code><%= file[:md5] %></code></td>
+              <td><code><%= file[:sha256] ? "#{file[:sha256].first(16)}..." : 'pending' %></code></td>
+              <td class="actions text-right">
+                <% if @asset.draft? %>
+                  <%= button_to 'Remove', spree.remove_file_admin_product_digital_asset_url(@product, @asset, attachment_id: file[:id]), method: :delete, class: 'btn btn-danger btn-sm', form_class: 'd-inline-block',
+                                data: { confirm: "Remove #{file[:filename]}?" } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="text-muted mb-0">Total <%= number_to_human_size(@asset.byte_size) %>.</p>
+    <% end %>
+  </div>
+</div>
+
+<% if @asset.draft? %>
+  <%= form_for @asset, as: :digital_asset, url: spree.admin_product_digital_asset_url(@product, @asset), method: :patch, html: { multipart: true } do |f| %>
+    <%= render partial: 'form', locals: { f: f } %>
+    <div class="form-actions" data-hook="buttons">
+      <%= button 'Save draft', 'save.svg' %>
+      <%= link_to 'Back', spree.admin_product_digital_assets_url(@product), class: 'btn btn-light' %>
+    </div>
+  <% end %>
+  <div class="form-actions mt-3">
+    <%= button_to 'Publish as the next version', spree.publish_admin_product_digital_asset_url(@product, @asset), method: :post, class: 'btn btn-primary', form_class: 'd-inline-block',
+                  data: { confirm: 'Publish this draft? Buyers will receive it.' } %>
+    <%= button_to 'Delete draft', spree.admin_product_digital_asset_url(@product, @asset), method: :delete, class: 'btn btn-danger', form_class: 'd-inline-block',
+                  data: { confirm: 'Delete this draft and its files?' } %>
+  </div>
+<% else %>
+  <div class="card mb-3">
+    <div class="card-header"><h1 class="card-title mb-0 h5">Manifest</h1></div>
+    <div class="card-body"><pre class="mb-0"><%= JSON.pretty_generate(@asset.manifest) %></pre></div>
+  </div>
+  <%= link_to 'Back', spree.admin_product_digital_assets_url(@product), class: 'btn btn-light' %>
+<% end %>
