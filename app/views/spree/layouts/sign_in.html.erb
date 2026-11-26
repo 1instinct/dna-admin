@@ -1,0 +1,354 @@
+<%#
+  Full-page shell for the signed-out screens (the login gate rendered by
+  ApplicationController#require_login, and the forgot/reset password pages).
+
+  Self-contained on purpose: it loads none of the backend bundle (Bootstrap,
+  jQuery, the admin JS), so a phone on a slow connection gets a ~40 KB page
+  instead of megabytes before it can type a password.
+%>
+<% theme = AdminTheme.current %>
+<% store_name = (current_store.name if respond_to?(:current_store) && current_store).presence || theme.brand_name.presence || 'Admin' %>
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="<%= theme.background_color %>">
+    <meta name="color-scheme" content="dark">
+    <meta name="format-detection" content="telephone=no">
+    <title><%= content_for?(:title) ? yield(:title) : Spree.t(:login) %> · <%= store_name %></title>
+    <%= csrf_meta_tags %>
+    <%= favicon_link_tag 'favicon-32x32.png', type: 'image/png', sizes: '32x32' %>
+    <%= favicon_link_tag 'apple-touch-icon.png', rel: 'apple-touch-icon', type: 'image/png', sizes: '180x180' %>
+
+    <style>
+      :root {
+        /* Brand colors come from the admin theme (Configuration > Theme). */
+        --si-primary: <%= theme.primary_color %>;
+        --si-accent: <%= theme.secondary_color %>;
+        --si-bg: <%= theme.background_color %>;
+        --si-text: #f5f3f7;
+        --si-muted: #b9b2c4;
+        --si-card: rgba(20, 8, 32, 0.78);
+        --si-field: rgba(255, 255, 255, 0.06);
+        --si-field-border: rgba(255, 255, 255, 0.18);
+        --si-error: #ff6b81;
+        --si-success: #3ddbc4;
+        --si-radius: 14px;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        color: var(--si-text);
+        background-color: var(--si-bg);
+        background-image:
+          linear-gradient(180deg, color-mix(in srgb, var(--si-bg) 35%, transparent) 0%, color-mix(in srgb, var(--si-bg) 85%, transparent) 100%),
+          url("<%= sign_in_mobile_background_path %>");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      <% if sign_in_mobile_background_path != sign_in_background_path %>
+      @media (min-width: 900px) and (min-resolution: 1.5dppx), (min-width: 1400px) {
+        body {
+          background-image:
+            linear-gradient(180deg, color-mix(in srgb, var(--si-bg) 35%, transparent) 0%, color-mix(in srgb, var(--si-bg) 85%, transparent) 100%),
+            url("<%= sign_in_background_path %>");
+        }
+      }
+      <% end %>
+
+      /* The page scrolls normally, so the on-screen keyboard never hides the
+         submit button, and the footer sits below the card instead of over it. */
+      .si-main {
+        flex: 1 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding:
+          max(24px, env(safe-area-inset-top))
+          max(16px, env(safe-area-inset-right))
+          24px
+          max(16px, env(safe-area-inset-left));
+      }
+
+      .si-card {
+        width: 100%;
+        max-width: 400px;
+        padding: 28px 24px 24px;
+        background: var(--si-card);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+      }
+
+      @media (min-width: 480px) {
+        .si-card { padding: 36px 32px 32px; }
+      }
+
+      .si-logo {
+        display: block;
+        width: auto;
+        max-width: 70%;
+        height: 72px;
+        margin: 0 auto 8px;
+        object-fit: contain;
+      }
+
+      .si-title {
+        margin: 0 0 4px;
+        font-size: 1.375rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: -0.01em;
+      }
+
+      .si-subtitle {
+        margin: 0 0 24px;
+        color: var(--si-muted);
+        font-size: 0.9375rem;
+        text-align: center;
+      }
+
+      .si-alert {
+        margin: 0 0 20px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 0.9375rem;
+        border: 1px solid transparent;
+      }
+      .si-alert--error { background: rgba(255, 107, 129, 0.12); border-color: rgba(255, 107, 129, 0.45); color: #ffd6dd; }
+      .si-alert--notice { background: rgba(61, 219, 196, 0.12); border-color: rgba(61, 219, 196, 0.45); color: #d2fff8; }
+      .si-alert ul { margin: 0; padding-left: 18px; }
+
+      .si-field { margin: 0 0 16px; }
+
+      .si-label {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--si-muted);
+      }
+
+      .si-input-wrap { position: relative; }
+
+      /* 16px text is what stops iOS Safari zooming the page on focus. */
+      .si-input {
+        display: block;
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px;
+        font: inherit;
+        font-size: 16px;
+        color: var(--si-text);
+        background: var(--si-field);
+        border: 1px solid var(--si-field-border);
+        border-radius: var(--si-radius);
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      .si-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+      .si-input:focus {
+        border-color: var(--si-accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--si-accent) 30%, transparent);
+      }
+      .si-input--with-toggle { padding-right: 76px; }
+
+      /* Keep autofilled fields on the dark theme instead of Chrome's yellow. */
+      .si-input:-webkit-autofill,
+      .si-input:-webkit-autofill:hover,
+      .si-input:-webkit-autofill:focus {
+        -webkit-text-fill-color: var(--si-text);
+        -webkit-box-shadow: 0 0 0 1000px #2a1638 inset;
+        caret-color: var(--si-text);
+      }
+
+      .si-toggle {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        bottom: 4px;
+        min-width: 64px;
+        padding: 0 12px;
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--si-muted);
+        background: transparent;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .si-toggle:hover, .si-toggle:focus-visible { color: var(--si-text); background: rgba(255, 255, 255, 0.08); outline: none; }
+
+      .si-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin: 4px 0 20px;
+      }
+
+      .si-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        user-select: none;
+      }
+      .si-check input {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        accent-color: var(--si-accent);
+      }
+
+      .si-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: #ffb3dc;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        text-decoration: none;
+      }
+      .si-link:hover, .si-link:focus-visible { color: #fff; text-decoration: underline; }
+
+      .si-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 52px;
+        padding: 12px 20px;
+        font: inherit;
+        font-size: 1.0625rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--si-primary) 0%, var(--si-accent) 100%);
+        border: 0;
+        border-radius: var(--si-radius);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--si-accent) 30%, transparent);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        transition: transform 0.1s ease, filter 0.15s ease;
+      }
+      .si-button:hover { filter: brightness(1.08); }
+      .si-button:active { transform: scale(0.985); }
+      .si-button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+      .si-button[disabled] { cursor: progress; filter: saturate(0.6) brightness(0.9); }
+
+      .si-spinner {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: si-spin 0.7s linear infinite;
+      }
+      .si-button[disabled] .si-spinner { display: inline-block; }
+      @keyframes si-spin { to { transform: rotate(360deg); } }
+
+      .si-back { margin: 20px 0 0; text-align: center; }
+
+      .si-footer {
+        flex-shrink: 0;
+        padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+        background: rgba(0, 0, 0, 0.35);
+      }
+      /* The shared copyright partial floats itself over the page elsewhere;
+         here it stays in the document flow below the card. */
+      .si-footer .footer-spree-copyright { position: static; background: none; border: 0; }
+      /* Its "|" divider only makes sense on one line; it wraps on a phone. */
+      @media (max-width: 991px) {
+        .si-footer .footer-spree-copyright-content > .d-lg-inline-block { display: none !important; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .si-button, .si-input { transition: none; }
+        .si-spinner { animation-duration: 2s; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="si-main">
+      <div class="si-card">
+        <% if theme.logo.attached? %>
+          <%= image_tag main_app.rails_storage_proxy_path(theme.logo, disposition: :inline), class: 'si-logo', alt: store_name %>
+        <% else %>
+          <%= image_tag sign_in_logo_path, class: 'si-logo', alt: store_name %>
+        <% end %>
+        <%= yield %>
+      </div>
+    </main>
+
+    <footer class="si-footer">
+      <%= render partial: 'spree/shared/copyright' if respond_to?(:current_store) %>
+    </footer>
+
+    <script>
+      (function () {
+        document.querySelectorAll('[data-password-toggle]').forEach(function (btn) {
+          var input = document.getElementById(btn.getAttribute('aria-controls'));
+          if (!input) return;
+          btn.hidden = false;
+          btn.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.textContent = show ? 'Hide' : 'Show';
+            btn.setAttribute('aria-pressed', String(show));
+            input.focus();
+          });
+        });
+
+        // One tap, one request: stop a double-submit and show progress.
+        var forms = document.querySelectorAll('form[data-sign-in-form]');
+        forms.forEach(function (form) {
+          var button = form.querySelector('[type=submit]');
+          var label = button && button.querySelector('[data-busy-label]');
+          var idleText = label && label.textContent;
+          form.addEventListener('submit', function () {
+            if (!button) return;
+            setTimeout(function () {
+              button.disabled = true;
+              if (label) label.textContent = label.getAttribute('data-busy-label');
+            }, 0);
+          });
+          // Coming back with the browser's Back button restores the page from
+          // cache with the button still disabled; re-enable it.
+          window.addEventListener('pageshow', function () {
+            if (!button) return;
+            button.disabled = false;
+            if (label) label.textContent = idleText;
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

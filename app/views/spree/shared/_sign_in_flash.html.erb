@@ -1,0 +1,8 @@
+<%# Flash messages for the signed-out screens (layout spree/layouts/sign_in). %>
+<% flash.each do |type, message| %>
+  <% next unless message.is_a?(String) && message.present? %>
+  <% error = %w[error alert].include?(type.to_s) %>
+  <div class="si-alert <%= error ? 'si-alert--error' : 'si-alert--notice' %>" role="<%= error ? 'alert' : 'status' %>">
+    <%= message %>
+  </div>
+<% end %>

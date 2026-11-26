@@ -10,17 +10,18 @@
 
   .conversation-item {
     padding: 15px;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--admin-border, #e9ecef);
     cursor: pointer;
     transition: background-color 0.2s;
   }
 
   .conversation-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--admin-surface-raised, #f8f9fa);
   }
 
   .conversation-item.active {
-    background-color: #e3f2fd;
+    background-color: rgba(0, 123, 255, 0.1);
+    background-color: color-mix(in srgb, var(--admin-primary, #007bff) 14%, transparent);
   }
 
   .participant-info {
@@ -29,10 +30,18 @@
     margin-bottom: 8px;
   }
 
-  .participant-avatar {
-    width: 40px;
-    height: 40px;
+  .initials-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .participant-info .initials-avatar {
     margin-right: 10px;
   }
 
@@ -68,9 +77,15 @@
     margin: 5px 0;
   }
 
-  .card{
+  .messages-card {
     width: 100%;
     height: 100%;
+  }
+
+  .chat-bubble {
+    background-color: var(--admin-surface-raised, #f8f9fa);
+    color: var(--admin-text, inherit);
+    overflow-wrap: anywhere;
   }
 
   .chat-online {
@@ -102,36 +117,45 @@
     flex-direction: row-reverse;
     margin-left: auto
   }
-  .py-3 {
-    padding-top: 1rem!important;
-    padding-bottom: 1rem!important;
-  }
-  .px-4 {
-    padding-right: 1.5rem!important;
-    padding-left: 1.5rem!important;
-  }
-  .flex-grow-0 {
-    flex-grow: 0!important;
-  }
-  .border-top {
-    border-top: 1px solid #dee2e6!important;
-  }
   
   .search-box {
     position: sticky;
     top: 0;
-    background: white;
+    background: var(--admin-surface, #fff);
     z-index: 10;
     padding: 15px;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--admin-border, #dee2e6);
+  }
+
+  /* Phones show the list or the open conversation, not both stacked. */
+  @media (max-width: 991.98px) {
+    .conversation-list,
+    .chat-messages {
+      max-height: none;
+    }
+    .chat-messages {
+      padding: 1rem !important;
+    }
+    /* Narrow avatar column: let "x minutes ago" wrap under the avatar
+       instead of squeezing the message. */
+    .chat-message-left > div:first-child,
+    .chat-message-right > div:first-child {
+      flex: 0 0 56px;
+      text-align: center;
+    }
+    .chat-messages .text-nowrap {
+      white-space: normal !important;
+      font-size: 11px;
+    }
   }
 </style>
 
+<% has_selection = params[:users].present? %>
 <main class="content">
   <div class="container p-0">
-    <div class="card">
+    <div class="card messages-card">
       <div class="row g-0">
-        <div class="col-12 col-lg-5 col-xl-4 border-right">
+        <div class="col-12 col-lg-5 col-xl-4 border-right <%= 'd-none d-lg-block' if has_selection %>">
           <div class="search-box">
             <input type="text" id="conversationSearch" class="form-control" placeholder="Search conversations...">
           </div>
@@ -161,9 +185,7 @@
                 
                 <!-- Customer Info -->
                 <div class="participant-info">
-                  <img src="https://ui-avatars.com/api/?name=<%= customer[:name] %>&background=007bff&color=fff" 
-                       class="participant-avatar" 
-                       alt="<%= customer[:name] %>">
+                  <%= initials_avatar(customer[:name], color: '#007bff') %>
                   <div class="participant-details">
                     <div class="participant-name"><%= customer[:name] %></div>
                     <div class="participant-role customer">👤 Customer</div>
@@ -174,9 +196,7 @@
                 
                 <!-- Support Staff Info -->
                 <div class="participant-info">
-                  <img src="https://ui-avatars.com/api/?name=<%= support[:name] %>&background=28a745&color=fff" 
-                       class="participant-avatar" 
-                       alt="<%= support[:name] %>">
+                  <%= initials_avatar(support[:name], color: '#28a745') %>
                   <div class="participant-details">
                     <div class="participant-name"><%= support[:name] %></div>
                     <div class="participant-role support">🎧 Support Staff</div>
@@ -205,7 +225,10 @@
           
           <hr class="d-block d-lg-none mt-1 mb-0">
         </div>
-        <div class="col-12 col-lg-7 col-xl-8">
+        <div class="col-12 col-lg-7 col-xl-8 <%= 'd-none d-lg-block' unless has_selection %>">
+          <div class="d-lg-none py-2 px-3 border-bottom">
+            <%= link_to '← All conversations', spree.conversations_admin_messages_path, class: 'd-inline-flex align-items-center', style: 'min-height: 44px;' %>
+          </div>
           <div class="py-2 px-4 border-bottom d-none d-lg-block">
             <div class="d-flex align-items-center py-1">
               <div class="position-relative">
@@ -228,10 +251,10 @@
                     <% if message.sender == @user_1 %>
                       <div class="chat-message-right pb-4">
                         <div>
-                          <img src="https://ui-avatars.com/api/?name=<%= sender_name %>&background=<%= avatar_bg %>&color=fff" class="rounded-circle mr-1" alt="<%= sender_name %>" width="40" height="40">
+                          <%= initials_avatar(sender_name, color: "##{avatar_bg}") %>
                           <div class="text-muted small text-nowrap mt-2"><%= distance_of_time_in_words(message.created_at, Time.now) %> ago</div>
                         </div>
-                        <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                        <div class="flex-shrink-1 chat-bubble rounded py-2 px-3 mr-3">
                           <div class="font-weight-bold mb-1">
                             <%= sender_name %>
                             <span class="badge badge-<%= is_support ? 'success' : 'primary' %> ml-2" style="font-size: 10px;"><%= role_label %></span>
@@ -242,10 +265,10 @@
                     <% elsif message.sender == @user_2  %>
                       <div class="chat-message-left pb-4">
                         <div>
-                          <img src="https://ui-avatars.com/api/?name=<%= sender_name %>&background=<%= avatar_bg %>&color=fff" class="rounded-circle mr-1" alt="<%= sender_name %>" width="40" height="40">
+                          <%= initials_avatar(sender_name, color: "##{avatar_bg}") %>
                           <div class="text-muted small text-nowrap mt-2"><%= distance_of_time_in_words(message.created_at, Time.now) %> ago</div>
                         </div>
-                        <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
+                        <div class="flex-shrink-1 chat-bubble rounded py-2 px-3 ml-3">
                           <div class="font-weight-bold mb-1">
                             <%= sender_name %>
                             <span class="badge badge-<%= is_support ? 'success' : 'primary' %> ml-2" style="font-size: 10px;"><%= role_label %></span>

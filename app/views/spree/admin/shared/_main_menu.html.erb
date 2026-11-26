@@ -81,13 +81,13 @@
 
   <% if can? :admin, HomepageSection %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarHomepage">
-      <%= tab :homepage_sections, icon: 'page.svg', url: admin_homepage_sections_path %>
+      <%= tab :homepage_sections, icon: 'list.svg', url: admin_homepage_sections_path %>
     </ul>
   <% end %>
 
   <% if can? :admin, ContentAsset %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarContentAssets">
-      <%= tab :content_assets, icon: 'page.svg', url: admin_content_assets_path %>
+      <%= tab :content_assets, icon: 'images.svg', url: admin_content_assets_path %>
     </ul>
   <% end %>
 

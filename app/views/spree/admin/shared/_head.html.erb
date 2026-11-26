@@ -1,6 +1,17 @@
+<% theme = AdminTheme.current %>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<% case theme.color_mode %>
+<% when 'dark' %>
+  <meta name="theme-color" content="<%= theme.surface_color %>">
+<% when 'light' %>
+  <meta name="theme-color" content="#ffffff">
+<% else %>
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="<%= theme.surface_color %>">
+<% end %>
 
 <%= csrf_meta_tags %>
 
@@ -8,10 +19,17 @@
   <% if content_for? :title %>
     <%= yield :title %>
   <% else %>
-    <%= "#{AdminTheme.current.brand_name} | " %>
     <%= Spree.t(controller.controller_name, default: controller.controller_name.titleize) %>
+    <%= " | #{theme.brand_name}" %>
   <% end %>
 </title>
+
+<% if theme.favicon.attached? %>
+  <%= favicon_link_tag main_app.rails_storage_proxy_path(theme.favicon, disposition: :inline), type: theme.favicon.content_type %>
+<% else %>
+  <%= favicon_link_tag 'favicon-32x32.png', type: 'image/png', sizes: '32x32' %>
+<% end %>
+<%= favicon_link_tag 'apple-touch-icon.png', rel: 'apple-touch-icon', type: 'image/png', sizes: '180x180' %>
 
 <%= stylesheet_link_tag 'spree/backend/all', media: :all %>
 <%= render 'spree/admin/shared/theme_variables' %>

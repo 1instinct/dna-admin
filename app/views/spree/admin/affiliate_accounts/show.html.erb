@@ -72,7 +72,8 @@
       </div>
       <div class="card-body p-0">
         <% if @commissions.any? %>
-          <table class="table table-sm mb-0">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
             <thead><tr><th>Order</th><th>Base</th><th>Commission</th><th>State</th><th>Created</th></tr></thead>
             <tbody>
               <% @commissions.each do |commission| %>
@@ -85,7 +86,8 @@
                 </tr>
               <% end %>
             </tbody>
-          </table>
+            </table>
+          </div>
         <% else %>
           <p class="text-muted m-3">No commissions yet.</p>
         <% end %>

@@ -91,6 +91,8 @@ heroku config:set MAILGUN_DOMAIN=your-domain.com -a $APP_NAME
 heroku config:set DNA_API_URL=your-api-url -a $APP_NAME
 heroku config:set DNA_API_KEY=your-api-key -a $APP_NAME
 heroku config:set SITE_URL=your-site-url -a $APP_NAME
+# The admin's own URL: password-reset emails link to it
+heroku config:set ADMIN_URL=https://your-admin-domain -a $APP_NAME
 heroku config:set SITE_SLUG=your-site-slug -a $APP_NAME
 ```
 

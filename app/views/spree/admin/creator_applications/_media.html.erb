@@ -5,8 +5,8 @@
   <div><%= link_to attachment.filename.to_s, url, target: '_blank', rel: 'noopener' %>
     <small class="text-muted"><%= number_to_human_size(attachment.byte_size) %> &middot; <%= type %></small></div>
   <% if type.start_with?('audio/') %>
-    <audio controls preload="none" src="<%= url %>"></audio>
+    <audio controls preload="none" src="<%= url %>" style="max-width: 100%;"></audio>
   <% elsif type.start_with?('image/') %>
-    <%= image_tag url, alt: attachment.filename.to_s, style: 'max-width: 240px; max-height: 240px;' %>
+    <%= image_tag url, alt: attachment.filename.to_s, style: 'max-width: min(240px, 100%); max-height: 240px; height: auto;' %>
   <% end %>
 </div>

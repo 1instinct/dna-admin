@@ -56,6 +56,29 @@ class Spree::Admin::MessagesController < Spree::Admin::BaseController
 	  end
 	end
   
+	# Two-pane inbox: every pair of participants on the left, the selected
+	# pair's threads on the right. (Restored: the action was dropped by mistake
+	# in 6a01cea, which left the page raising on @users_array.)
+	def conversations
+	  # One entry per pair, whichever direction its messages went.
+	  @users_array = Message.distinct
+	                        .pluck(:sender_id, :sender_type, :receiver_id, :receiver_type)
+	                        .uniq { |s_id, s_type, r_id, r_type| [[s_type, s_id], [r_type, r_id]].sort_by(&:to_s) }
+	  return unless params[:users].present?
+
+	  users = Array(params[:users]).first(2).map do |user|
+	    case user[:type]
+	    when 'User' then Spree::User.find_by(id: user[:id])
+	    when 'Contact' then Contact.find_by(id: user[:id])
+	    end
+	  end
+	  @user_1, @user_2 = users
+	  return unless @user_1 && @user_2
+
+	  messages = Message.where(id: conversation_between_two_parties(@user_1, @user_2).map(&:id)).order(:created_at)
+	  @threads = messages.group_by(&:thread_table_id).values
+	end
+
 	def conversation
 	  message = Message.find_by_id(params[:id])
 	  @user_1 = message.sender
@@ -88,8 +111,9 @@ class Spree::Admin::MessagesController < Spree::Admin::BaseController
 	end
   
 	def conversation_between_two_parties(user_1, user_2)
-	  user_1_sent_messages = user_1.sent_messages.where(receiver_id: user_2.id).where.not(thread_table_id: nil)
-	  user_2_sent_messages = user_2.sent_messages.where(receiver_id: user_1.id).where.not(thread_table_id: nil)
+	  # Match the receiver's type as well as its id: Contact 1 and User 1 are different people.
+	  user_1_sent_messages = user_1.sent_messages.where(receiver: user_2).where.not(thread_table_id: nil)
+	  user_2_sent_messages = user_2.sent_messages.where(receiver: user_1).where.not(thread_table_id: nil)
 	  all_messages = (user_1_sent_messages + user_2_sent_messages).sort { |a, b| a.created_at <=> b.created_at }
 	end
   end

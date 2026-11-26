@@ -13,7 +13,8 @@
     <% if entries.empty? %>
       <p>No files yet.</p>
     <% else %>
-      <table class="table">
+      <div class="table-responsive">
+        <table class="table">
         <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>MD5</th><th>SHA-256</th><th class="actions"></th></tr></thead>
         <tbody>
           <% entries.each do |file| %>
@@ -32,7 +33,8 @@
             </tr>
           <% end %>
         </tbody>
-      </table>
+        </table>
+      </div>
       <p class="text-muted mb-0">Total <%= number_to_human_size(@asset.byte_size) %>.</p>
     <% end %>
   </div>

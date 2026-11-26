@@ -1,0 +1,44 @@
+/*
+ * Mobile fixes for the admin (pulled in by require_tree in all.css).
+ */
+
+/*
+ * select2 hides the real <select> with .select2-hidden-accessible (1px wide,
+ * absolutely positioned). Spree's forms also give those selects Bootstrap's
+ * .w-100, whose width: 100% !important beat select2's width: 1px !important,
+ * so every form with a select2 dropdown carried an invisible full-width select
+ * hanging off the right edge. On a phone that widened the page (390px -> 539px
+ * on New Product) and the browser zoomed the whole admin out to fit it.
+ */
+.select2-hidden-accessible.w-100,
+.select2-hidden-accessible[class*="w-"] {
+  width: 1px !important;
+}
+
+@media (max-width: 991.98px) {
+  /*
+   * 16px form text: iOS Safari zooms the page in on focus of any field whose
+   * text is smaller, and leaves it zoomed after the keyboard closes.
+   */
+  #wrapper input.form-control,
+  #wrapper select.form-control,
+  #wrapper textarea.form-control,
+  #wrapper .select2-container .select2-selection,
+  #wrapper .select2-search__field,
+  #wrapper .input-group input {
+    font-size: 16px;
+  }
+
+  /* Long words (emails, SKUs, URLs) wrap instead of widening the page. */
+  #content {
+    overflow-wrap: break-word;
+  }
+
+  /* Media in content never exceeds its column. */
+  #content img,
+  #content video,
+  #content iframe {
+    max-width: 100%;
+    height: auto;
+  }
+}

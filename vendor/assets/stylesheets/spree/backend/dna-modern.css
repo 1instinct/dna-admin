@@ -76,6 +76,20 @@ body.admin header.header .navbar-dark {
   background-color: var(--admin-surface);
 }
 
+/* Header icons follow the theme text color, so they stay visible in light mode. */
+body.admin header.header #sidebar-open,
+body.admin header.header #accountNav {
+  color: var(--admin-text);
+}
+
+body.admin header.header .admin-brand {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 44px;
+  text-decoration: none;
+}
+
 body.admin .admin-logo {
   height: 32px;
   object-fit: contain;
@@ -96,8 +110,13 @@ body.admin .admin-brand-text {
 body.admin #main-sidebar {
   background-color: var(--admin-sidebar);
   border-right: 1px solid var(--admin-border);
-  width: 220px;
   padding-top: 8px;
+}
+
+@media (min-width: 992px) {
+  body.admin #main-sidebar {
+    width: 220px;
+  }
 }
 
 body.admin #main-sidebar .sidebar-menu {
@@ -307,7 +326,8 @@ body.admin label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 6px;
-  display: block;
+  /* inline-block, so a required field's "*" (a sibling span) stays beside it */
+  display: inline-block;
 }
 
 body.admin input[type="text"],
@@ -433,7 +453,7 @@ body.admin .flash.info,
 body.admin .alert-info {
   background-color: rgba(99, 102, 241, 0.12);
   border-color: rgba(99, 102, 241, 0.25);
-  color: var(--admin-primary);
+  color: var(--admin-link, var(--admin-primary));
 }
 
 /* --------------------------------------------------------------------------
@@ -646,7 +666,7 @@ body.admin .tooltip-inner {
    -------------------------------------------------------------------------- */
 
 body.admin a {
-  color: var(--admin-primary);
+  color: var(--admin-link, var(--admin-primary));
 }
 
 body.admin a:hover {
@@ -724,4 +744,116 @@ body.admin .breadcrumb-separator {
   body.admin .pagination li a {
     transition: background-color 100ms ease, color 100ms ease;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar menu — Spree 4.2 markup
+   Spree renders the menu as ul.nav-sidebar; the .sidebar-menu rules above
+   never matched it, so in dark mode the links kept Bootstrap's dark grey on
+   the dark sidebar.
+   -------------------------------------------------------------------------- */
+
+body.admin #main-sidebar .border-bottom,
+body.admin #main-sidebar ul.nav-sidebar {
+  border-color: var(--admin-border) !important;
+}
+
+body.admin #main-sidebar ul.nav-sidebar a,
+body.admin #main-sidebar #sidebar-close {
+  color: var(--admin-text-muted);
+}
+
+body.admin #main-sidebar ul.nav-sidebar a:hover,
+body.admin #main-sidebar ul.nav-sidebar a:focus {
+  color: var(--admin-text);
+  background-color: rgba(255, 255, 255, 0.06);
+  background-color: color-mix(in srgb, var(--admin-primary) 10%, transparent);
+  text-decoration: none;
+}
+
+body.admin #main-sidebar ul.nav-sidebar li.selected > a,
+body.admin #main-sidebar ul.nav-sidebar a.text-success {
+  color: var(--admin-text) !important;
+  background-color: rgba(255, 255, 255, 0.08);
+  background-color: color-mix(in srgb, var(--admin-primary) 16%, transparent);
+  font-weight: 600;
+}
+
+/* Menu icons follow the link color; some ship with a hard-coded dark fill
+   that disappears on a dark sidebar. */
+body.admin #main-sidebar ul.nav-sidebar svg,
+body.admin #main-sidebar ul.nav-sidebar svg path {
+  fill: currentColor;
+}
+
+body.admin #main-sidebar ul.active-option {
+  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--admin-primary) 6%, transparent);
+}
+
+/* On phones the menu slides over the page: leave a strip of it visible so
+   it reads as an overlay (tap the backdrop to close). */
+@media (max-width: 991.98px) {
+  body.admin aside#main-sidebar {
+    width: 85%;
+    max-width: 320px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Form controls the rules above miss (dark mode left them white)
+   -------------------------------------------------------------------------- */
+
+body.admin input[type="date"],
+body.admin input[type="datetime-local"],
+body.admin input[type="time"],
+body.admin input[type="tel"],
+body.admin .form-control,
+body.admin .input-group-text,
+body.admin .select2-container .select2-selection,
+body.admin .select2-dropdown,
+body.admin .index-filter-button .btn {
+  background-color: var(--admin-surface-raised);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+body.admin .select2-container .select2-selection__rendered,
+body.admin .select2-container .select2-search__field {
+  color: var(--admin-text);
+}
+
+body.admin .select2-results__option--highlighted[aria-selected],
+body.admin .select2-results__option--highlighted {
+  background-color: var(--admin-primary);
+  color: #fff;
+}
+
+body.admin .form-control:focus {
+  background-color: var(--admin-surface-raised);
+  border-color: var(--admin-primary);
+  color: var(--admin-text);
+}
+
+/* --------------------------------------------------------------------------
+   Plain Bootstrap tables (most Spree index pages use .table, not table.index)
+   -------------------------------------------------------------------------- */
+
+body.admin .table {
+  color: var(--admin-text);
+}
+
+body.admin .table thead th,
+body.admin .table td,
+body.admin .table th {
+  border-color: var(--admin-border);
+}
+
+body.admin .table tbody tr {
+  background-color: var(--admin-surface);
+}
+
+body.admin .table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--admin-surface-raised);
 }

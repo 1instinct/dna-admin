@@ -7,7 +7,8 @@
     <% if ownerships.empty? %>
       <p>No digital items.</p>
     <% else %>
-      <table class="table">
+      <div class="table-responsive">
+        <table class="table">
         <thead>
           <tr><th>Product</th><th>SKU</th><th>Source</th><th>Granted</th><th>Status</th><th class="actions"></th></tr>
         </thead>
@@ -36,7 +37,8 @@
             </tr>
           <% end %>
         </tbody>
-      </table>
+        </table>
+      </div>
     <% end %>
 
     <%= form_tag spree.admin_user_digital_ownerships_path(user), method: :post, class: 'form-inline mt-3' do %>
