@@ -17,7 +17,7 @@
 
     --admin-bg: <%= theme.background_color %>;
     --admin-surface: <%= theme.surface_color %>;
-    --admin-surface-raised: #232340;
+    --admin-surface-raised: color-mix(in srgb, <%= theme.surface_color %> 90%, #ffffff);
     --admin-sidebar: <%= theme.sidebar_color %>;
     --admin-text: <%= theme.text_color %>;
     --admin-text-muted: #94a3b8;
@@ -48,7 +48,7 @@
   [data-theme="dark"] {
     --admin-bg: <%= theme.background_color %>;
     --admin-surface: <%= theme.surface_color %>;
-    --admin-surface-raised: #232340;
+    --admin-surface-raised: color-mix(in srgb, <%= theme.surface_color %> 90%, #ffffff);
     --admin-sidebar: <%= theme.sidebar_color %>;
     --admin-text: <%= theme.text_color %>;
     --admin-text-muted: #94a3b8;
