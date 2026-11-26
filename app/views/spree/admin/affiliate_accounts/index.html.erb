@@ -1,0 +1,66 @@
+<% content_for :page_title do %>
+  Affiliates
+<% end %>
+
+<%= render 'spree/admin/affiliate_accounts/tabs', current: @status == 'pending' ? :applications : :accounts %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_affiliate_accounts_filter">
+    <%= form_tag spree.admin_affiliate_accounts_path, method: :get do %>
+      <div class="row">
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :q, 'Code or email' %>
+            <%= text_field_tag :q, @query, class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select(AffiliateAccount::STATUSES.map { |s| ["#{s.capitalize} (#{@counts[s] || 0})", s] }, @status),
+                           include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @accounts.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_affiliate_accounts">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Commission</th>
+          <th>Cookie</th>
+          <th>Website</th>
+          <th>Applied</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @accounts.each do |account| %>
+          <tr id="affiliate_account_<%= account.id %>">
+            <td><%= link_to account.code, spree.admin_affiliate_account_path(account) %></td>
+            <td><%= account.user ? link_to(account.user.email, spree.edit_admin_user_path(account.user)) : '(deleted)' %></td>
+            <td><%= render 'spree/admin/affiliate_accounts/status_badge', status: account.status %></td>
+            <td><%= number_to_percentage(account.effective_commission_bps / 100.0, precision: 2, strip_insignificant_zeros: true) %><%= ' (custom)' if account.commission_bps %></td>
+            <td><%= account.cookie_days %> days</td>
+            <td><%= truncate(account.application_data['website'].to_s, length: 40) %></td>
+            <td class="text-nowrap"><%= l(account.created_at, format: :short) %></td>
+            <td class="actions"><%= link_to 'Review', spree.admin_affiliate_account_path(account), class: 'btn btn-sm btn-light' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @accounts %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No affiliates match these filters.</div>
+<% end %>
