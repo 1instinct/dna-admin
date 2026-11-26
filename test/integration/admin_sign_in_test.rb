@@ -40,10 +40,10 @@ class AdminSignInTest < ActionDispatch::IntegrationTest
   end
 
   test 'signing in from the gate returns to the page that was asked for' do
-    get '/admin/products?q=beeper'
+    get '/admin/products?q=widget'
     post '/login', params: { spree_user: { email: 'admin@example.com', password: 'secret123' } }
 
-    assert_redirected_to '/admin/products?q=beeper'
+    assert_redirected_to '/admin/products?q=widget'
   end
 
   test 'signing in with no page to return to lands an admin on the admin' do
@@ -92,6 +92,21 @@ class AdminSignInTest < ActionDispatch::IntegrationTest
     end
 
     assert_no_match(/evil\.example\.net/, ActionMailer::Base.deliveries.last.body.encoded)
+  end
+
+  test 'phones get the small copy of the default background' do
+    with_env('COMPANY_BACKGROUND' => nil, 'COMPANY_BACKGROUND_MOBILE' => nil) { get '/admin/orders' }
+
+    assert_match %r{url\("[^"]*/background-mobile[^"]*\.jpg"\)}, response.body
+    assert_match %r{url\("[^"]*/background(-[0-9a-f]+)?\.jpg"\)}, response.body
+  end
+
+  test 'COMPANY_BACKGROUND_MOBILE names the phone copy, and a custom background without one is used as is' do
+    with_env('COMPANY_BACKGROUND' => 'instinct_logo.png', 'COMPANY_BACKGROUND_MOBILE' => nil) { get '/admin/orders' }
+    assert_no_match(/background-mobile/, response.body)
+
+    with_env('COMPANY_BACKGROUND' => 'instinct_logo.png', 'COMPANY_BACKGROUND_MOBILE' => 'background-mobile.jpg') { get '/admin/orders' }
+    assert_match(/background-mobile[^"]*\.jpg/, response.body)
   end
 
   private

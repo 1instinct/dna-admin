@@ -28,8 +28,8 @@ class Spree::Admin::ReportsDashboardTest < ActionDispatch::IntegrationTest
 
   test 'counts a completed order, charts it on its day and lists its variant' do
     shipping_category = Spree::ShippingCategory.create!(name: "reports-#{SecureRandom.hex(4)}")
-    product = Spree::Product.create!(name: 'Beeper', price: 25, shipping_category: shipping_category)
-    product.master.update!(sku: 'BEEP-1')
+    product = Spree::Product.create!(name: 'Widget', price: 25, shipping_category: shipping_category)
+    product.master.update!(sku: 'WIDGET-1')
     order = Spree::Order.create!(email: 'buyer@example.com', store: @store, currency: 'USD')
     # Stock and store availability are not what this test is about.
     order.line_items.new(variant: product.master, quantity: 2, price: 25, currency: 'USD').save!(validate: false)
@@ -39,7 +39,7 @@ class Spree::Admin::ReportsDashboardTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select 'h2', text: '1'
-    assert_select 'td', text: 'BEEP-1'
+    assert_select 'td', text: 'WIDGET-1'
     assert_includes response.body, %("#{Time.current.to_date.strftime('%m/%d')}")
     assert_match(/\[0(,0){5},1\]/, response.body, 'the 7-day orders series ends with today\'s order')
   end

@@ -13,7 +13,7 @@ class Spree::Admin::MessagesConversationsTest < ActionDispatch::IntegrationTest
 
     @contact = Contact.create!(full_name: 'Robin Customer', email: 'robin@example.com')
     thread = ThreadTable.create!(archived: false)
-    Message.create!(sender: @contact, receiver: @admin, thread_table: thread, message: 'Is my Beeper shipped?', created_at: 2.minutes.ago)
+    Message.create!(sender: @contact, receiver: @admin, thread_table: thread, message: 'Has my order shipped?', created_at: 2.minutes.ago)
     Message.create!(sender: @admin, receiver: @contact, thread_table: thread, message: 'Yes, it left today.', created_at: 1.minute.ago)
   end
 
@@ -44,7 +44,7 @@ class Spree::Admin::MessagesConversationsTest < ActionDispatch::IntegrationTest
     assert_response :success
     bubbles = css_select('.chat-bubble').map(&:text)
     assert_equal 2, bubbles.size
-    assert_match 'Is my Beeper shipped?', bubbles.first
+    assert_match 'Has my order shipped?', bubbles.first
     assert_match 'Yes, it left today.', bubbles.last
     assert_select 'a', text: '← All conversations'
   end

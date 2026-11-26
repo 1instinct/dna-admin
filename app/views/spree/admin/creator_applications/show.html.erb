@@ -1,0 +1,83 @@
+<% content_for :page_title do %>
+  <%= link_to 'Creator applications', spree.admin_creator_applications_path %> &raquo; <%= @application.display_name %>
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :applications %>
+
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Application</h1></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-4">Status</dt>
+          <dd class="col-8"><%= render 'spree/admin/creator_applications/status_badge', status: @application.status %></dd>
+          <dt class="col-4">User</dt>
+          <dd class="col-8"><%= @application.user ? link_to(@application.user.email, spree.edit_admin_user_path(@application.user)) : '(deleted)' %></dd>
+          <dt class="col-4">Display name</dt>
+          <dd class="col-8"><%= @application.display_name %></dd>
+          <dt class="col-4">Kinds</dt>
+          <dd class="col-8"><%= @application.kinds.join(', ') %></dd>
+          <dt class="col-4">Portfolio</dt>
+          <dd class="col-8">
+            <% Array(@application.portfolio_links).each do |link| %>
+              <div><%= link_to link['label'], link['url'], target: '_blank', rel: 'noopener nofollow' %> <small class="text-muted"><%= link['url'] %></small></div>
+            <% end %>
+          </dd>
+          <dt class="col-4">About</dt>
+          <dd class="col-8"><%= simple_format(@application.about) %></dd>
+          <dt class="col-4">Applied</dt>
+          <dd class="col-8"><%= l(@application.created_at, format: :long) %></dd>
+          <% if @application.reviewed_at %>
+            <dt class="col-4">Reviewed</dt>
+            <dd class="col-8"><%= l(@application.reviewed_at, format: :long) %><%= " by #{@application.reviewed_by.email}" if @application.reviewed_by %></dd>
+            <dt class="col-4">Note</dt>
+            <dd class="col-8"><%= @application.review_note %></dd>
+          <% end %>
+          <% if @account %>
+            <dt class="col-4">Account</dt>
+            <dd class="col-8"><%= link_to "Creator account (#{@account.status})", spree.edit_admin_creator_account_path(@account) %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Demo files</h2></div>
+      <div class="card-body">
+        <% if @samples.any? %>
+          <% @samples.each do |sample| %>
+            <%= render 'spree/admin/creator_applications/media', attachment: sample %>
+          <% end %>
+        <% else %>
+          <p class="text-muted mb-0">No demo files.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @application.pending? %>
+    <div class="col-12 col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Decision</h2></div>
+        <div class="card-body">
+          <%= form_tag spree.approve_admin_creator_application_path(@application), method: :post, id: 'approve_creator_application' do %>
+            <div class="form-group">
+              <%= label_tag :approve_note, 'Note to the applicant (optional)' %>
+              <%= text_area_tag :review_note, nil, id: 'approve_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Approve', class: 'btn btn-success' %>
+          <% end %>
+          <hr>
+          <%= form_tag spree.reject_admin_creator_application_path(@application), method: :post, id: 'reject_creator_application' do %>
+            <div class="form-group">
+              <%= label_tag :reject_note, 'Reason' %>
+              <%= text_area_tag :review_note, nil, id: 'reject_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Reject', class: 'btn btn-danger', data: { confirm: 'Reject this application?' } %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

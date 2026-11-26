@@ -1,0 +1,70 @@
+<% content_for :page_title do %>
+  Creator payouts
+<% end %>
+
+<%= render 'spree/admin/creator_applications/tabs', current: :payouts %>
+
+<div class="card mb-3">
+  <div class="card-header"><h1 class="card-title mb-0 h5">Payable now</h1></div>
+  <div class="card-body">
+    <% if @payable.any? %>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0" id="listing_creator_payable">
+          <thead>
+            <tr>
+              <th>Creator</th>
+              <th>Payout email</th>
+              <th class="text-right">Payable</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @payable.each do |(account_id, currency), amount| %>
+              <% account = @payable_accounts[account_id] %>
+              <tr>
+                <td><%= account&.user&.email || "Account #{account_id}" %></td>
+                <td><%= account&.payout_email %></td>
+                <td class="text-right"><%= number_with_precision(amount, precision: 2) %> <%= currency %></td>
+                <td class="actions">
+                  <%= link_to 'Record payout', spree.new_admin_creator_payout_path(creator_account_id: account_id, currency: currency), class: 'btn btn-sm btn-primary' %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">Nothing is payable.</p>
+    <% end %>
+  </div>
+</div>
+
+<% if @payouts.any? %>
+  <div class="table-responsive">
+    <table class="table table-sm" id="listing_creator_payouts">
+      <thead>
+        <tr>
+          <th>Creator</th>
+          <th class="text-right">Amount</th>
+          <th>Reference</th>
+          <th>Note</th>
+          <th>Paid</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payouts.each do |payout| %>
+          <tr id="creator_payout_<%= payout.id %>">
+            <td><%= payout.creator_account&.user&.email || "Account #{payout.creator_account_id}" %></td>
+            <td class="text-right"><%= number_with_precision(payout.amount, precision: 2) %> <%= payout.currency %></td>
+            <td><%= payout.reference %></td>
+            <td><%= payout.note %></td>
+            <td class="text-nowrap"><%= l(payout.paid_at, format: :short) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= paginate @payouts %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No payouts recorded yet.</div>
+<% end %>

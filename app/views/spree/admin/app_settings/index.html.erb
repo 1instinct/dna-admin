@@ -1,0 +1,146 @@
+<% content_for :page_title do %>
+  App Settings &amp; Version Gate
+<% end %>
+
+<%# ── Current gate per platform ──────────────────────────────────── %>
+<div class="row mb-2">
+  <% [['iOS', @ios], ['Android', @android]].each do |label, gate| %>
+    <div class="col-6">
+      <div class="card text-center" id="gate_<%= label.downcase %>">
+        <div class="card-body">
+          <h2 class="<%= gate.gate_off? ? 'text-muted' : 'text-primary' %>"><%= gate.version %></h2>
+          <small class="text-muted">
+            <%= label %> Minimum Required Version
+            <% if gate.gate_off? %>
+              &middot; gate off
+            <% else %>
+              &middot; from <%= gate.platform == AppSetting::BOTH ? 'an iOS &amp; Android record'.html_safe : "an #{label}-only record" %>
+              <% if gate.build.present? %>&middot; build <%= gate.build %><% end %>
+            <% end %>
+          </small>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+<p class="text-muted mb-4">
+  <small>
+    Each platform uses its most recent record, counting iOS &amp; Android records for both.
+    Older app builds that don't send a platform use the most recent record of any platform
+    (now <strong><%= @legacy.version %></strong>, <%= @legacy.platform %>).
+  </small>
+</p>
+
+<%# ── Create New Version Requirement ─────────────────────────────── %>
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">Set Minimum Required Version</h5>
+  </div>
+  <div class="card-body">
+    <p class="text-muted">
+      Users running an app version below this will be forced to update.
+      Set 0.0.0 to turn the gate off.
+    </p>
+    <%= form_for AppSetting.new, url: admin_app_settings_path, method: :post do |f| %>
+      <div class="row">
+        <div class="col-3">
+          <div class="form-group">
+            <%= f.label :version, 'Version (semver)', class: 'control-label' %>
+            <%= f.text_field :version, class: 'form-control', placeholder: '1.0.0', required: true %>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="form-group">
+            <%= f.label :build, 'Build Number (optional)', class: 'control-label' %>
+            <%= f.text_field :build, class: 'form-control', placeholder: '42' %>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="form-group">
+            <%= f.label :platform, 'Platform', class: 'control-label' %>
+            <%= f.select :platform, [['iOS & Android', 'ios-android'], ['iOS Only', 'ios'], ['Android Only', 'android']], {}, class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="form-group">
+            <%= f.label :name, 'App Identifier', class: 'control-label' %>
+            <%= f.text_field :name, class: 'form-control', value: AppSetting::DEFAULT_NAME %>
+          </div>
+        </div>
+      </div>
+      <div class="form-group checkbox">
+        <%= f.check_box :allow_ahead_of_store %>
+        <%= f.label :allow_ahead_of_store, 'Allow ahead of the App Store' %>
+        <small class="form-text text-muted">
+          iOS minimums are checked against the version live on the App Store (US). A minimum
+          above it would block every iOS user with nothing to update to, so it is refused
+          unless this is ticked.
+        </small>
+      </div>
+      <p class="text-muted">
+        <small>
+          Android minimums aren't checked against Google Play (there is no public lookup).
+          Make sure the release is live on Play before setting one.
+        </small>
+      </p>
+      <div class="form-actions">
+        <%= f.submit 'Set Version Gate', class: 'btn btn-primary',
+            data: { confirm: 'Are you sure? Users below this version will be blocked from using the app.' } %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# ── Version History ─────────────────────────────────────────────── %>
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">Version History</h5>
+  </div>
+  <div class="card-body p-0">
+    <% if @settings.any? %>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <th>ID</th>
+            <th>Version</th>
+            <th>Build</th>
+            <th>Platform</th>
+            <th>App ID</th>
+            <th>Updated</th>
+            <th>Created</th>
+            <th class="actions text-right">Action</th>
+          </thead>
+          <tbody>
+            <% @settings.each do |setting| %>
+              <% active_for = [('iOS' if setting == @ios), ('Android' if setting == @android)].compact %>
+              <tr class="<%= 'table-active' if active_for.any? %>">
+                <td><%= setting.id %></td>
+                <td>
+                  <strong><%= setting.version %></strong>
+                  <% if active_for.any? %>
+                    <span class="badge badge-success">Active: <%= active_for.join(' &amp; ').html_safe %></span>
+                  <% end %>
+                </td>
+                <td><%= setting.build || '—' %></td>
+                <td><%= setting.platform %></td>
+                <td><code><%= setting.name %></code></td>
+                <td><%= setting.updated_at.strftime('%b %d, %Y %H:%M') %></td>
+                <td><%= setting.created_at.strftime('%b %d, %Y %H:%M') %></td>
+                <td class="actions text-right">
+                  <%= button_to 'Delete', admin_app_setting_path(setting),
+                      method: :delete,
+                      class: 'btn btn-danger btn-sm',
+                      data: { confirm: "Delete version #{setting.version}?" } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="alert alert-info m-3">
+        No version gates configured. The app will run without version restrictions.
+      </div>
+    <% end %>
+  </div>
+</div>
