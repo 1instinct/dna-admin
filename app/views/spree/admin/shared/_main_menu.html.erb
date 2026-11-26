@@ -103,6 +103,13 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, Spree::Review %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarReviews">
+      <%= tab :reviews, label: 'Reviews', icon: 'review.svg', url: spree.admin_reviews_path %>
+      <%# reviews-menu: more review tabs go below this line %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, AppFeedback %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarAppFeedback">
       <%= tab :app_feedbacks, label: 'Feedback', icon: 'message.svg', url: spree.admin_app_feedbacks_path %>

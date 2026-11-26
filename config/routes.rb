@@ -251,3 +251,23 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Product reviews: admin (Reviews menu).
+Spree::Core::Engine.add_routes do
+  namespace :admin do
+    resources :reviews, only: %i[index show] do
+      collection do
+        post :bulk
+      end
+      member do
+        post :publish
+        post :reject
+        post :hide
+        post :reply
+        post :change_channel
+        delete :photo, action: :destroy_photo
+      end
+    end
+    # reviews-admin-routes: more review admin routes go below this line
+  end
+end

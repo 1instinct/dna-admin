@@ -1,0 +1,135 @@
+<% content_for :page_title do %>
+  Reviews
+<% end %>
+
+<% content_for :page_actions do %>
+  <span class="text-muted small">
+    <%= @counts.fetch('pending', 0) %> waiting · <%= @counts.fetch('published', 0) %> live
+  </span>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_reviews_filter">
+    <%= form_tag spree.admin_reviews_path, method: :get do %>
+      <div class="row">
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :status, 'Status' %>
+            <%= select_tag :status, options_for_select([['All', 'all']] + Spree::Review::STATUSES.map { |s| [Spree::Admin::ReviewsHelper::REVIEW_STATUS_LABELS[s], s] }, @filters[:status]), class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :rating, 'Rating' %>
+            <%= select_tag :rating, options_for_select((1..5).map(&:to_s), @filters[:rating]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :channel, 'Channel' %>
+            <%= select_tag :channel, options_for_select([%w[Retail retail], %w[Wholesale wholesale]], @filters[:channel]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :subject, 'Reviews of' %>
+            <%= select_tag :subject, options_for_select([%w[Products product], ['The store', 'store']], @filters[:subject]), include_blank: 'All', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :photos, 'Photos' %>
+            <%= select_tag :photos, options_for_select([%w[With yes], %w[Without no]], @filters[:photos]), include_blank: 'Any', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :reported, 'Reported' %>
+            <%= select_tag :reported, options_for_select([['Has reports', 'yes']], @filters[:reported]), include_blank: 'Any', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="form-group">
+            <%= label_tag :q, 'Search' %>
+            <%= search_field_tag :q, @filters[:q], placeholder: 'Product, review text or name', class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :from, 'From' %>
+            <%= date_field_tag :from, @filters[:from], class: 'form-control' %>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="form-group">
+            <%= label_tag :to, 'To' %>
+            <%= date_field_tag :to, @filters[:to], class: 'form-control' %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <%= button Spree.t(:filter_results), 'search.svg' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="alert alert-light border small" role="note">
+  Decide on what a review says, never on its rating. Low-star reviews follow the same rules as five-star ones,
+  and every rejection needs a reason that would apply at any rating.
+</div>
+
+<% if @reviews.any? %>
+  <%= form_tag spree.bulk_admin_reviews_path, method: :post, id: 'reviews_bulk' do %>
+    <div class="d-flex flex-wrap align-items-center mb-2" style="gap:.5rem">
+      <%= select_tag :bulk_action, options_for_select([%w[Publish publish], %w[Reject reject], %w[Hide hide]]), include_blank: 'With selected…', class: 'form-control form-control-sm w-auto', 'aria-label': 'Bulk action' %>
+      <%= select_tag :reason, options_for_select(review_rejection_options), include_blank: 'Reason (to reject)', class: 'form-control form-control-sm w-auto', 'aria-label': 'Rejection reason' %>
+      <%= submit_tag 'Apply', class: 'btn btn-sm btn-light', id: 'bulk_apply', data: { confirm: 'Apply to the selected reviews?' } %>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm" id="listing_reviews">
+        <thead>
+          <tr>
+            <th><input type="checkbox" aria-label="Select all" onclick="document.querySelectorAll('#listing_reviews .review-select').forEach(function (box) { box.checked = this.checked; }, this)"></th>
+            <th>Date</th>
+            <th>Rating</th>
+            <th>Of</th>
+            <th>Review</th>
+            <th>By</th>
+            <th>Why it's here</th>
+            <th>Status</th>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @reviews.each do |review| %>
+            <tr id="review_<%= review.id %>">
+              <td><%= check_box_tag 'ids[]', review.id, false, class: 'review-select', id: "select_review_#{review.id}", 'aria-label': "Select review #{review.id}" %></td>
+              <td class="text-nowrap"><%= l(review.created_at, format: :short) %></td>
+              <td><%= review_stars(review.rating) %></td>
+              <td><%= review_subject(review) %> <%= review_channel_badge(review) %></td>
+              <td>
+                <%= review_excerpt(review) %>
+                <% if review.photos.attached? %>
+                  <span class="badge badge-light"><%= pluralize(review.photos.size, 'photo') %></span>
+                <% end %>
+              </td>
+              <td><%= review.display_name %></td>
+              <td class="small">
+                <%= review_reason_text(review) %>
+                <% if review.reports_count.positive? %>
+                  <span class="badge badge-danger"><%= pluralize(review.reports_count, 'report') %></span>
+                <% end %>
+              </td>
+              <td><%= review_status_badge(review) %></td>
+              <td class="actions text-right"><%= link_to 'Open', spree.admin_review_path(review), class: 'btn btn-sm btn-light' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+  <%= paginate @reviews, theme: 'twitter-bootstrap-4' %>
+<% else %>
+  <div class="alert alert-info no-objects-found">No reviews match these filters.</div>
+<% end %>

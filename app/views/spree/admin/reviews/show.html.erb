@@ -1,0 +1,116 @@
+<% content_for :page_title do %>
+  <%= link_to 'Reviews', spree.admin_reviews_path %> / Review #<%= @review.id %>
+<% end %>
+
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h1 class="card-title mb-0 h5"><%= review_stars(@review.rating) %> <%= review_subject(@review) %></h1>
+        <span><%= review_channel_badge(@review) %> <%= review_status_badge(@review) %></span>
+      </div>
+      <div class="card-body">
+        <% if review_reason_text(@review) %>
+          <p class="alert alert-warning py-2 small mb-3"><%= @review.status == 'rejected' ? 'Rejected: ' : 'Waiting because: ' %><%= review_reason_text(@review) %></p>
+        <% end %>
+        <% if @review.title.present? %><h2 class="h6"><%= @review.title %></h2><% end %>
+        <% if @review.written? %>
+          <%= simple_format(@review.body) %>
+        <% else %>
+          <p class="text-muted"><em>Rating only, no written review.</em></p>
+        <% end %>
+        <% if @review.attribute_ratings.present? %>
+          <p class="small text-muted mb-2">
+            <%= @review.attribute_ratings.map { |key, value| "#{key.humanize}: #{value}/5" }.join(' · ') %>
+          </p>
+        <% end %>
+
+        <% if @review.photos.attached? %>
+          <div class="d-flex flex-wrap mb-2" style="gap:.75rem" id="review_photos">
+            <% @review.photos.each do |photo| %>
+              <div class="text-center">
+                <%= link_to main_app.rails_blob_path(photo, disposition: 'inline'), target: '_blank', rel: 'noopener' do %>
+                  <%= review_photo_thumb(@review, photo) %>
+                <% end %>
+                <%= button_to 'Remove', spree.photo_admin_review_path(@review, photo_id: photo.id), method: :delete,
+                                        class: 'btn btn-link btn-sm p-0 d-block', form: { data: { confirm: 'Remove this photo from the review?' } } %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <p class="small text-muted mb-0">
+          <%= @review.helpful_count %> found it helpful · <%= @review.unhelpful_count %> didn't
+          <% if @review.reports_count.positive? %> · <%= link_to pluralize(@review.reports_count, 'open report'), spree.admin_content_reports_path %><% end %>
+        </p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Reply from the store</h2></div>
+      <div class="card-body">
+        <%= form_tag spree.reply_admin_review_path(@review), method: :post do %>
+          <div class="form-group">
+            <%= label_tag :reply_body, 'Shown under the review on the product page', class: 'small text-muted' %>
+            <%= text_area_tag :reply_body, @review.reply_body, rows: 4, maxlength: Spree::Review::REPLY_MAX, class: 'form-control' %>
+          </div>
+          <% if @review.replied_at %>
+            <p class="small text-muted">Last saved <%= l(@review.replied_at, format: :short) %> by <%= @review.reply_author&.email || 'unknown' %>. Clear the text and save to remove it.</p>
+          <% end %>
+          <%= submit_tag 'Save reply', class: 'btn btn-primary btn-sm' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Decision</h2></div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap mb-3" style="gap:.5rem">
+          <% unless @review.published? %>
+            <%= button_to 'Publish', spree.publish_admin_review_path(@review), class: 'btn btn-success btn-sm' %>
+          <% end %>
+          <% unless @review.status == 'hidden' %>
+            <%= button_to 'Hide', spree.hide_admin_review_path(@review), class: 'btn btn-outline-dark btn-sm' %>
+          <% end %>
+        </div>
+        <% unless @review.status == 'rejected' %>
+          <%= form_tag spree.reject_admin_review_path(@review), method: :post, class: 'form-inline' do %>
+            <%= select_tag :reason, options_for_select(review_rejection_options), include_blank: 'Reason…', class: 'form-control form-control-sm mr-2 mb-2', 'aria-label': 'Rejection reason', required: true %>
+            <%= submit_tag 'Reject', class: 'btn btn-outline-danger btn-sm mb-2' %>
+          <% end %>
+        <% end %>
+        <p class="small text-muted mb-0">Rejections need a reason that would apply at any rating. Publishing a reported review closes its open reports.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Details</h2></div>
+      <div class="card-body">
+        <dl class="mb-0 small">
+          <dt>Shown as</dt><dd><%= @review.display_name %></dd>
+          <dt>Customer</dt>
+          <dd><%= @review.user ? link_to(@review.user.email, spree.edit_admin_user_path(@review.user)) : 'Guest or deleted account' %></dd>
+          <dt>Order</dt>
+          <dd><%= @review.order ? link_to(@review.order.number, spree.edit_admin_order_path(@review.order)) : '—' %><%= " · #{@review.variant_label}" if @review.variant_label %></dd>
+          <dt>Verified purchase</dt><dd><%= @review.verified_purchase ? 'Yes' : 'No' %></dd>
+          <dt>Source</dt><dd><%= @review.source %></dd>
+          <dt>Submitted</dt><dd><%= l(@review.created_at, format: :long) %><%= " · edited #{l(@review.edited_at, format: :short)}" if @review.edited_at %></dd>
+          <dt>Published</dt><dd><%= @review.published_at ? l(@review.published_at, format: :long) : '—' %></dd>
+          <dt>Last decision</dt><dd><%= @review.moderated_at ? "#{l(@review.moderated_at, format: :short)} by #{@review.moderated_by&.email || 'unknown'}" : 'Automatic' %></dd>
+          <dt>Points</dt>
+          <dd><%= @review.points_awarded_at ? "#{@review.loyalty_points_credit_transactions.sum(:loyalty_points)} paid #{l(@review.points_awarded_at, format: :short)}" : (@review.incentivized ? 'Offered, not paid yet' : 'None') %></dd>
+          <dt>Channel</dt>
+          <dd>
+            <%= @review.channel.capitalize %>
+            <%= form_tag spree.change_channel_admin_review_path(@review), method: :post, class: 'd-inline' do %>
+              <%= hidden_field_tag :channel, @review.wholesale? ? 'retail' : 'wholesale' %>
+              <%= submit_tag "Move to #{@review.wholesale? ? 'retail' : 'wholesale'}", class: 'btn btn-link btn-sm p-0 ml-2', data: { confirm: 'Retail pages never show wholesale reviews. Move this review?' } %>
+            <% end %>
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
