@@ -1,7 +1,7 @@
 # Deletes a customer's account at their own request (app-store account deletion).
 #
 # Deleted:    OAuth access tokens and grants (revoked), the user's own content (favorites,
-#             follows, messages, live stream likes, avatar), the public profile and its photo,
+#             follows, messages, live stream likes, push subscriptions, avatar), the public profile and its photo,
 #             blocks either way, reports about the user's profile, saved addresses no order
 #             uses, saved payment sources no remaining payment uses, and open carts that never
 #             took a payment. Sources a remaining payment uses are detached from the user instead.
@@ -86,6 +86,7 @@ class AccountDeletion
     Favorite.where(user_id: user.id).delete_all
     UserFollow.where(follower_id: user.id).or(UserFollow.where(following_id: user.id)).delete_all
     LiveStreamLike.where(user_id: user.id).delete_all
+    PushSubscription.where(user_id: user.id).delete_all
     Message.where(sender: user).or(Message.where(receiver: user)).delete_all
     delete_profile_data
     delete_feedback

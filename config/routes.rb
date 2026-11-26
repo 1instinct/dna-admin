@@ -71,6 +71,7 @@ Spree::Core::Engine.add_routes do
     resources :content_assets, except: [:show]
 
     resources :contacts
+    resources :app_settings, only: [:index, :create, :destroy]
 
     resources :products, only: [] do
       resources :product_videos, except: :show do
@@ -83,6 +84,13 @@ Spree::Core::Engine.add_routes do
     resources :threads do
       member do
         get :conversation
+      end
+    end
+
+    resources :push_notifications, only: [:index] do
+      collection do
+        post :send_notification
+        post :notify_product
       end
     end
 
@@ -176,6 +184,12 @@ Spree::Core::Engine.add_routes do
       end
       resources :contacts
       resources :messages
+      resources :push_subscriptions, only: [:create, :destroy]
+      resources :app_settings, only: [] do
+        collection do
+          get :latest
+        end
+      end
       resources :threads
       resources :menu_items, only: [:index, :show] do
         member do
