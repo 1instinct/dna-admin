@@ -24,6 +24,9 @@
     --admin-border: rgba(255,255,255,0.08);
     --admin-shadow: 0 1px 3px rgba(0,0,0,0.4);
     --admin-glow: 0 0 20px <%= theme.primary_color %>26;
+    /* Links: the primary color lifted toward white, readable on dark surfaces. */
+    --admin-link: color-mix(in srgb, <%= theme.primary_color %> 55%, #ffffff);
+    color-scheme: dark;
   }
 
   @media (prefers-color-scheme: light) {
@@ -37,6 +40,8 @@
       --admin-border: rgba(0,0,0,0.08);
       --admin-shadow: 0 1px 3px rgba(0,0,0,0.08);
       --admin-glow: 0 0 20px <%= theme.primary_color %>14;
+      --admin-link: <%= theme.primary_color %>;
+      color-scheme: light;
     }
   }
 
@@ -50,6 +55,9 @@
     --admin-border: rgba(255,255,255,0.08);
     --admin-shadow: 0 1px 3px rgba(0,0,0,0.4);
     --admin-glow: 0 0 20px <%= theme.primary_color %>26;
+    /* Links: the primary color lifted toward white, readable on dark surfaces. */
+    --admin-link: color-mix(in srgb, <%= theme.primary_color %> 55%, #ffffff);
+    color-scheme: dark;
   }
 
   [data-theme="light"] {
@@ -62,6 +70,8 @@
     --admin-border: rgba(0,0,0,0.08);
     --admin-shadow: 0 1px 3px rgba(0,0,0,0.08);
     --admin-glow: 0 0 20px <%= theme.primary_color %>14;
+    --admin-link: <%= theme.primary_color %>;
+    color-scheme: light;
   }
 </style>
 

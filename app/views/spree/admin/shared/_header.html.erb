@@ -1,36 +1,30 @@
+<% theme = AdminTheme.current %>
 <header class="header logged-in">
-  <nav class="navbar fixed-top navbar-dark align-items-middle">
+  <nav class="navbar fixed-top navbar-dark flex-nowrap align-items-center" aria-label="Admin">
     <div class="col-3 col-sm-4 p-0 d-lg-none">
       <button
         id="sidebar-open"
-        class="navbar-toggler h-100 text-light"
+        class="navbar-toggler h-100"
         type="button"
+        aria-controls="main-sidebar"
         aria-expanded="false"
-        aria-label="Toggle navigation">
+        aria-label="Open navigation">
         <%= svg_icon name: "menu.svg", width: '20', height: '20' %>
       </button>
     </div>
-    <div class="col text-center text-lg-left">
-      <% if AdminTheme.current.logo.attached? %>
-        <%= image_tag main_app.rails_storage_proxy_path(AdminTheme.current.logo, disposition: :inline), class: 'admin-logo', alt: AdminTheme.current.brand_name, style: 'height: 32px; object-fit: contain;' %>
-      <% else %>
-        <span class="admin-brand-text"><%= AdminTheme.current.brand_name %></span>
+
+    <div class="col text-center text-lg-left px-0 text-truncate">
+      <%= link_to spree.admin_path, class: 'admin-brand', title: theme.brand_name do %>
+        <% if theme.logo.attached? %>
+          <%= image_tag main_app.rails_storage_proxy_path(theme.logo, disposition: :inline), class: 'admin-logo', alt: theme.brand_name %>
+        <% else %>
+          <span class="admin-brand-text"><%= theme.brand_name %></span>
+        <% end %>
       <% end %>
-      
     </div>
 
-  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-xs-9 col-md-10">
-          <div class="navbar-right">
-            <%= render partial: 'spree/admin/shared/account_nav' %>
-          </div>
-        </div>
-      </div>
+    <div class="col-3 col-sm-4 text-right p-0">
+      <%= render partial: 'spree/admin/shared/account_nav' %>
     </div>
   </nav>
 </header>
-
-
-<!-- image_tag(Spree::Config[:admin_interface_logo], id: 'logo'), logo path -->

@@ -68,6 +68,42 @@ class AdminSignInTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/login'
   end
 
+  test 'with ADMIN_URL set, the reset email links to the admin' do
+    with_env('ADMIN_URL' => 'https://admin.example.com') do
+      post '/password/recover', params: { spree_user: { email: 'admin@example.com' } }
+    end
+
+    body = ActionMailer::Base.deliveries.last.body.encoded
+    assert_match %r{https://admin\.example\.com/user/spree_user/password/edit\?reset_password_token=}, body
+  end
+
+  test 'without ADMIN_URL, the reset email keeps the store URL' do
+    with_env('ADMIN_URL' => nil) do
+      post '/password/recover', params: { spree_user: { email: 'admin@example.com' } }
+    end
+
+    assert_match %r{test\.example\.com/user/spree_user/password/edit}, ActionMailer::Base.deliveries.last.body.encoded
+  end
+
+  test 'a forged Host header does not change the reset link' do
+    with_env('ADMIN_URL' => 'https://admin.example.com') do
+      post '/password/recover', params: { spree_user: { email: 'admin@example.com' } },
+                                headers: { 'Host' => 'evil.example.net' }
+    end
+
+    assert_no_match(/evil\.example\.net/, ActionMailer::Base.deliveries.last.body.encoded)
+  end
+
+  private
+
+  def with_env(vars)
+    saved = vars.keys.to_h { |k| [k, ENV[k]] }
+    vars.each { |k, v| ENV[k] = v }
+    yield
+  ensure
+    saved.each { |k, v| ENV[k] = v }
+  end
+
   test 'a signed-out JSON request gets a 401, not the sign-in page' do
     get '/admin/orders', headers: { 'Accept' => 'application/json' }
 

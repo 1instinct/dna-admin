@@ -20,7 +20,7 @@
 
     <div class="field" style="margin: 10px;">
       <%= f.label :menu_location_id %>
-      <%= f.select(:menu_location_id, @menu_location.map{|r| [r.title, r.id]},{:include_blank=> "Select"}, {:style=> "height: 29px; width: 210px;"}) %>
+      <%= f.select(:menu_location_id, @menu_location.map{|r| [r.title, r.id]},{:include_blank=> "Select"}, {class: 'form-control', style: 'max-width: 320px;'}) %>
     </div>
   </div>
 

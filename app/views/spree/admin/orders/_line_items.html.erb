@@ -28,10 +28,10 @@
                 <%= "(#{item.options_text})" if item.options_text.present? %>
               </td>
               <td class="line-item-price text-center"><%= item.single_money.to_html %></td>
-              <td class="line-item-qty-show text-center" style="width:120px;">
+              <td class="line-item-qty-show text-center" style="min-width: 88px;">
                 <%= item.quantity %>
               </td>
-              <td class="line-item-qty-edit is-hidden" style="width:120px;">
+              <td class="line-item-qty-edit is-hidden" style="min-width: 88px;">
                 <%= number_field_tag :quantity, item.quantity, min: 0, class: "line_item_quantity form-control", size: 5 %>
               </td>
               <td class="line-item-total text-center"><%= line_item_shipment_price(item, item.quantity) %></td>

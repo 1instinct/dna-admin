@@ -1,4 +1,14 @@
 module ConversationHelper
+  # A round avatar with the person's initials, drawn locally. (These used to be
+  # images from ui-avatars.com, which put every customer's name in a request
+  # to a third party.)
+  def initials_avatar(name, color:, size: 40)
+    initials = name.to_s.split(/[\s@._-]+/).reject(&:blank?).first(2).map { |part| part[0] }.join.upcase.presence || '?'
+    content_tag(:span, initials,
+                class: 'initials-avatar', title: name, role: 'img', 'aria-label': name.to_s,
+                style: "width: #{size}px; height: #{size}px; font-size: #{(size * 0.4).round}px; background: #{color};")
+  end
+
   def fetch_users(user_hash)
     users = []
     if user_hash.second == "Spree::User"
@@ -13,7 +23,7 @@ module ConversationHelper
       users << {
         type: 'Contact',
         id: user_1&.id,
-        name:  user_1&.full_name
+        name:  user_1&.full_name.presence || user_1&.email
       }
     end
     if user_hash.fourth == "Spree::User"
@@ -28,7 +38,7 @@ module ConversationHelper
       users << {
         type: 'Contact',
         id: user_2&.id,
-        name:  user_2&.email
+        name:  user_2&.full_name.presence || user_2&.email
       }
     end
     return users
@@ -63,7 +73,6 @@ module ConversationHelper
         name: message&.receiver&.full_name
       }
     end
-    puts "********************#{users.inspect}"
     return users
   end
 end
