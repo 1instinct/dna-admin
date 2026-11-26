@@ -58,6 +58,15 @@ class Spree::OrderWholesaleChannelTest < ActionDispatch::IntegrationTest
     assert_equal 'wholesale', order.reload.channel, 'unknown values are ignored'
   end
 
+  test 'the storefront account says whether the user is wholesale' do
+    get '/api/v2/storefront/account', headers: auth(reviews_wholesale_user)
+    assert_response :success
+    assert_equal true, JSON.parse(response.body)['data']['attributes']['is_wholesale']
+
+    get '/api/v2/storefront/account', headers: auth(create(:user))
+    assert_equal false, JSON.parse(response.body)['data']['attributes']['is_wholesale']
+  end
+
   test 'the storefront checkout cannot set the channel' do
     post '/api/v2/storefront/cart'
     token = JSON.parse(response.body)['data']['attributes']['token']

@@ -233,3 +233,13 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Product reviews: public read endpoints. Contract: docs/plans/2026-11-26-reviews-api-contract.md.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      get 'products/:product_id/review_summary', to: 'product_reviews#summary', as: :product_review_summary
+      get 'products/:product_id/reviews', to: 'product_reviews#index', as: :product_reviews_list
+    end
+  end
+end

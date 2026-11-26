@@ -41,11 +41,10 @@ class Reviews::SubmitTest < ActiveSupport::TestCase
   end
 
   test 'blocked terms are held' do
-    Profiles.config.blocked_terms = ['badword']
-    review = reviews_submit(@product, user: buyer, rating: 5, body: 'what a badword top').review
-    assert_equal 'pending', review.status
-  ensure
-    Profiles.config.blocked_terms = nil
+    with_moderation_lists(blocked: ['badword']) do
+      review = reviews_submit(@product, user: buyer, rating: 5, body: 'what a badword top').review
+      assert_equal 'pending', review.status
+    end
   end
 
   test 'photos wait for approval when the setting is on' do
