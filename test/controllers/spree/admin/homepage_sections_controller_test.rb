@@ -46,10 +46,10 @@ class Spree::Admin::HomepageSectionsControllerTest < ActionDispatch::Integration
     section = HomepageSection.create!(title: 'Links', section_type: 'app_links', position: 0,
                                       settings: { 'ios_url' => '', 'android_url' => '' })
     patch admin_homepage_section_path(section), params: { homepage_section: {
-      settings_fields: { ios_url: 'https://apps.apple.com/app/id1661874489' }
+      settings_fields: { ios_url: 'https://apps.apple.com/app/id1234567890' }
     } }
     section.reload
-    assert_equal 'https://apps.apple.com/app/id1661874489', section.settings['ios_url']
+    assert_equal 'https://apps.apple.com/app/id1234567890', section.settings['ios_url']
     assert_equal '', section.settings['android_url']
     assert_kind_of Hash, section.settings
   end
@@ -86,7 +86,7 @@ class Spree::Admin::HomepageSectionsControllerTest < ActionDispatch::Integration
     assert_no_difference 'HomepageSection.count' do
       post admin_homepage_sections_path, params: { homepage_section: {
         title: 'Links', section_type: 'app_links', position: 0,
-        settings_fields: { ios_url: 'apps.apple.com/app/id1661874489' }
+        settings_fields: { ios_url: 'apps.apple.com/app/id1234567890' }
       } }
     end
     assert_response :ok # re-rendered :new, not a redirect
@@ -98,7 +98,7 @@ class Spree::Admin::HomepageSectionsControllerTest < ActionDispatch::Integration
     assert_no_difference 'HomepageSection.count' do
       post admin_homepage_sections_path, params: { homepage_section: {
         title: 'Bar', section_type: 'announcement_bar', position: 0,
-        settings_fields: { message: 'Hi', cta_href: 'beeper.buzz/app' }
+        settings_fields: { message: 'Hi', cta_href: 'example.com/app' }
       } }
     end
     assert_match(/Button link/, flash[:error].to_s)
