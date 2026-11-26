@@ -60,5 +60,13 @@
         class: "nav-link #{'active' if current == :prices}" %>
 
     <% end if can?(:admin, Spree::Price) && !@product.deleted? %>
+
+    <%= content_tag :li do %>
+      <%= link_to_with_icon 'review.svg',
+        'Reviews',
+        spree.admin_product_product_reviews_url(@product),
+        class: "nav-link #{'active' if current == :reviews}" %>
+
+    <% end if can?(:admin, Spree::Review) %>
   </ul>
 <% end %>

@@ -1,0 +1,41 @@
+<div class="card mb-3" id="product_review_attributes">
+  <div class="card-header d-flex align-items-center">
+    <h2 class="card-title mb-0 h5">Question averages</h2>
+    <%= link_to 'Edit questions', spree.admin_review_attributes_path, class: 'ml-auto small' if can?(:admin, Spree::ReviewAttribute) %>
+  </div>
+  <div class="card-body">
+    <% rows = product_review_attribute_rows(stat, attributes_by_key) %>
+    <% if rows.empty? %>
+      <p class="text-muted mb-0">No answers to review questions in this channel yet.</p>
+    <% else %>
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th class="text-right">Average (1 to 5)</th>
+            <th class="text-right">Answers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |row| %>
+            <tr id="product_review_attribute_<%= row[:key] %>">
+              <td>
+                <%= row[:label] %>
+                <% if row[:attribute].nil? %>
+                  <small class="text-muted d-block">Question no longer exists (key <code><%= row[:key] %></code>)</small>
+                <% elsif row[:attribute].bipolar? %>
+                  <small class="text-muted d-block">
+                    1 = <%= row[:attribute].low_label %>, 5 = <%= row[:attribute].high_label %>.
+                    <%= product_review_bipolar_note(row[:attribute], row[:average]) %>
+                  </small>
+                <% end %>
+              </td>
+              <td class="text-right"><%= format('%.2f', row[:average]) %></td>
+              <td class="text-right"><%= row[:count] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<%= render partial: 'spree/admin/shared/product_tabs', locals: { current: :reviews } %>
+
+<% content_for :page_actions do %>
+  <%= yield :page_actions %>
+  <%= product_preview_link(@product) %>
+<% end %>
+
+<ul class="nav nav-pills mb-3" id="product_review_scopes" aria-label="Review channel">
+  <% Spree::ReviewStat::SCOPES.each do |scope| %>
+    <li class="nav-item">
+      <%= link_to Spree::Admin::ProductReviewsHelper::PRODUCT_REVIEW_SCOPE_LABELS.fetch(scope),
+                  spree.admin_product_product_reviews_path(@product, scope: (scope unless scope == 'retail')),
+                  class: "nav-link #{'active' if scope == @scope}", id: "product_review_scope_#{scope}",
+                  'aria-current': (scope == @scope ? 'page' : nil) %>
+    </li>
+  <% end %>
+</ul>
+<p class="text-muted small mb-3">
+  Stats count published reviews only. Retail is what the public product page shows; wholesale pages show all channels.
+</p>
+
+<div class="row">
+  <div class="col-12 col-lg-5">
+    <%= render 'stats', stat: @stat, status_counts: @status_counts %>
+  </div>
+  <div class="col-12 col-lg-7">
+    <%= render 'attribute_averages', stat: @stat, attributes_by_key: @attributes_by_key %>
+  </div>
+</div>
+
+<%= render 'ai_summary', stat: @summary_stat, settings: @settings %>
+
+<%= render 'reviews_table', reviews: @reviews %>

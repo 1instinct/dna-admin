@@ -107,6 +107,16 @@
     <ul class="nav nav-sidebar border-bottom" id="sidebarReviews">
       <%= tab :reviews, label: 'Reviews', icon: 'review.svg', url: spree.admin_reviews_path %>
       <%# reviews-menu: more review tabs go below this line %>
+      <% if can? :admin, Spree::ReviewAttribute %>
+        <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'review_attributes' %>" id="sidebar_review_questions">
+          <%= link_to_with_icon 'list.svg', 'Review questions', spree.admin_review_attributes_path, class: 'w-100 p-3 d-flex align-items-center' %>
+        </li>
+      <% end %>
+      <% if can? :admin, Spree::ReviewSetting %>
+        <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'review_settings' %>" id="sidebar_review_settings">
+          <%= link_to_with_icon 'settings.svg', 'Review settings', spree.edit_admin_review_settings_path, class: 'w-100 p-3 d-flex align-items-center' %>
+        </li>
+      <% end %>
     </ul>
   <% end %>
 

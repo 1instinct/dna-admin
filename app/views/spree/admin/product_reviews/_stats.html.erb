@@ -1,0 +1,38 @@
+<div class="card mb-3" id="product_review_stats">
+  <div class="card-header"><h2 class="card-title mb-0 h5">Ratings</h2></div>
+  <div class="card-body">
+    <% if stat.ratings_count.zero? %>
+      <p class="text-muted mb-3">No published reviews in this channel yet.</p>
+    <% else %>
+      <div class="d-flex align-items-baseline mb-3">
+        <span class="h2 mb-0 mr-2" id="product_review_average"><%= product_review_average(stat) %></span>
+        <span class="mr-3"><%= review_stars(stat.average.round) %></span>
+      </div>
+    <% end %>
+
+    <dl class="row mb-3">
+      <dt class="col-7 font-weight-normal text-muted">Ratings</dt>
+      <dd class="col-5 mb-1 text-right" id="product_review_ratings_count"><%= stat.ratings_count %></dd>
+      <dt class="col-7 font-weight-normal text-muted">With written text</dt>
+      <dd class="col-5 mb-1 text-right" id="product_review_written_count"><%= stat.reviews_count %></dd>
+      <dt class="col-7 font-weight-normal text-muted">With photos</dt>
+      <dd class="col-5 mb-1 text-right"><%= stat.photos_count %> <%= 'photo'.pluralize(stat.photos_count) %></dd>
+      <dt class="col-7 font-weight-normal text-muted">Waiting for moderation</dt>
+      <dd class="col-5 mb-1 text-right" id="product_review_pending_count"><%= status_counts.fetch('pending', 0) %></dd>
+    </dl>
+
+    <div id="product_review_histogram" aria-label="Rating breakdown">
+      <% product_review_histogram_rows(stat).each do |stars, count, percent| %>
+        <div class="d-flex align-items-center mb-1" id="product_review_histogram_<%= stars %>">
+          <span class="text-nowrap small" style="width: 3.5rem;"><%= stars %> <%= 'star'.pluralize(stars) %></span>
+          <div class="progress flex-grow-1 mx-2" style="height: 8px;">
+            <div class="progress-bar bg-warning" role="progressbar" style="width: <%= percent %>%;"
+                 aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100"
+                 aria-label="<%= stars %> stars: <%= count %>"></div>
+          </div>
+          <span class="small text-muted text-right" style="width: 4.5rem;"><%= count %> (<%= percent %>%)</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

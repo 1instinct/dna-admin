@@ -1,0 +1,89 @@
+<% content_for :page_title do %>
+  Review settings
+<% end %>
+
+<%= render 'spree/admin/shared/error_messages', target: @settings %>
+
+<div class="alert alert-info" id="review_settings_compliance">
+  <strong>The star rating never changes what happens to a review.</strong>
+  Publishing, holding for moderation and loyalty points work the same for a 1-star and a 5-star review.
+  Reviews are held only for their text (links, contact details, blocked words), photos waiting for approval,
+  auto-publish being off, or customer reports. This keeps us within the FTC rule on consumer reviews
+  (16 CFR 465) and Google's review policies, so none of the settings below can depend on the rating.
+</div>
+
+<%= form_for @settings, as: :review_setting, url: spree.admin_review_settings_path, method: :patch,
+                        html: { id: 'review_settings_form' } do |f| %>
+  <div class="row">
+    <div class="col-12 col-lg-6">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">On the site</h2></div>
+        <div class="card-body">
+          <%= render 'check_box', f: f, field: :enabled, label: 'Product reviews',
+                                  help: 'Turns reviews on. While this is off, customers can\'t submit reviews.' %>
+          <%= render 'check_box', f: f, field: :store_reviews_enabled, label: 'Store reviews',
+                                  help: 'Customers can also review the store itself ("How was ordering from DNA?"). Store reviews never earn points.' %>
+          <%= render 'check_box', f: f, field: :questions_enabled, label: 'Product questions',
+                                  help: 'Shoppers can ask questions on product pages. Only answered questions are shown publicly.' %>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Moderation</h2></div>
+        <div class="card-body">
+          <%= render 'check_box', f: f, field: :auto_publish, label: 'Publish reviews automatically',
+                                  help: 'Reviews whose text passes the content filter go live straight away. When off, every review waits in the Reviews queue for a person.' %>
+          <%= render 'check_box', f: f, field: :photos_require_approval, label: 'Photos need approval',
+                                  help: 'A review with photos waits in the queue until someone checks the photos, whatever its rating.' %>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Loyalty points</h2></div>
+        <div class="card-body">
+          <p class="small text-muted">
+            Paid once, the first time a signed-in customer's product review is published. The same for every rating
+            and both channels; reviews that earn points are labelled as incentivized on the product page.
+          </p>
+          <%= render 'number_field', f: f, field: :points_per_review, label: 'Points per review', unit: 'points', min: 0, max: 100_000,
+                                     help: 'Set to 0 to stop offering points (reviews are then no longer labelled incentivized).' %>
+          <%= render 'number_field', f: f, field: :points_photo_bonus, label: 'Extra points for photos', unit: 'points', min: 0, max: 100_000,
+                                     help: 'Added when the published review has at least one photo.' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">Review request emails</h2></div>
+        <div class="card-body">
+          <p class="small text-muted">
+            Spree has no "delivered" state, so emails are timed from when the order's last shipment shipped.
+          </p>
+          <%= render 'number_field', f: f, field: :request_delay_days, label: 'Send after (domestic)', unit: 'days', min: 0, max: 365,
+                                     help: 'Days after shipping before the first email, when the order ships within the store\'s default country.' %>
+          <%= render 'number_field', f: f, field: :international_request_delay_days, label: 'Send after (international)', unit: 'days', min: 0, max: 365,
+                                     help: 'Days after shipping when the ship-to country differs from the store\'s default country.' %>
+          <%= render 'number_field', f: f, field: :reminder_delay_days, label: 'Reminder after', unit: 'days', min: 0, max: 365,
+                                     help: 'One reminder, this many days after the first email, only if nothing has been reviewed yet.' %>
+          <%= render 'number_field', f: f, field: :request_expiry_days, label: 'Links expire after', unit: 'days', min: 0, max: 365,
+                                     help: 'Days after the email is sent before its review links stop working.' %>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><h2 class="card-title mb-0 h5">AI summary</h2></div>
+        <div class="card-body">
+          <%= render 'check_box', f: f, field: :ai_summary_enabled, label: 'Write AI summaries',
+                                  help: 'Product pages show a short AI-written summary of retail reviews, labelled "AI summary of N reviews". You can hide it per product on the product\'s Reviews tab. Generation arrives in milestone M7.' %>
+          <%= render 'number_field', f: f, field: :ai_summary_min_reviews, label: 'Minimum reviews', unit: 'reviews', min: 1, max: nil,
+                                     help: 'A product needs at least this many published retail reviews before it gets a summary.' %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions" data-hook="buttons">
+    <%= button 'Save settings', 'save.svg' %>
+  </div>
+<% end %>

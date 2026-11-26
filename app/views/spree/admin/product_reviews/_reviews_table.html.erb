@@ -1,0 +1,34 @@
+<div class="card mb-3" id="product_reviews_list">
+  <div class="card-header"><h2 class="card-title mb-0 h5">Reviews (<%= reviews.total_count %>)</h2></div>
+  <% if reviews.any? %>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" id="listing_product_reviews">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Rating</th>
+            <th>Review</th>
+            <th>Channel</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% reviews.each do |review| %>
+            <tr id="product_review_<%= review.id %>">
+              <td class="text-nowrap"><%= link_to l(review.created_at, format: :short), spree.admin_review_path(review) %></td>
+              <td><%= review_stars(review.rating) %></td>
+              <td><%= link_to review_excerpt(review, length: 120), spree.admin_review_path(review), class: 'text-body' %></td>
+              <td><%= product_review_channel_label(review) %></td>
+              <td><%= review_status_badge(review) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="card-body">
+      <p class="text-muted mb-0 no-objects-found">No reviews of this product in this channel.</p>
+    </div>
+  <% end %>
+</div>
+<%= paginate reviews %>

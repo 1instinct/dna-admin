@@ -1,0 +1,9 @@
+<%= f.field_container field, class: ['form-group'] do %>
+  <%= f.label field, label %>
+  <div class="input-group" style="max-width: 14rem;">
+    <%= f.number_field field, class: 'form-control', min: min, max: max, step: 1, required: true %>
+    <div class="input-group-append"><span class="input-group-text"><%= unit %></span></div>
+  </div>
+  <small class="form-text text-muted"><%= help %></small>
+  <%= f.error_message_on field %>
+<% end %>

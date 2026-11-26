@@ -1,0 +1,67 @@
+<% summary = stat.ai_summary.presence %>
+<div class="card mb-3" id="product_review_ai_summary">
+  <div class="card-header d-flex align-items-center flex-wrap">
+    <h2 class="card-title mb-0 h5 mr-2">AI summary</h2>
+    <% if summary %>
+      <% if stat.ai_summary_hidden %>
+        <span class="badge badge-dark" id="ai_summary_state">Hidden from the product page</span>
+      <% else %>
+        <span class="badge badge-success" id="ai_summary_state">Shown on the product page</span>
+      <% end %>
+    <% end %>
+    <div class="ml-auto d-flex">
+      <% if summary %>
+        <%= button_to (stat.ai_summary_hidden ? 'Show on product page' : 'Hide from product page'),
+                      spree.toggle_ai_summary_admin_product_product_reviews_path(@product, scope: (@scope unless @scope == 'retail')),
+                      method: :post, form_class: 'mr-2', id: 'toggle_ai_summary',
+                      class: "btn btn-sm #{stat.ai_summary_hidden ? 'btn-outline-success' : 'btn-outline-secondary'}",
+                      data: { confirm: (stat.ai_summary_hidden ? nil : 'Hide this AI summary from the product page? You can show it again later.') } %>
+      <% end %>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="regenerate_ai_summary" disabled
+              title="Generation isn't built yet (milestone M7)">Regenerate</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if summary %>
+      <p class="h6 mb-1" id="ai_summary_headline"><%= summary['headline'] %></p>
+      <p class="mb-3" id="ai_summary_text"><%= summary['summary'] %></p>
+      <div class="row">
+        <% [['pros', 'Customers liked'], ['cons', 'Customers mentioned problems with']].each do |key, heading| %>
+          <div class="col-12 col-md-6 mb-2" id="ai_summary_<%= key %>">
+            <p class="small text-muted mb-1"><%= heading %></p>
+            <% items = product_review_ai_items(summary, key) %>
+            <% if items.empty? %>
+              <p class="small text-muted mb-0">None listed.</p>
+            <% else %>
+              <ul class="list-unstyled mb-0">
+                <% items.each do |item| %>
+                  <li>
+                    <%= item['label'] %>
+                    <span class="text-muted small">(<%= pluralize(item['mentions'].to_i, 'mention') %>)</span>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      <p class="small text-muted mb-0" id="ai_summary_meta">
+        Written from <%= pluralize(stat.ai_summary_review_count.to_i, 'retail review') %>
+        <% if stat.ai_summary_generated_at %>on <%= l(stat.ai_summary_generated_at, format: :long) %><% end %>.
+        The product page labels it “AI summary of <%= stat.ai_summary_review_count.to_i %> reviews”.
+      </p>
+    <% else %>
+      <p class="mb-0" id="ai_summary_empty">This product has no AI summary yet.</p>
+    <% end %>
+    <hr>
+    <p class="small text-muted mb-0">
+      The summary is always written from retail reviews, whichever channel is selected above, and must
+      reflect criticism as often as reviews raise it. Automatic generation arrives in milestone M7: once it's
+      built, a product gets a summary when it has at least <%= settings.ai_summary_min_reviews %> published reviews
+      <% unless settings.ai_summary_enabled %>
+        and AI summaries are switched on in <%= link_to 'Review settings', spree.edit_admin_review_settings_path %> (currently off)
+      <% end %>.
+      Hiding or showing a summary is logged with your admin user ID and the time.
+    </p>
+  </div>
+</div>

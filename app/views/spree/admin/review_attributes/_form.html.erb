@@ -1,0 +1,95 @@
+<%= render 'spree/admin/shared/error_messages', target: @review_attribute %>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+    <%= f.field_container :label, class: ['form-group'] do %>
+      <%= f.label :label, 'Question label' %> <span class="required">*</span>
+      <%= f.text_field :label, class: 'form-control', maxlength: 60, required: true %>
+      <small class="form-text text-muted">What customers see, e.g. "Quality" or "Fit". Up to 60 characters.</small>
+      <%= f.error_message_on :label %>
+    <% end %>
+
+    <%= f.field_container :key, class: ['form-group'] do %>
+      <%= f.label :key, 'Key' %> <span class="required">*</span>
+      <% if @review_attribute.new_record? %>
+        <%= f.text_field :key, class: 'form-control', maxlength: 40, required: true, pattern: '[a-z0-9_]{1,40}',
+                               placeholder: 'e.g. fit' %>
+        <small class="form-text text-muted">
+          Lowercase letters, digits and underscores. Reviews store answers under this key, so it
+          <strong>can't be changed later</strong>.
+        </small>
+      <% else %>
+        <%= f.text_field :key, class: 'form-control', disabled: true %>
+        <small class="form-text text-muted">Can't be changed: reviews store their answers under this key.</small>
+      <% end %>
+      <%= f.error_message_on :key %>
+    <% end %>
+
+    <%= f.field_container :kind, class: ['form-group'] do %>
+      <%= f.label :kind, 'Answer type' %>
+      <%= f.select :kind, review_attribute_kind_options, {}, class: 'form-control', id: 'review_attribute_kind' %>
+      <small class="form-text text-muted">
+        1 to 5 scale: higher is better (e.g. Quality). Two-ended scale: 1 and 5 are opposite ends and 3 is the
+        middle (e.g. Fit, from "Runs small" to "Runs large").
+        <% if @review_attribute.persisted? %>Changing the type changes how existing answers read.<% end %>
+      </small>
+      <%= f.error_message_on :kind %>
+    <% end %>
+
+    <div class="row <%= 'd-none' unless @review_attribute.bipolar? %>" id="review_attribute_end_labels">
+      <div class="col-12">
+        <p class="small text-muted mb-2">Two-ended scale only: what 1 and 5 mean.</p>
+      </div>
+      <div class="col-6">
+        <%= f.field_container :low_label, class: ['form-group'] do %>
+          <%= f.label :low_label, 'Label for 1' %>
+          <%= f.text_field :low_label, class: 'form-control', maxlength: 40, placeholder: 'e.g. Runs small' %>
+          <%= f.error_message_on :low_label %>
+        <% end %>
+      </div>
+      <div class="col-6">
+        <%= f.field_container :high_label, class: ['form-group'] do %>
+          <%= f.label :high_label, 'Label for 5' %>
+          <%= f.text_field :high_label, class: 'form-control', maxlength: 40, placeholder: 'e.g. Runs large' %>
+          <%= f.error_message_on :high_label %>
+        <% end %>
+      </div>
+    </div>
+
+    <%= f.field_container :applies_to, class: ['form-group'] do %>
+      <%= f.label :applies_to, 'Asked in' %>
+      <%= f.select :applies_to, review_attribute_applies_to_options, {}, class: 'form-control' %>
+      <small class="form-text text-muted">Store review questions (e.g. "Delivery") ignore taxons.</small>
+      <%= f.error_message_on :applies_to %>
+    <% end %>
+
+    <%= f.field_container :taxon_ids, class: ['form-group'] do %>
+      <%= f.label :taxon_ids, 'Taxons' %>
+      <%= f.select :taxon_ids, review_attribute_taxon_options, { include_hidden: true },
+                   multiple: true, class: 'form-control select2', id: 'review_attribute_taxon_ids' %>
+      <small class="form-text text-muted">
+        No taxons = every product. With taxons, the question is asked about products in any of them, including
+        their child taxons.
+      </small>
+    <% end %>
+
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
+        <%= f.check_box :active, class: 'custom-control-input' %>
+        <%= f.label :active, 'Active', class: 'custom-control-label' %>
+      </div>
+      <small class="form-text text-muted ml-4">Inactive questions aren't asked; answers already given are kept.</small>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var kind = document.getElementById('review_attribute_kind');
+    var labels = document.getElementById('review_attribute_end_labels');
+    if (!kind || !labels) return;
+    kind.addEventListener('change', function () {
+      labels.classList.toggle('d-none', kind.value !== 'bipolar');
+    });
+  })();
+</script>

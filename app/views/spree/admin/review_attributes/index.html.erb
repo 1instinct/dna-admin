@@ -1,0 +1,72 @@
+<% content_for :page_title do %>
+  Review questions
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to 'New question', spree.new_admin_review_attribute_path, class: 'btn-success', icon: 'add.svg', id: 'new_review_attribute_link' %>
+<% end %>
+
+<p class="text-muted">
+  Extra questions in the review form, such as "Quality" or "Fit". Customers can skip them. Product questions with no
+  taxons are asked about every product; with taxons, only about products in those taxons (or their children).
+  Drag rows to change the order they're asked in.
+</p>
+
+<% if @review_attributes.empty? %>
+  <div class="alert alert-info no-objects-found">No review questions yet.</div>
+<% else %>
+  <div class="table-responsive">
+    <table class="table sortable" id="listing_review_attributes"
+           data-sortable-link="<%= spree.update_positions_admin_review_attributes_path %>">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Question</th>
+          <th>Key</th>
+          <th>Answer</th>
+          <th>Asked in</th>
+          <th>Taxons</th>
+          <th class="text-right">Answers</th>
+          <th>Status</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody id="sortVert">
+        <% @review_attributes.each do |attribute| %>
+          <% answers = @answer_counts.fetch(attribute.key, 0) %>
+          <tr id="<%= spree_dom_id attribute %>" class="<%= 'text-muted' unless attribute.active %>">
+            <td class="move-handle text-center"><%= svg_icon name: 'sort.svg', width: '18', height: '18' %></td>
+            <td><%= link_to attribute.label, spree.edit_admin_review_attribute_path(attribute) %></td>
+            <td><code><%= attribute.key %></code></td>
+            <td><%= review_attribute_kind_label(attribute) %></td>
+            <td><%= Spree::Admin::ReviewAttributesHelper::REVIEW_ATTRIBUTE_APPLIES_TO_LABELS.fetch(attribute.applies_to, attribute.applies_to) %></td>
+            <td><%= attribute.applies_to == 'product' ? review_attribute_taxon_names(attribute) : content_tag(:span, 'n/a', class: 'text-muted') %></td>
+            <td class="text-right"><%= answers %></td>
+            <td>
+              <% if attribute.active %>
+                <span class="badge badge-success">Active</span>
+              <% else %>
+                <span class="badge badge-light">Inactive</span>
+              <% end %>
+            </td>
+            <td class="actions text-right text-nowrap">
+              <%= link_to_with_icon('edit.svg', 'Edit', spree.edit_admin_review_attribute_path(attribute),
+                                    class: 'btn btn-primary btn-sm', no_text: true, data: { action: 'edit' }) %>
+              <%= button_to (attribute.active ? 'Deactivate' : 'Activate'), spree.admin_review_attribute_path(attribute),
+                            method: :patch, params: { 'review_attribute[active]' => !attribute.active },
+                            form_class: 'd-inline-block', class: 'btn btn-sm btn-light',
+                            id: "toggle_review_attribute_#{attribute.id}" %>
+              <% if answers.zero? %>
+                <%= link_to_delete(attribute, { url: spree.admin_review_attribute_path(attribute), no_text: true }) %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <p class="small text-muted">
+    A question that reviews have answered can't be deleted, because its answers are stored under its key.
+    Deactivate it instead: it stops being asked, and existing answers stay.
+  </p>
+<% end %>

@@ -269,5 +269,15 @@ Spree::Core::Engine.add_routes do
       end
     end
     # reviews-admin-routes: more review admin routes go below this line
+    # Product "Reviews" tab: /admin/products/:product_id/reviews (stats, AI summary, that product's reviews).
+    resources :products, only: [] do
+      resources :product_reviews, only: :index, path: 'reviews' do
+        collection { post :toggle_ai_summary }
+      end
+    end
+    resource :review_settings, only: %i[show edit update]
+    resources :review_attributes, path: 'review_questions', except: :show do
+      collection { post :update_positions }
+    end
   end
 end

@@ -1,0 +1,10 @@
+<% content_for :page_title do %>
+  <%= link_to 'Review questions', spree.admin_review_attributes_path %> &raquo; New question
+<% end %>
+
+<%= form_for [:admin, @review_attribute], html: { id: 'new_review_attribute_form' } do |f| %>
+  <fieldset>
+    <%= render 'form', f: f %>
+    <%= render 'spree/admin/shared/new_resource_links' %>
+  </fieldset>
+<% end %>
