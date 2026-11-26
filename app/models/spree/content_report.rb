@@ -20,10 +20,31 @@ module Spree
 
     scope :open_first, -> { order(Arel.sql("CASE WHEN status = 'open' THEN 0 ELSE 1 END"), created_at: :desc) }
     scope :about_profile, ->(profile) { where(reportable_type: Spree::UserProfile.name, reportable_id: profile.id) }
+    scope :about_review, ->(review) { where(reportable_type: Spree::Review.name, reportable_id: review.id) }
+
+    # Open reports on one review that send it back to moderation (Reviews::Reports).
+    REVIEW_HOLD_THRESHOLD = 3
 
     def self.for_profile(profile, reporter:, reason:, details: nil)
       new(reporter: reporter, reportable: profile, reason: reason.to_s, details: details.to_s.strip.presence,
           snapshot: profile_snapshot(profile))
+    end
+
+    def self.for_review(review, reporter:, reason:, details: nil)
+      new(reporter: reporter, reportable: review, reason: reason.to_s, details: details.to_s.strip.presence,
+          snapshot: review_snapshot(review))
+    end
+
+    def self.review_snapshot(review)
+      {
+        'product' => review.reviewable.try(:name), 'rating' => review.rating, 'title' => review.title,
+        'body' => review.body, 'display_name' => review.display_name, 'photos' => review.photos.count,
+        'status' => review.status
+      }
+    end
+
+    def review?
+      reportable_type == Spree::Review.name
     end
 
     def self.profile_snapshot(profile)

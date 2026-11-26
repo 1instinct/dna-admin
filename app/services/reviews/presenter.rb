@@ -51,6 +51,37 @@ module Reviews
       }
     end
 
+    STATUS_MESSAGES = {
+      'published' => 'Your review is live.',
+      'pending' => "Thanks! We're checking it before it goes live.",
+      'rejected' => "This review isn't shown on the site.",
+      'hidden' => "This review isn't shown on the site."
+    }.freeze
+
+    # The customer's own review: the public shape plus status and points. Never names a moderation
+    # reason.
+    def own_review(review, settings: Spree::ReviewSetting.current)
+      review(review).merge(
+        status: review.status,
+        status_message: STATUS_MESSAGES.fetch(review.status),
+        product: review.product && product(review.product),
+        points: points(review, settings)
+      )
+    end
+
+    def product(product)
+      { id: product.id, slug: product.slug, name: product.name, image_url: product_image(product) }
+    end
+
+    def question(attribute)
+      { key: attribute.key, label: attribute.label, kind: attribute.kind, low_label: attribute.low_label,
+        high_label: attribute.high_label }
+    end
+
+    def points_offer(settings = Spree::ReviewSetting.current)
+      { per_review: settings.points_per_review, photo_bonus: settings.points_photo_bonus }
+    end
+
     def photo(attachment, review)
       urls = PHOTO_SIZES.to_h { |size| [:"#{size}_url", variant_url(review.photo_variant(attachment, size))] }
       { id: attachment.id, **urls, alt: "Customer photo of #{review.reviewable.try(:name) || 'this product'}" }
@@ -94,6 +125,27 @@ module Reviews
                     includes(:blob).order(created_at: :desc, id: :desc).limit(LATEST_PHOTOS)
       by_id = Spree::Review.where(id: attachments.map(&:record_id)).index_by(&:id)
       attachments.map { |attachment| photo(attachment, by_id.fetch(attachment.record_id)).merge(review_id: attachment.record_id) }
+    end
+
+    def points(review, settings)
+      awarded = review.loyalty_points_credit_transactions.sum(:loyalty_points)
+      pending = if review.points_awarded_at.nil? && Reviews::AwardPoints.offered?(review.user, review.reviewable, settings: settings) &&
+                   %w[pending published].include?(review.status)
+                  Reviews::AwardPoints.points_for(review, settings)
+                else
+                  0
+                end
+      { awarded: awarded, pending: pending }
+    end
+
+    def product_image(product)
+      image = product.master.images.first || product.variant_images.first
+      return unless image&.attachment&.attached?
+
+      path = image.style(:product)&.dig(:url)
+      path && base_url && path.start_with?('/') ? "#{base_url}#{path}" : path
+    rescue StandardError
+      nil
     end
 
     def variant_url(variant)

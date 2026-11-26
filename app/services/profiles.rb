@@ -41,7 +41,10 @@ module Profiles
         block: { limit: 60, window: 1.hour },
         handle_available: { limit: 60, window: 1.minute },
         avatar: { limit: 20, window: 24.hours },
-        report: { limit: 20, window: 24.hours }
+        report: { limit: 20, window: 24.hours },
+        # Product reviews (Spree::Api::V1::ReviewsController): submissions and edits, and votes.
+        review: { limit: 10, window: 1.hour },
+        review_vote: { limit: 60, window: 1.hour }
       }
     end
 

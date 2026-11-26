@@ -2,6 +2,8 @@ module Spree
   module Api
     module V1
       # POST /api/v1/reports { target: { type: "profile", handle }, reason, details }. Bearer required.
+      # POST /api/v1/reports { target: { type: "review", id }, reason, details }: a published product
+      # review; three open reports send it back to moderation (Reviews::Reports).
       #
       # 201 { id }; 404 unknown, hidden or blocked-either-way target; 422 { error, fields } for an
       # unknown type or reason, details > 500 or reporting yourself; 429 after 20 reports in 24 h.
@@ -10,7 +12,7 @@ module Spree
       class ReportsController < Spree::Api::BaseController
         include Profiles::ApiResponses
 
-        TARGET_TYPES = %w[profile].freeze
+        TARGET_TYPES = %w[profile review].freeze
 
         before_action :require_bearer_user
 
@@ -20,6 +22,8 @@ module Spree
           unless TARGET_TYPES.include?(type)
             return render_error('Unknown report target', :unprocessable_entity, fields: { target: ['type is not supported'] })
           end
+
+          return create_review_report(target) if type == 'review'
 
           profile = visible_profile(target[:handle], viewer: current_api_user)
           return render_not_found unless profile
@@ -44,6 +48,26 @@ module Spree
         end
 
         private
+
+        def create_review_report(target)
+          review = Spree::Review.published.find_by(id: target[:id])
+          return render_not_found unless review
+          if review.user_id.present? && review.user_id == current_api_user.id
+            return render_error("You can't report your own review", :unprocessable_entity, fields: { target: ["can't be yours"] })
+          end
+
+          report = Spree::ContentReport.for_review(review, reporter: current_api_user, reason: params[:reason],
+                                                           details: params[:details])
+          return render_record_errors(report, 'Report could not be sent') unless report.valid?
+          unless Profiles::RateLimit.allow?(current_api_user, :report)
+            return render_error('Too many reports. Try again later.', :too_many_requests)
+          end
+
+          report.save!
+          Reviews::Reports.after_report(review)
+          notify(report)
+          render json: { id: report.id }, status: :created
+        end
 
         def notify(report)
           return Rails.logger.warn('[profiles] MODERATION_EMAIL is not set; report not emailed') unless Profiles.config.moderation_email

@@ -32,6 +32,18 @@ module Reviews
       end
     end
 
+    # Why a signed-in customer can't review this product, or nil when they can:
+    #   "staff" (admin account), "not_shipped" (bought, not yet shipped), "not_purchased".
+    def reason_for(product, user)
+      return 'staff' if user&.admin?
+      return if user && item(product: product, user: user)
+
+      bought = user && Spree::LineItem.joins(:order, :variant).
+                       where(spree_orders: { user_id: user.id, state: 'complete' }).
+                       where(spree_variants: { product_id: product.id }).exists?
+      bought ? 'not_shipped' : 'not_purchased'
+    end
+
     # The most recent completed order with something shipped, for store reviews.
     def latest_shipped_order(user)
       return if user.nil? || user.admin?

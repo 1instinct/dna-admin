@@ -31,6 +31,30 @@
     </div>
   </div>
 
+<% if @report.review? %>
+  <div class="col-12 col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header"><h1 class="card-title mb-0 h5">Review at report time</h1></div>
+      <div class="card-body">
+        <dl>
+          <dt>Product</dt><dd><%= @report.snapshot['product'] %></dd>
+          <dt>Rating</dt><dd><%= @report.snapshot['rating'] %> / 5</dd>
+          <dt>Name shown</dt><dd><%= @report.snapshot['display_name'] %></dd>
+          <dt>Title</dt><dd><%= @report.snapshot['title'] %></dd>
+          <dt>Review</dt><dd><%= simple_format(@report.snapshot['body'].to_s) %></dd>
+          <dt>Photos</dt><dd><%= @report.snapshot['photos'] %></dd>
+        </dl>
+        <% if @review %>
+          <p class="mb-0">Now: <%= @review.status %>, <%= pluralize(@review.reports_count, 'open report') %>.</p>
+        <% else %>
+          <p class="mb-0">The review no longer exists.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% else %>
   <div class="col-12 col-lg-6">
     <div class="card mb-3">
       <div class="card-header"><h1 class="card-title mb-0 h5">Profile at report time</h1></div>
@@ -58,12 +82,19 @@
   </div>
 </div>
 
+<% end %>
 <div class="card mb-3">
   <div class="card-header"><h1 class="card-title mb-0 h5">Resolve</h1></div>
   <div class="card-body">
-    <% [['Dismiss', :dismiss, 'btn-light'], ['Hide profile', :hide_profile, 'btn-warning'],
-        ['Remove photo', :remove_photo, 'btn-warning'], ['Clear bio', :clear_bio, 'btn-warning'],
-        ['Lock account', :lock_account, 'btn-danger']].each do |label, action, css| %>
+    <% actions = if @report.review?
+                   [['Dismiss', :dismiss, 'btn-light'], ['Restore review', :restore_review, 'btn-success'],
+                    ['Hide review', :hide_review, 'btn-warning']]
+                 else
+                   [['Dismiss', :dismiss, 'btn-light'], ['Hide profile', :hide_profile, 'btn-warning'],
+                    ['Remove photo', :remove_photo, 'btn-warning'], ['Clear bio', :clear_bio, 'btn-warning'],
+                    ['Lock account', :lock_account, 'btn-danger']]
+                 end %>
+    <% actions.each do |label, action, css| %>
       <%= form_tag spree.public_send("#{action}_admin_content_report_path", @report),
                    method: :post, class: 'd-inline-block mr-2 mb-2' do %>
         <%= text_field_tag :resolution_note, nil, placeholder: 'Note (optional)', class: 'form-control form-control-sm d-inline-block w-auto' %>

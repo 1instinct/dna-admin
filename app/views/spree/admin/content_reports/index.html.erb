@@ -27,7 +27,7 @@
         <% @reports.each do |report| %>
           <tr id="content_report_<%= report.id %>">
             <td><%= report.id %></td>
-            <td>profile @<%= report.snapshot['handle'] %></td>
+            <td><%= report.review? ? "review ##{report.reportable_id} (#{report.snapshot['rating']}★, #{report.snapshot['product']})" : "profile @#{report.snapshot['handle']}" %></td>
             <td><%= report.reason %></td>
             <td><%= report.reporter&.profile&.handle ? "@#{report.reporter.profile.handle}" : (report.reporter_id ? "user #{report.reporter_id}" : 'deleted user') %></td>
             <td><%= report.status %></td>
