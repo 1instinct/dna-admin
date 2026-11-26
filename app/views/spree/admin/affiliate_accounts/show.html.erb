@@ -1,0 +1,163 @@
+<% content_for :page_title do %>
+  <%= link_to 'Affiliates', spree.admin_affiliate_accounts_path %> &raquo; <%= @account.code %>
+<% end %>
+
+<%= render 'spree/admin/affiliate_accounts/tabs', current: @account.pending? ? :applications : :accounts %>
+
+<% application = @account.application_data %>
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3" id="affiliate_application">
+      <div class="card-header d-flex align-items-center">
+        <h1 class="card-title mb-0 h5 mr-2">Application</h1>
+        <span class="ml-auto"><%= render 'spree/admin/affiliate_accounts/status_badge', status: @account.status %></span>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">User</dt>
+          <dd class="col-sm-8"><%= @account.user ? link_to(@account.user.email, spree.edit_admin_user_path(@account.user)) : '(deleted)' %></dd>
+          <dt class="col-sm-4">Code</dt>
+          <dd class="col-sm-8"><code><%= @account.code %></code></dd>
+          <dt class="col-sm-4">Link</dt>
+          <dd class="col-sm-8"><%= @account.link %></dd>
+          <dt class="col-sm-4">Website</dt>
+          <dd class="col-sm-8"><%= application['website'].presence || '—' %></dd>
+          <dt class="col-sm-4">Audience</dt>
+          <dd class="col-sm-8"><%= application['audience'].presence || '—' %></dd>
+          <dt class="col-sm-4">Channels</dt>
+          <dd class="col-sm-8"><%= Array(application['channels']).join(', ').presence || '—' %></dd>
+          <dt class="col-sm-4">Message</dt>
+          <dd class="col-sm-8" style="white-space: pre-wrap;"><%= application['message'].presence || '—' %></dd>
+          <dt class="col-sm-4">Payout email</dt>
+          <dd class="col-sm-8"><%= @account.payout_email.presence || '—' %></dd>
+          <dt class="col-sm-4">Applied</dt>
+          <dd class="col-sm-8"><%= l(@account.created_at, format: :long) %></dd>
+          <% if @account.approved_at %>
+            <dt class="col-sm-4">Approved</dt>
+            <dd class="col-sm-8"><%= l(@account.approved_at, format: :long) %></dd>
+          <% end %>
+          <% if @account.reviewed_by %>
+            <dt class="col-sm-4">Reviewed by</dt>
+            <dd class="col-sm-8"><%= @account.reviewed_by.email %></dd>
+          <% end %>
+          <% if @account.review_note.present? %>
+            <dt class="col-sm-4">Review note</dt>
+            <dd class="col-sm-8" style="white-space: pre-wrap;"><%= @account.review_note %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Totals</h2></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Clicks</dt><dd class="col-sm-8"><%= @totals[:clicks] %></dd>
+          <dt class="col-sm-4">Orders</dt><dd class="col-sm-8"><%= @totals[:orders] %></dd>
+          <dt class="col-sm-4">Conversion</dt><dd class="col-sm-8"><%= number_to_percentage(@totals[:conversion] * 100, precision: 2) %></dd>
+          <dt class="col-sm-4">Pending</dt><dd class="col-sm-8"><%= number_with_precision(@totals[:pending], precision: 2) %> <%= @totals[:currency] %></dd>
+          <dt class="col-sm-4">Approved</dt><dd class="col-sm-8"><%= number_with_precision(@totals[:approved], precision: 2) %> <%= @totals[:currency] %></dd>
+          <dt class="col-sm-4">Paid</dt><dd class="col-sm-8"><%= number_with_precision(@totals[:paid], precision: 2) %> <%= @totals[:currency] %></dd>
+        </dl>
+        <% if @payable.any? %>
+          <%= link_to 'Record a payout', spree.new_admin_affiliate_payout_path(affiliate_account_id: @account.id), class: 'btn btn-primary mt-3' %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center">
+        <h2 class="card-title mb-0 h5">Recent commissions</h2>
+        <%= link_to 'All', spree.admin_affiliate_account_commissions_path(affiliate_account_id: @account.id), class: 'ml-auto' %>
+      </div>
+      <div class="card-body p-0">
+        <% if @commissions.any? %>
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Order</th><th>Base</th><th>Commission</th><th>State</th><th>Created</th></tr></thead>
+            <tbody>
+              <% @commissions.each do |commission| %>
+                <tr>
+                  <td><%= commission.order ? link_to(commission.order.number, spree.edit_admin_order_path(commission.order)) : '—' %></td>
+                  <td><%= number_with_precision(commission.base_amount, precision: 2) %></td>
+                  <td><%= number_with_precision(commission.amount, precision: 2) %> <%= commission.currency %></td>
+                  <td><%= render 'spree/admin/affiliate_accounts/status_badge', status: commission.state %></td>
+                  <td class="text-nowrap"><%= l(commission.created_at, format: :short) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-muted m-3">No commissions yet.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Review</h2></div>
+      <div class="card-body">
+        <% if @account.pending? || @account.rejected? %>
+          <%= form_tag spree.approve_admin_affiliate_account_path(@account), method: :post, id: 'affiliate_approve' do %>
+            <div class="form-group">
+              <%= label_tag :commission_bps, 'Commission override (basis points, blank for the default)' %>
+              <%= number_field_tag :commission_bps, @account.commission_bps, min: 0, max: 10_000, class: 'form-control',
+                                   placeholder: Affiliates.config.default_commission_bps %>
+            </div>
+            <div class="form-group">
+              <%= label_tag :approve_review_note, 'Note' %>
+              <%= text_area_tag :review_note, nil, id: 'approve_review_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Approve', class: 'btn btn-success' %>
+          <% end %>
+        <% end %>
+
+        <% if @account.pending? %>
+          <hr>
+          <%= form_tag spree.reject_admin_affiliate_account_path(@account), method: :post, id: 'affiliate_reject' do %>
+            <div class="form-group">
+              <%= label_tag :reject_review_note, 'Reason' %>
+              <%= text_area_tag :review_note, nil, id: 'reject_review_note', rows: 2, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Reject', class: 'btn btn-outline-danger', data: { confirm: 'Reject this application?' } %>
+          <% end %>
+        <% end %>
+
+        <% if @account.approved? %>
+          <%= form_tag spree.suspend_admin_affiliate_account_path(@account), method: :post, id: 'affiliate_suspend' do %>
+            <p class="text-muted">A suspended affiliate earns nothing on orders completed while suspended.</p>
+            <%= submit_tag 'Suspend', class: 'btn btn-outline-danger', data: { confirm: 'Suspend this affiliate?' } %>
+          <% end %>
+        <% end %>
+
+        <% if @account.suspended? %>
+          <%= form_tag spree.reinstate_admin_affiliate_account_path(@account), method: :post, id: 'affiliate_reinstate' do %>
+            <%= submit_tag 'Reinstate', class: 'btn btn-success' %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h5">Terms</h2></div>
+      <div class="card-body">
+        <%= form_with model: @account, scope: :affiliate_account, url: spree.admin_affiliate_account_path(@account), method: :patch,
+                      local: true, id: 'affiliate_terms' do |f| %>
+          <div class="form-group">
+            <%= f.label :commission_bps, 'Commission (basis points, blank for the default)' %>
+            <%= f.number_field :commission_bps, min: 0, max: 10_000, class: 'form-control', placeholder: Affiliates.config.default_commission_bps %>
+          </div>
+          <div class="form-group">
+            <%= f.label :cookie_days, 'Cookie (days)' %>
+            <%= f.number_field :cookie_days, min: 1, max: 365, class: 'form-control' %>
+          </div>
+          <div class="form-group">
+            <%= f.label :payout_email, 'Payout email' %>
+            <%= f.email_field :payout_email, class: 'form-control' %>
+          </div>
+          <%= f.submit 'Save terms', class: 'btn btn-primary' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
