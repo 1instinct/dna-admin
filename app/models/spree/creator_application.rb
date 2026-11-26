@@ -1,6 +1,6 @@
 # A user's application to sell digital products. At most one may be pending per user (validation
 # plus a unique partial index). Demo files come in as direct-upload signed ids
-# (demo_upload_signed_ids=) and are attached as demo_files; they must pass Uploads.config.
+# (sample_upload_signed_ids=) and are attached as samples; they must pass Uploads.config.
 # Creators::Approver approves or rejects; the applicant may withdraw while pending.
 module Spree
   class CreatorApplication < Spree::Base
@@ -17,7 +17,7 @@ module Spree
 
     belongs_to :user, class_name: Spree.user_class.to_s
     belongs_to :reviewed_by, class_name: Spree.user_class.to_s, optional: true
-    has_many_attached :demo_files
+    has_many_attached :samples
 
     scope :pending, -> { where(status: 'pending') }
     scope :newest_first, -> { order(created_at: :desc, id: :desc) }
@@ -30,33 +30,33 @@ module Spree
     validate :one_pending_per_user
     validate :check_kinds
     validate :check_portfolio_links
-    validate :check_demo_files
+    validate :check_samples
 
     STATUSES.each do |name|
       define_method("#{name}?") { status == name }
     end
 
     # Demo files as signed blob ids. Each must be an existing blob that Uploads.config allows.
-    def demo_upload_signed_ids=(ids)
+    def sample_upload_signed_ids=(ids)
       ids = Array(ids).map(&:to_s).reject(&:blank?)
-      @demo_file_errors = []
-      @demo_file_errors << "at most #{Creators.config.max_demo_files} files" if ids.size > Creators.config.max_demo_files
-      return if @demo_file_errors.any?
+      @sample_errors = []
+      @sample_errors << "at most #{Creators.config.max_samples} files" if ids.size > Creators.config.max_samples
+      return if @sample_errors.any?
 
       blobs = ids.map { |id| ActiveStorage::Blob.find_signed(id) }
       if blobs.any?(&:nil?)
-        @demo_file_errors << 'contain an unknown upload'
+        @sample_errors << 'contain an unknown upload'
         return
       end
       blobs.each do |blob|
         rule = Uploads.config.rule_for(blob.filename.to_s, blob.content_type)
         if rule.nil?
-          @demo_file_errors << "#{blob.filename} is not an allowed file type"
+          @sample_errors << "#{blob.filename} is not an allowed file type"
         elsif blob.byte_size > rule[:max_bytes]
-          @demo_file_errors << "#{blob.filename} is too large"
+          @sample_errors << "#{blob.filename} is too large"
         end
       end
-      demo_files.attach(blobs) if @demo_file_errors.empty?
+      samples.attach(blobs) if @sample_errors.empty?
     end
 
     def withdraw!
@@ -116,8 +116,8 @@ module Spree
       false
     end
 
-    def check_demo_files
-      Array(@demo_file_errors).each { |message| errors.add(:demo_files, message) }
+    def check_samples
+      Array(@sample_errors).each { |message| errors.add(:samples, message) }
     end
   end
 end

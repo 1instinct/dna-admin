@@ -12,7 +12,7 @@ module Creators
     # marketplace_taxon_permalink: approved products are added to this taxon.
     # role_name: the Spree role that makes a user a creator.
     # shipping_category_name: the shipping category of creator products (created when missing).
-    # max_demo_files: demo files an application may carry.
+    # max_samples: demo files an application may carry.
     # sales_rows_limit: rows returned by GET /api/v1/creator/sales.
     # min_price: the lowest price a creator may set (free products are admin-only); a number, or a
     #   Hash of currency => number with an optional "default" key.
@@ -20,7 +20,7 @@ module Creators
     #   keys for GET /api/v1/products/:slug/digital_summary, e.g. a count read from the app's own
     #   manifest format. Its keys never replace the standard ones.
     attr_accessor :default_share_bps, :hold_days, :marketplace_taxon_permalink, :role_name,
-                  :shipping_category_name, :max_demo_files, :sales_rows_limit, :min_price,
+                  :shipping_category_name, :max_samples, :sales_rows_limit, :min_price,
                   :digital_summary_extras
 
     def initialize
@@ -29,7 +29,7 @@ module Creators
       @marketplace_taxon_permalink = 'marketplace'
       @role_name = 'creator'
       @shipping_category_name = 'Digital'
-      @max_demo_files = 3
+      @max_samples = 3
       @sales_rows_limit = 500
       @min_price = BigDecimal('0.5')
       @digital_summary_extras = nil

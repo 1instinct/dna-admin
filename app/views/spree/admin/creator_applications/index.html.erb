@@ -43,7 +43,7 @@
             <td><%= link_to application.display_name, spree.admin_creator_application_path(application) %></td>
             <td><%= application.user ? link_to(application.user.email, spree.edit_admin_user_path(application.user)) : '(deleted)' %></td>
             <td><%= application.kinds.join(', ') %></td>
-            <td><%= application.demo_files.attachments.size %></td>
+            <td><%= application.samples.attachments.size %></td>
             <td><%= render 'spree/admin/creator_applications/status_badge', status: application.status %></td>
             <td class="text-nowrap"><%= l(application.created_at, format: :short) %></td>
             <td class="actions"><%= link_to 'Review', spree.admin_creator_application_path(application), class: 'btn btn-sm btn-light' %></td>

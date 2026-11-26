@@ -45,9 +45,9 @@
     <div class="card mb-3">
       <div class="card-header"><h2 class="card-title mb-0 h5">Demo files</h2></div>
       <div class="card-body">
-        <% if @demo_files.any? %>
-          <% @demo_files.each do |file| %>
-            <%= render 'spree/admin/creator_applications/media', attachment: file %>
+        <% if @samples.any? %>
+          <% @samples.each do |sample| %>
+            <%= render 'spree/admin/creator_applications/media', attachment: sample %>
           <% end %>
         <% else %>
           <p class="text-muted mb-0">No demo files.</p>

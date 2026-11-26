@@ -17,7 +17,7 @@ module Spree
 
       def show
         @account = Spree::CreatorAccount.find_by(user_id: @application.user_id)
-        @demo_files = @application.demo_files.attachments.includes(:blob).order(:id)
+        @samples = @application.samples.attachments.includes(:blob).order(:id)
       end
 
       def approve

@@ -5,14 +5,13 @@ module Spree
       #
       #   GET    /api/v1/creator_application  200 Application (the latest) | 404
       #   POST   /api/v1/creator_application  { display_name, kinds: [String], portfolio_links: [{ label, url }],
-      #                                         about, demo_upload_signed_ids: [String] (at most
-      #                                         Creators.config.max_demo_files, 3 by default) }
+      #                                         about, sample_upload_signed_ids: [String] (at most 3) }
       #                                       201 Application | 422 { error, fields } (already pending,
       #                                       already a creator, invalid)
       #   DELETE /api/v1/creator_application  200 Application (withdrawn) | 404 | 422 when none is pending
       #
       # Application: { id, status, display_name, kinds, portfolio_links, about,
-      #                demo_files: [{ id, filename, byte_size, content_type, url }],
+      #                samples: [{ id, filename, byte_size, content_type, url }],
       #                review_note, reviewed_at, created_at, updated_at }
       class CreatorApplicationsController < Spree::Api::BaseController
         include Profiles::ApiResponses
@@ -61,7 +60,7 @@ module Spree
             kinds: Array(params[:kinds]).map(&:to_s),
             portfolio_links: portfolio_links,
             about: params[:about],
-            demo_upload_signed_ids: Array(params[:demo_upload_signed_ids]).map(&:to_s)
+            sample_upload_signed_ids: Array(params[:sample_upload_signed_ids]).map(&:to_s)
           }
         end
 
@@ -83,7 +82,7 @@ module Spree
             kinds: application.kinds,
             portfolio_links: application.portfolio_links,
             about: application.about,
-            demo_files: application.demo_files.attachments.includes(:blob).order(:id).map { |file| file_json(file) },
+            samples: application.samples.attachments.includes(:blob).order(:id).map { |file| sample_json(file) },
             review_note: application.review_note,
             reviewed_at: application.reviewed_at&.iso8601,
             created_at: application.created_at.iso8601,
@@ -91,7 +90,7 @@ module Spree
           }
         end
 
-        def file_json(file)
+        def sample_json(file)
           { id: file.id, filename: file.filename.to_s, byte_size: file.byte_size, content_type: file.content_type,
             url: Rails.application.routes.url_helpers.rails_blob_url(file, host: request.base_url) }
         end

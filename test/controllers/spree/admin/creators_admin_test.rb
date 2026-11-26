@@ -9,7 +9,7 @@ class Spree::Admin::CreatorsAdminTest < ActionDispatch::IntegrationTest
     @marketplace, @category = marketplace_taxons
     @admin = admin_user
     @application = create(:creator_application, display_name: 'Pending Person',
-                                                demo_upload_signed_ids: [digital_blob(DigitalAssetsTestHelper::WAV_BYTES, 'demo.wav').signed_id])
+                                                sample_upload_signed_ids: [digital_blob(DigitalAssetsTestHelper::WAV_BYTES, 'demo.wav').signed_id])
     @creator = creator_user
     @product = creator_product(@creator, taxons: [@category])
     @product.update!(review_state: 'submitted', submitted_at: Time.current)

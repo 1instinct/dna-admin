@@ -28,16 +28,16 @@ class Spree::Api::V1::CreatorApplicationsControllerTest < ActionDispatch::Integr
     assert_response :not_found
   end
 
-  test 'create makes a pending application with demo files and show returns it' do
+  test 'create makes a pending application with samples and show returns it' do
     blob = digital_blob(DigitalAssetsTestHelper::WAV_BYTES, 'demo.wav')
-    post PATH, headers: @headers, params: apply_params(demo_upload_signed_ids: [blob.signed_id])
+    post PATH, headers: @headers, params: apply_params(sample_upload_signed_ids: [blob.signed_id])
     assert_response :created, response.body
     assert_equal 'pending', json['status']
     assert_equal 'Night Shift', json['display_name']
     assert_equal %w[bundle], json['kinds']
     assert_equal [{ 'label' => 'Site', 'url' => 'https://example.com' }], json['portfolio_links']
-    assert_equal 'demo.wav', json['demo_files'].first['filename']
-    assert json['demo_files'].first['url'].present?
+    assert_equal 'demo.wav', json['samples'].first['filename']
+    assert json['samples'].first['url'].present?
 
     get PATH, headers: @headers
     assert_response :success
@@ -65,10 +65,10 @@ class Spree::Api::V1::CreatorApplicationsControllerTest < ActionDispatch::Integr
   end
 
   test '422 with field errors for an invalid application' do
-    post PATH, headers: @headers, params: apply_params(display_name: '', demo_upload_signed_ids: %w[a b c d])
+    post PATH, headers: @headers, params: apply_params(display_name: '', sample_upload_signed_ids: %w[a b c d])
     assert_response :unprocessable_entity
     assert json['fields']['display_name']
-    assert json['fields']['demo_files']
+    assert json['fields']['samples']
   end
 
   test 'a rejected applicant may apply again; show returns the latest' do

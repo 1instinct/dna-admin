@@ -27,26 +27,26 @@ class Spree::CreatorApplicationTest < ActiveSupport::TestCase
     assert_raises(Spree::CreatorApplication::NotPending) { application.withdraw! }
   end
 
-  test 'demo files accept up to 3 signed_ids' do
+  test 'samples accept up to 3 signed_ids' do
     ids = Array.new(3) { |i| digital_blob(DigitalAssetsTestHelper::WAV_BYTES, "demo#{i}.wav").signed_id }
-    application = create(:creator_application, demo_upload_signed_ids: ids)
-    assert_equal 3, application.reload.demo_files.count
+    application = create(:creator_application, sample_upload_signed_ids: ids)
+    assert_equal 3, application.reload.samples.count
 
     four = Array.new(4) { |i| digital_blob(DigitalAssetsTestHelper::WAV_BYTES, "more#{i}.wav").signed_id }
-    over = build(:creator_application, demo_upload_signed_ids: four)
+    over = build(:creator_application, sample_upload_signed_ids: four)
     refute over.valid?
-    assert_includes over.errors[:demo_files], 'at most 3 files'
+    assert_includes over.errors[:samples], 'at most 3 files'
   end
 
-  test 'demo files must be known blobs of an allowed upload type' do
-    bad = build(:creator_application, demo_upload_signed_ids: ['nope'])
+  test 'samples must be known blobs of an allowed upload type' do
+    bad = build(:creator_application, sample_upload_signed_ids: ['nope'])
     refute bad.valid?
-    assert_includes bad.errors[:demo_files], 'contain an unknown upload'
+    assert_includes bad.errors[:samples], 'contain an unknown upload'
 
     exe = digital_blob('MZ', 'tool.exe', 'application/x-msdownload')
-    refused = build(:creator_application, demo_upload_signed_ids: [exe.signed_id])
+    refused = build(:creator_application, sample_upload_signed_ids: [exe.signed_id])
     refute refused.valid?
-    assert_includes refused.errors[:demo_files], 'tool.exe is not an allowed file type'
+    assert_includes refused.errors[:samples], 'tool.exe is not an allowed file type'
   end
 
   test 'display name, kinds and portfolio links are checked' do
