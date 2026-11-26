@@ -45,9 +45,21 @@ module Reviews
       created = review.new_record?
       assign(review, order, line_item)
 
-      Spree::Review.transaction do
-        return Result.new(review: review, created: created) unless review.save
+      # Saved on its own first: photos upload when that save commits. Moderation runs after, so
+      # its row lock (which reloads the record, dropping un-uploaded attachments) can't lose them.
+      # Until moderation finishes the review is pending, so a failure there leaves it held.
+      was_published = review.published?
+      # An admin rejected or hid it: an edit goes back to a person, never straight to the page.
+      overruled = %w[rejected hidden].include?(review.status_was)
+      review.status = 'pending'
+      review.moderation_reason = 'manual'
+      return Result.new(review: review, created: created) unless review.save
 
+      # An edit of a published review has just left the published set.
+      Reviews::RefreshStats.call(reviewable) if was_published
+      if overruled
+        Reviews::Moderation.hold!(review, 'manual')
+      else
         Reviews::Moderation.apply_initial_status!(review, settings: settings)
       end
       Result.new(review: review, created: created)

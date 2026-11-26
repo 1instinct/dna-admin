@@ -91,6 +91,17 @@ class Reviews::SubmitTest < ActiveSupport::TestCase
     assert_equal 0, @product.reload.reviews_count, 'the held edit leaves the stats'
   end
 
+  test 'editing a review an admin rejected or hid sends it to a person, not to the page' do
+    %i[reject! hide!].each do |action|
+      user = buyer
+      review = reviews_submit(@product, user: user, rating: 4, body: 'Fine').review
+      args = action == :reject! ? { reason: 'off_topic', by: media_admin } : { by: media_admin }
+      Reviews::Moderation.public_send(action, review, **args)
+      edited = reviews_submit(@product, user: user, rating: 4, body: 'Fine, edited').review
+      assert_equal %w[pending manual], [edited.status, edited.moderation_reason], action.to_s
+    end
+  end
+
   test 'invalid input comes back as errors on the review' do
     result = reviews_submit(@product, user: buyer, rating: 9)
     refute result.success?

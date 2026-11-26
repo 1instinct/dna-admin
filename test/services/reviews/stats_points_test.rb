@@ -70,8 +70,10 @@ class Reviews::StatsPointsTest < ActiveSupport::TestCase
 
   test 'points: +50 with a photo' do
     user = create(:user)
-    review_from(user, rating: 4, photos: [reviews_photo])
+    review = review_from(user, rating: 4, photos: [reviews_photo])
     assert_equal 100, user.reload.loyalty_points_balance
+    blob = review.reload.photos.first.blob
+    assert blob.service.exist?(blob.key), 'the photo file is stored even though publishing locks and reloads the review'
   end
 
   test 'points: none while a review waits, paid when it is approved' do
