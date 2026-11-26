@@ -1,0 +1,45 @@
+<% content_for :title, Spree.t(:change_your_password) %>
+
+<h1 class="si-title"><%= Spree.t(:change_your_password) %></h1>
+<p class="si-subtitle">Choose a new password for your account.</p>
+
+<%= render partial: 'spree/shared/sign_in_flash' %>
+<%= render partial: 'spree/shared/sign_in_errors', locals: { target: @spree_user } %>
+
+<%= form_for @spree_user, as: :spree_user, url: spree.update_password_path, method: :put, html: { data: { sign_in_form: true } } do |f| %>
+  <div class="si-field">
+    <%= f.label :password, Spree.t(:password), class: 'si-label' %>
+    <div class="si-input-wrap">
+      <%= f.password_field :password,
+            class: 'si-input si-input--with-toggle',
+            required: true,
+            autocomplete: 'new-password',
+            autocapitalize: 'none',
+            autocorrect: 'off',
+            spellcheck: false,
+            enterkeyhint: 'next' %>
+      <button type="button" class="si-toggle" data-password-toggle aria-controls="spree_user_password" aria-pressed="false" hidden>Show</button>
+    </div>
+  </div>
+
+  <div class="si-field">
+    <%= f.label :password_confirmation, Spree.t(:confirm_password), class: 'si-label' %>
+    <%= f.password_field :password_confirmation,
+          class: 'si-input',
+          required: true,
+          autocomplete: 'new-password',
+          autocapitalize: 'none',
+          autocorrect: 'off',
+          spellcheck: false,
+          enterkeyhint: 'done' %>
+  </div>
+
+  <%= f.hidden_field :reset_password_token %>
+
+  <%= button_tag type: 'submit', class: 'si-button' do %>
+    <span class="si-spinner" aria-hidden="true"></span>
+    <span data-busy-label="Saving…"><%= Spree.t(:update) %></span>
+  <% end %>
+<% end %>
+
+<p class="si-back"><%= link_to '← Back to sign in', spree.login_path, class: 'si-link' %></p>

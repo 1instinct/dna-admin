@@ -1,0 +1,10 @@
+<%# Model validation errors for the signed-out screens (layout spree/layouts/sign_in). %>
+<% if target && target.errors.any? %>
+  <div class="si-alert si-alert--error" role="alert">
+    <ul>
+      <% target.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

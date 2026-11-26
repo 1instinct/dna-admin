@@ -1,0 +1,31 @@
+<% content_for :title, Spree.t(:forgot_password) %>
+
+<h1 class="si-title"><%= Spree.t(:forgot_password) %></h1>
+<p class="si-subtitle"><%= Spree.t(:instructions_to_reset_password) %></p>
+
+<%= render partial: 'spree/shared/sign_in_flash' %>
+<%= render partial: 'spree/shared/sign_in_errors', locals: { target: @spree_user } %>
+
+<%= form_for Spree.user_class.new, as: :spree_user, url: spree.reset_password_path, html: { data: { sign_in_form: true } } do |f| %>
+  <div class="si-field">
+    <%= f.label :email, Spree.t(:email), class: 'si-label' %>
+    <%= f.email_field :email,
+          class: 'si-input',
+          value: params.dig(:spree_user, :email),
+          required: true,
+          autocomplete: 'username',
+          autocapitalize: 'none',
+          autocorrect: 'off',
+          spellcheck: false,
+          inputmode: 'email',
+          enterkeyhint: 'send',
+          placeholder: 'you@example.com' %>
+  </div>
+
+  <%= button_tag type: 'submit', class: 'si-button' do %>
+    <span class="si-spinner" aria-hidden="true"></span>
+    <span data-busy-label="Sending…"><%= Spree.t(:reset_password) %></span>
+  <% end %>
+<% end %>
+
+<p class="si-back"><%= link_to '← Back to sign in', spree.login_path, class: 'si-link' %></p>
