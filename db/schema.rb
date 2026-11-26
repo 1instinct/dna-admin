@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_16_120000) do
+ActiveRecord::Schema.define(version: 2026_11_26_170000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -428,6 +428,35 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["eligible"], name: "index_spree_adjustments_on_eligible"
     t.index ["order_id"], name: "index_spree_adjustments_on_order_id"
     t.index ["source_id", "source_type"], name: "index_spree_adjustments_on_source_id_and_source_type"
+  end
+
+  create_table "spree_admin_native_devices", force: :cascade do |t|
+    t.string "owner_type", null: false
+    t.bigint "owner_id", null: false
+    t.string "name", null: false
+    t.string "platform"
+    t.string "token_digest", null: false
+    t.string "push_token"
+    t.boolean "push_enabled", default: true, null: false
+    t.datetime "last_used_at"
+    t.datetime "revoked_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["owner_type", "owner_id"], name: "index_spree_admin_native_devices_on_owner"
+    t.index ["token_digest"], name: "index_spree_admin_native_devices_on_token_digest", unique: true
+  end
+
+  create_table "spree_admin_native_pairings", force: :cascade do |t|
+    t.string "owner_type", null: false
+    t.bigint "owner_id", null: false
+    t.string "code_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "used_at"
+    t.bigint "device_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["code_digest"], name: "index_spree_admin_native_pairings_on_code_digest", unique: true
+    t.index ["owner_type", "owner_id"], name: "index_spree_admin_native_pairings_on_owner"
   end
 
   create_table "spree_affiliate_commission_rules", id: :serial, force: :cascade do |t|
