@@ -9,6 +9,9 @@
 class ReviewRequestMailer < ApplicationMailer
   RATINGS = (1..5).freeze
 
+  layout 'store_mailer'
+  helper StoreMailerHelper
+
   def request_review(request, token)
     build(request, token, reminder: false)
   end
@@ -25,6 +28,7 @@ class ReviewRequestMailer < ApplicationMailer
     @order = request.order
     @reminder = reminder
     store = @order.store || Spree::Store.default
+    @store = store
     @store_name = store&.name.to_s.strip.presence
     @review_url = review_url(token)
     @opt_out_url = "#{@review_url}?opt_out=1"

@@ -1,0 +1,7 @@
+<%= yield %>
+
+--
+<%= mailer_store_name %><% if mailer_site_url %> · <%= mailer_site_url %><% end %>
+<% if mailer_store&.address.present? %><%= mailer_store.address.to_s.squish %>
+<% end %><% if mailer_store&.customer_support_email.present? %>Questions? <%= mailer_store.customer_support_email %>
+<% end %><%= mailer_copyright %>

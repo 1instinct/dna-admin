@@ -257,8 +257,16 @@ by hand (`heroku run bundle exec rake reviews:dispatch -a $APP_NAME`): nothing i
 is sent while reviews are switched off in Reviews > Settings.
 
 Needs `SITE_URL` (the storefront's base URL; the email links go to `$SITE_URL/review/<token>`) and
-the Mailgun settings. Product images in the email need an absolute host in
-`Rails.application.routes.default_url_options`; without one the email is sent without images.
+the Mailgun settings. Set `ADMIN_URL` to this app's public address (e.g. `https://admin.example.com`):
+emails use it for product images, the store logo and the background pattern
+(`config/initializers/mailer_host.rb`). Without it, emails still send, just without images.
+
+Every customer email (review requests and Spree's order, shipment and account emails) uses one
+frame, `app/views/shared/_email_frame.html.erb`: patterned background, the store's **Mailer logo**
+(Configurations > Stores > edit store; falls back to the store logo, then the store name), a card,
+and a footer with the store address, support email, Instagram/Facebook/X links and the copyright
+line, all from the store's settings. Dark mode follows the reader's system setting in Apple Mail,
+iOS Mail and Outlook for Mac. Preview in development at `/rails/mailers/review_request_mailer`.
 
 At launch, schedule emails for orders that shipped in the last 30 days (sent over the next runs,
 200 an hour):

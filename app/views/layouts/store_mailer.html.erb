@@ -1,0 +1,3 @@
+<%# Customer email layout: the shared frame (shared/_email_frame) around the email's content. %>
+<% content_for :email_body do %><%= yield %><% end %>
+<%= render 'shared/email_frame' %>

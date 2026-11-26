@@ -39,7 +39,7 @@ class ReviewRequestMailerTest < ActionMailer::TestCase
     assert_includes html, %(href="#{opt_out}")
     assert_includes text, opt_out
     assert_includes html, 'Tap a star to rate each piece'
-    assert_match %r{<img src="http://localhost/rails/active_storage/representations/[^"]+" width="96"}, html,
+    assert_match %r{<img src="http://localhost/rails/active_storage/representations/[^"]+" width="88"}, html,
                  'product images use absolute URLs'
     assert_includes text, 'Members earn 50 points for every review, plus 50 with a photo, whatever the rating.'
     refute_match(/love|positive|5.star review/i, html + text)

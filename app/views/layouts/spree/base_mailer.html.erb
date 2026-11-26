@@ -1,0 +1,17 @@
+<%# Overrides Spree's mailer layout so order, shipment and account emails use the same frame as
+    the review emails (shared/_email_frame): background, logo badge, card and copyright footer.
+    Spree's own stylesheet still loads, for the classes its email templates use. %>
+<% content_for :email_head do %>
+  <%= render partial: 'spree/shared/base_mailer_stylesheets' %>
+  <style type="text/css">
+    /* Spree's stylesheet sets its own page background and card; the frame provides those. */
+    body, .email-wrapper, .email-body, .email-content { background-color: transparent !important; }
+    .content-cell { padding: 0 !important; }
+    .content-cell a { color: #b84f4f; }
+    body, td, th, p, h1, h2, h3 { font-family: Helvetica, Arial, sans-serif; }
+  </style>
+<% end %>
+<% content_for :email_body do %>
+  <div class="f-fallback content-cell"><%= yield %></div>
+<% end %>
+<%= render 'shared/email_frame' %>
