@@ -91,6 +91,18 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, PushNotification %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarPushNotifications">
+      <%= tab :push_notifications, icon: 'message.svg', url: admin_push_notifications_path %>
+    </ul>
+  <% end %>
+
+  <% if can? :admin, AppSetting %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAppSettings">
+      <%= tab :app_settings, icon: 'settings.svg', url: admin_app_settings_path %>
+    </ul>
+  <% end %>
+
   <% if Spree.user_class && can?(:admin, Spree.user_class) %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarUser">
       <%= tab *Spree::BackendConfiguration::USER_TABS, url: spree.admin_users_path, icon: 'users.svg' %>

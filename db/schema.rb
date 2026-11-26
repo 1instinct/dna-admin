@@ -116,6 +116,15 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["user_id"], name: "index_app_feedbacks_on_user_id"
   end
 
+  create_table "app_settings", force: :cascade do |t|
+    t.string "name"
+    t.string "platform", default: "ios-android"
+    t.string "version", default: "0.0.0", null: false
+    t.string "build"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "contacts", force: :cascade do |t|
     t.integer "actor_id"
     t.string "full_name"
@@ -273,6 +282,40 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
     t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
+  end
+
+  create_table "push_notifications", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "body", null: false
+    t.string "notification_type", default: "custom"
+    t.jsonb "data", default: {}
+    t.string "target", default: "all"
+    t.bigint "target_user_id"
+    t.integer "sent_count", default: 0
+    t.integer "error_count", default: 0
+    t.text "errors_log"
+    t.string "status", default: "draft"
+    t.bigint "sent_by_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["notification_type"], name: "index_push_notifications_on_notification_type"
+    t.index ["sent_by_id"], name: "index_push_notifications_on_sent_by_id"
+    t.index ["status"], name: "index_push_notifications_on_status"
+    t.index ["target"], name: "index_push_notifications_on_target"
+  end
+
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.string "platform", null: false
+    t.string "device_name"
+    t.boolean "enabled", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["enabled"], name: "index_push_subscriptions_on_enabled"
+    t.index ["platform"], name: "index_push_subscriptions_on_platform"
+    t.index ["token"], name: "index_push_subscriptions_on_token", unique: true
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
@@ -1807,6 +1850,8 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
   add_foreign_key "live_streams", "spree_users", column: "actor_id"
   add_foreign_key "live_streams", "thread_tables"
   add_foreign_key "messages", "thread_tables"
+  add_foreign_key "push_notifications", "spree_users", column: "sent_by_id"
+  add_foreign_key "push_subscriptions", "spree_users", column: "user_id"
   add_foreign_key "spree_content_reports", "spree_users", column: "reporter_id", on_delete: :nullify
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
