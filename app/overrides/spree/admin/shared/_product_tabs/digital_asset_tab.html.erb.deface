@@ -1,0 +1,9 @@
+<!-- insert_bottom "[data-hook='admin_product_tabs']" -->
+<% if can?(:admin, Spree::DigitalAsset) && !@product.deleted? %>
+  <li>
+    <%= link_to_with_icon 'file.svg',
+      Spree.t(:digital_asset, default: 'Digital asset'),
+      spree.admin_product_digital_assets_url(@product),
+      class: "nav-link #{'active' if current == :digital_asset}" %>
+  </li>
+<% end %>

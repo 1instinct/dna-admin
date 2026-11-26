@@ -226,6 +226,83 @@ Spree::Core::Engine.add_routes do
   end
 end
 
+# Digital library (ownership, signed download links, free claims) and direct uploads.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      get 'library', to: 'library#index', as: :library
+      post 'library/claim', to: 'library#claim', as: :library_claim
+      post 'library/:ownership_id/links', to: 'library#links', as: :library_links
+      post 'uploads', to: 'uploads#create', as: :uploads
+    end
+  end
+end
+
+# Admin: the "Digital asset" tab on products and the ownership panel on users.
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    resources :products, only: [] do
+      resources :digital_assets, except: :show do
+        member do
+          post :publish
+          post :retire
+          delete 'files/:attachment_id', action: :remove_file, as: :remove_file
+        end
+      end
+    end
+    resources :users, only: [] do
+      resources :digital_ownerships, only: :create do
+        member { post :revoke }
+      end
+    end
+  end
+end
+
+# Creators: applications, the creator portal API and the public digital summary of a product.
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      resource :creator_application, only: %i[show create destroy]
+      get 'creator', to: 'creator#show', as: :creator
+      namespace :creator do
+        get 'sales', to: 'sales#index', as: :sales
+        get 'payouts', to: 'payouts#index', as: :payouts
+        resources :products, only: %i[index show create update destroy] do
+          member { post :submit }
+        end
+      end
+      get 'products/:slug/digital_summary', to: 'digital_summaries#show', as: :product_digital_summary
+    end
+  end
+
+  namespace :admin, path: Spree.admin_path do
+    resources :creator_applications, only: %i[index show] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
+    resources :creator_accounts, only: %i[index edit update] do
+      member do
+        post :suspend
+        post :reinstate
+        post :revoke
+      end
+    end
+    resources :creator_reviews, only: %i[index show] do
+      member do
+        post :approve
+        post :request_changes
+        post :reject
+      end
+    end
+    resources :creator_earnings, only: :index do
+      post :void, on: :member
+    end
+    resources :creator_payouts, only: %i[index new create]
+  end
+end
+
 # Affiliate program: click tracking, order attribution, the affiliate's own API and the admin tab.
 Spree::Core::Engine.add_routes do
   namespace :api, defaults: { format: 'json' } do
