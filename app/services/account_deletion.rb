@@ -15,6 +15,9 @@
 # Feedback:   app feedback the user sent is deleted with its screenshots; anonymous feedback
 #             from the same install can't be tied to the account and stays.
 # Tracks:     the user's AI backing tracks are deleted with their audio.
+# Reviews:    reviews, product questions and answers stay, anonymized as "Former customer"; their
+#             photos are purged, the user's helpful votes deleted, and open review emails
+#             cancelled (Reviews::Anonymize).
 #
 # Refused (AccountDeletion::Refused, with a message for the user) for admin accounts.
 class AccountDeletion
@@ -90,6 +93,7 @@ class AccountDeletion
     delete_profile_data
     delete_feedback
     delete_user_tracks
+    avatar_blobs.concat(Reviews::Anonymize.call(user, now: now))
     # In-app purchase receipts are payment records: when that module lands, keep them for
     # accounting and detach or anonymize them here rather than deleting.
   end

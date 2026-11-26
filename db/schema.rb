@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_16_120000) do
+ActiveRecord::Schema.define(version: 2026_11_26_120100) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -965,6 +965,22 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["variant_id"], name: "index_spree_prices_on_variant_id"
   end
 
+  create_table "spree_product_answers", force: :cascade do |t|
+    t.bigint "question_id", null: false
+    t.integer "user_id"
+    t.text "body", null: false
+    t.string "display_name", null: false
+    t.boolean "official", default: false, null: false
+    t.boolean "verified_buyer", default: false, null: false
+    t.string "status", default: "pending", null: false
+    t.integer "helpful_count", default: 0, null: false
+    t.datetime "published_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["question_id"], name: "index_spree_product_answers_on_question_id"
+    t.index ["user_id"], name: "index_spree_product_answers_on_user_id"
+  end
+
   create_table "spree_product_option_types", id: :serial, force: :cascade do |t|
     t.integer "position"
     t.integer "product_id"
@@ -996,6 +1012,20 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["property_id"], name: "index_spree_product_properties_on_property_id"
   end
 
+  create_table "spree_product_questions", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.integer "user_id"
+    t.text "body", null: false
+    t.string "display_name", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "answers_count", default: 0, null: false
+    t.datetime "published_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["product_id", "status"], name: "index_spree_product_questions_on_product_id_and_status"
+    t.index ["user_id"], name: "index_spree_product_questions_on_user_id"
+  end
+
   create_table "spree_product_videos", force: :cascade do |t|
     t.integer "product_id", null: false
     t.integer "position"
@@ -1020,10 +1050,16 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.boolean "promotionable", default: true
     t.string "meta_title"
     t.datetime "discontinue_on"
+    t.decimal "avg_rating", precision: 3, scale: 2, default: "0.0", null: false
+    t.integer "reviews_count", default: 0, null: false
+    t.decimal "all_avg_rating", precision: 3, scale: 2, default: "0.0", null: false
+    t.integer "all_reviews_count", default: 0, null: false
     t.index ["available_on"], name: "index_spree_products_on_available_on"
+    t.index ["avg_rating"], name: "index_spree_products_on_avg_rating"
     t.index ["deleted_at"], name: "index_spree_products_on_deleted_at"
     t.index ["discontinue_on"], name: "index_spree_products_on_discontinue_on"
     t.index ["name"], name: "index_spree_products_on_name"
+    t.index ["reviews_count"], name: "index_spree_products_on_reviews_count"
     t.index ["shipping_category_id"], name: "index_spree_products_on_shipping_category_id"
     t.index ["slug"], name: "index_spree_products_on_slug", unique: true
     t.index ["tax_category_id"], name: "index_spree_products_on_tax_category_id"
@@ -1283,6 +1319,143 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
     t.index ["preferred_reimbursement_type_id"], name: "index_spree_return_items_on_preferred_reimbursement_type_id"
     t.index ["reimbursement_id"], name: "index_spree_return_items_on_reimbursement_id"
     t.index ["return_authorization_id"], name: "index_spree_return_items_on_return_authorization_id"
+  end
+
+  create_table "spree_review_attributes", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "label", null: false
+    t.string "kind", default: "scale", null: false
+    t.string "low_label"
+    t.string "high_label"
+    t.string "applies_to", default: "product", null: false
+    t.integer "position"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["key"], name: "index_spree_review_attributes_on_key", unique: true
+  end
+
+  create_table "spree_review_attributes_taxons", id: false, force: :cascade do |t|
+    t.bigint "review_attribute_id", null: false
+    t.integer "taxon_id", null: false
+    t.index ["review_attribute_id", "taxon_id"], name: "index_spree_review_attribute_taxons_unique", unique: true
+    t.index ["taxon_id"], name: "index_spree_review_attributes_taxons_on_taxon_id"
+  end
+
+  create_table "spree_review_requests", force: :cascade do |t|
+    t.integer "order_id", null: false
+    t.integer "user_id"
+    t.string "email", null: false
+    t.string "token_digest"
+    t.string "status", default: "scheduled", null: false
+    t.datetime "send_after", null: false
+    t.datetime "sent_at"
+    t.datetime "reminded_at"
+    t.datetime "opened_at"
+    t.datetime "completed_at"
+    t.datetime "expires_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["order_id"], name: "index_spree_review_requests_on_order_id", unique: true
+    t.index ["status", "send_after"], name: "index_spree_review_requests_on_status_and_send_after"
+    t.index ["token_digest"], name: "index_spree_review_requests_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_spree_review_requests_on_user_id"
+  end
+
+  create_table "spree_review_settings", force: :cascade do |t|
+    t.integer "singleton_guard", default: 0, null: false
+    t.boolean "enabled", default: false, null: false
+    t.boolean "store_reviews_enabled", default: false, null: false
+    t.boolean "questions_enabled", default: false, null: false
+    t.boolean "auto_publish", default: true, null: false
+    t.boolean "photos_require_approval", default: true, null: false
+    t.integer "request_delay_days", default: 7, null: false
+    t.integer "international_request_delay_days", default: 10, null: false
+    t.integer "reminder_delay_days", default: 7, null: false
+    t.integer "request_expiry_days", default: 60, null: false
+    t.integer "points_per_review", default: 50, null: false
+    t.integer "points_photo_bonus", default: 50, null: false
+    t.boolean "ai_summary_enabled", default: false, null: false
+    t.integer "ai_summary_min_reviews", default: 5, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["singleton_guard"], name: "index_spree_review_settings_on_singleton_guard", unique: true
+  end
+
+  create_table "spree_review_stats", force: :cascade do |t|
+    t.string "reviewable_type", null: false
+    t.integer "reviewable_id", null: false
+    t.string "scope", null: false
+    t.decimal "average", precision: 3, scale: 2, default: "0.0", null: false
+    t.integer "ratings_count", default: 0, null: false
+    t.integer "reviews_count", default: 0, null: false
+    t.integer "photos_count", default: 0, null: false
+    t.jsonb "histogram", default: {}, null: false
+    t.jsonb "attribute_averages", default: {}, null: false
+    t.jsonb "ai_summary"
+    t.integer "ai_summary_review_count"
+    t.datetime "ai_summary_generated_at"
+    t.boolean "ai_summary_hidden", default: false, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["reviewable_type", "reviewable_id", "scope"], name: "index_spree_review_stats_unique", unique: true
+  end
+
+  create_table "spree_review_votes", force: :cascade do |t|
+    t.bigint "review_id", null: false
+    t.integer "user_id"
+    t.string "voter_key", null: false
+    t.boolean "helpful", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["review_id", "voter_key"], name: "index_spree_review_votes_on_review_id_and_voter_key", unique: true
+    t.index ["user_id"], name: "index_spree_review_votes_on_user_id"
+  end
+
+  create_table "spree_reviews", force: :cascade do |t|
+    t.string "reviewable_type", null: false
+    t.integer "reviewable_id", null: false
+    t.integer "variant_id"
+    t.integer "user_id"
+    t.integer "order_id"
+    t.integer "line_item_id"
+    t.bigint "review_request_id"
+    t.integer "rating", null: false
+    t.string "title", limit: 120
+    t.text "body"
+    t.jsonb "attribute_ratings", default: {}, null: false
+    t.string "status", default: "pending", null: false
+    t.string "moderation_reason"
+    t.integer "moderated_by_id"
+    t.datetime "moderated_at"
+    t.boolean "verified_purchase", default: true, null: false
+    t.boolean "incentivized", default: false, null: false
+    t.datetime "points_awarded_at"
+    t.string "source", default: "web", null: false
+    t.string "channel", default: "retail", null: false
+    t.string "display_name", null: false
+    t.string "locale"
+    t.integer "helpful_count", default: 0, null: false
+    t.integer "unhelpful_count", default: 0, null: false
+    t.integer "reports_count", default: 0, null: false
+    t.text "reply_body"
+    t.integer "reply_author_id"
+    t.datetime "replied_at"
+    t.datetime "published_at"
+    t.datetime "edited_at"
+    t.string "ip_hash"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["line_item_id"], name: "index_spree_reviews_on_line_item_id"
+    t.index ["order_id", "reviewable_type", "reviewable_id"], name: "index_spree_reviews_one_per_order", unique: true, where: "(order_id IS NOT NULL)"
+    t.index ["order_id"], name: "index_spree_reviews_on_order_id"
+    t.index ["review_request_id"], name: "index_spree_reviews_on_review_request_id"
+    t.index ["reviewable_type", "reviewable_id", "status", "channel"], name: "index_spree_reviews_on_reviewable_status_channel"
+    t.index ["status", "created_at"], name: "index_spree_reviews_on_status_and_created_at"
+    t.index ["user_id", "reviewable_type", "reviewable_id"], name: "index_spree_reviews_one_per_user", unique: true, where: "(user_id IS NOT NULL)"
+    t.index ["user_id"], name: "index_spree_reviews_on_user_id"
+    t.index ["variant_id"], name: "index_spree_reviews_on_variant_id"
+    t.check_constraint "(rating >= 1) AND (rating <= 5)", name: "spree_reviews_rating_range"
   end
 
   create_table "spree_role_users", id: :serial, force: :cascade do |t|
@@ -1811,7 +1984,24 @@ ActiveRecord::Schema.define(version: 2026_11_16_120000) do
   add_foreign_key "spree_content_reports", "spree_users", column: "resolved_by_id", on_delete: :nullify
   add_foreign_key "spree_oauth_access_grants", "spree_oauth_applications", column: "application_id"
   add_foreign_key "spree_oauth_access_tokens", "spree_oauth_applications", column: "application_id"
+  add_foreign_key "spree_product_answers", "spree_product_questions", column: "question_id", on_delete: :cascade
+  add_foreign_key "spree_product_answers", "spree_users", column: "user_id", on_delete: :nullify
+  add_foreign_key "spree_product_questions", "spree_products", column: "product_id", on_delete: :cascade
+  add_foreign_key "spree_product_questions", "spree_users", column: "user_id", on_delete: :nullify
   add_foreign_key "spree_product_videos", "spree_products", column: "product_id"
+  add_foreign_key "spree_review_attributes_taxons", "spree_review_attributes", column: "review_attribute_id", on_delete: :cascade
+  add_foreign_key "spree_review_attributes_taxons", "spree_taxons", column: "taxon_id", on_delete: :cascade
+  add_foreign_key "spree_review_requests", "spree_orders", column: "order_id"
+  add_foreign_key "spree_review_requests", "spree_users", column: "user_id", on_delete: :nullify
+  add_foreign_key "spree_review_votes", "spree_reviews", column: "review_id", on_delete: :cascade
+  add_foreign_key "spree_review_votes", "spree_users", column: "user_id", on_delete: :cascade
+  add_foreign_key "spree_reviews", "spree_line_items", column: "line_item_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_orders", column: "order_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_review_requests", column: "review_request_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_users", column: "moderated_by_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_users", column: "reply_author_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_users", column: "user_id", on_delete: :nullify
+  add_foreign_key "spree_reviews", "spree_variants", column: "variant_id", on_delete: :nullify
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocked_id"
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
   add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"

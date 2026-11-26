@@ -1,0 +1,10 @@
+<!-- insert_bottom "[data-hook='customer_fields']" -->
+<div class="col-12 col-lg-4" data-hook="admin_order_channel">
+  <div class="form-group">
+    <%= f.label :channel, 'Sales channel' %>
+    <%= f.select :channel, [['Retail', 'spree'], ['Wholesale', 'wholesale']],
+                 { selected: @order.wholesale_channel? ? 'wholesale' : 'spree' },
+                 class: 'form-control select2', id: 'order_channel' %>
+    <small class="form-text text-muted">Wholesale orders' reviews only appear on wholesale product pages.</small>
+  </div>
+</div>
