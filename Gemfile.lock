@@ -1,4 +1,14 @@
 GIT
+  remote: https://github.com/1instinct/spree-admin-native.git
+  revision: 61ceecb2a979e58cba4d0a49d4610466544320a4
+  ref: 61ceecb2a979e58cba4d0a49d4610466544320a4
+  glob: gems/spree_admin_native/*.gemspec
+  specs:
+    spree_admin_native (0.1.0)
+      rqrcode (>= 2.0, < 4)
+      spree_core (>= 4.2)
+
+GIT
   remote: https://github.com/1instinct/spree-loyalty-points.git
   revision: e99d2ed4913fd52bed865a5c814fefec7d82a28f
   specs:
@@ -189,6 +199,7 @@ GEM
     chromedriver-helper (2.1.1)
       archive-zip (~> 0.10)
       nokogiri (~> 1.8)
+    chunky_png (1.4.0)
     ckeditor (5.0.0)
       orm_adapter (~> 0.5.0)
     cldr-plurals-runtime-rb (1.1.0)
@@ -423,6 +434,10 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     rexml (3.4.4)
+    rqrcode (2.2.0)
+      chunky_png (~> 1.0)
+      rqrcode_core (~> 1.0)
+    rqrcode_core (1.2.0)
     ruby-vips (2.3.0)
       ffi (~> 1.12)
       logger
@@ -621,6 +636,7 @@ DEPENDENCIES
   sassc-rails
   selenium-webdriver (~> 3.142)
   spree!
+  spree_admin_native!
   spree_auth_devise (~> 4.3)
   spree_avatar!
   spree_editor!

@@ -133,6 +133,12 @@
     </ul>
   <% end %>
 
+  <% if can? :admin, SpreeAdminNative::Device %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarAdminNative">
+      <%= tab :admin_native_devices, label: 'Mobile app', icon: 'extensions.svg', url: spree.admin_admin_native_devices_path %>
+    </ul>
+  <% end %>
+
   <% if can? :admin, current_store %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarConfiguration">
       <%= main_menu_tree Spree.t(:configurations), icon: "settings.svg", sub_menu: "configuration", url: "#sidebar-configuration" %>
