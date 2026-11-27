@@ -8,7 +8,7 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
   BASE = '/api/admin_native/v1/resources'.freeze
   EXPO_URL = 'https://exp.host/--/api/v2/push/send'.freeze
   # The gem's own pattern plus the credentials this app keeps under other names.
-  SECRET_LOOKING = /password|token|secret|digest|encrypted|api_key|salt|otp|private_key|credentials|stream_key|signed_payload/i.freeze
+  SECRET_LOOKING = /password|token|secret|digest|encrypted|api_key|salt|otp|private_key|credentials|stream_key|signed_payload|jwt|cvv/i.freeze
   SECRET_VALUES = %w[ExponentPushToken[device-secret] sk-live-stream-secret signed.jws.payload acct-token-secret].freeze
 
   # Type => model. A fork without one of these models (a feature it doesn't carry) has no such type.
@@ -35,14 +35,31 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
   end
 
   # values is positional so a literal hash isn't taken for keywords on Ruby 2.7.
-  def call(method, path, values = nil, api_key = @admin.spree_api_key)
+  def call(method, path, values = nil, api_key = @admin.spree_api_key, extra = {})
     headers = { 'X-Spree-Token' => api_key, 'CONTENT_TYPE' => 'application/json' }
-    send(method, "#{BASE}#{path}", params: values ? { values: values }.to_json : nil, headers: headers)
+    body = values ? { values: values }.merge(extra) : (extra.any? ? extra : nil)
+    send(method, "#{BASE}#{path}", params: body&.to_json, headers: headers)
     response.body.empty? ? {} : JSON.parse(response.body)
   end
 
-  def run_action(key, record, action)
-    call(:post, "/#{key}/#{record.id}/actions/#{action}")
+  def run_action(key, record, action, input = nil)
+    call(:post, "/#{key}/#{record.id}/actions/#{action}", nil, @admin.spree_api_key, input ? { input: input } : {})
+  end
+
+  # POST resources/uploads, as the app does before it sends an image or file field.
+  def upload(name = 'test-image.png', content_type = 'image/png')
+    file = name.is_a?(String) ? fixture_file_upload(name, content_type) : name
+    post "#{BASE}/uploads", params: { file: file }, headers: { 'X-Spree-Token' => @admin.spree_api_key }
+    assert_equal 201, response.status, response.body
+    JSON.parse(response.body)['data']
+  end
+
+  def manifest_of(key)
+    call(:get, '')['data'].find { |type| type['key'] == key }
+  end
+
+  def ids_of(body)
+    body['data'].map { |record| record['id'].to_i }
   end
 
   def actions_of(key, record)
@@ -134,7 +151,8 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
       assert names.any?, "#{type['key']} has no fields"
       names.each { |name| refute_match SECRET_LOOKING, name, "#{type['key']} exposes #{name}" }
       model = SpreeAdminNative.resources[type['key']].model_class
-      assert model.method_defined?(type['title_field']), "#{type['key']} title #{type['title_field']}"
+      title = type['title_field']
+      assert model.column_names.include?(title) || model.method_defined?(title), "#{type['key']} title #{title}"
       (type['list_fields'] - ['id']).each { |name| assert_includes names, name, "#{type['key']} lists #{name}" }
       type['fields'].select { |f| f['type'] == 'reference' }.each do |field|
         assert SpreeAdminNative.resources[field['resource']], "#{type['key']}.#{field['name']} points at #{field['resource']}"
@@ -170,7 +188,34 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'forks can change each type after it is registered' do
+  test 'forks change a type with configure, in any load order' do
+    registry = SpreeAdminNative.resources
+    seen = []
+    # Registered before the type, as a fork's initializer (loaded first) does, and after it.
+    registry.configure('scratch_menu_items') { |r| seen << :before; r.field :item_class, :string, label: 'Badge' }
+    registry.register('scratch_menu_items') do |r|
+      r.model 'MenuItem'
+      r.label 'Scratch'
+      r.fields :auto
+    end
+    registry.configure('scratch_menu_items') { |r| seen << :after; r.search :name, :item_class }
+    assert_equal %i[before after], seen
+    definition = registry['scratch_menu_items']
+    assert_equal 'Badge', definition.resolved_field(:item_class).label
+    assert_equal %i[name item_class], definition.search_attrs
+
+    # Each type here takes configure blocks: they run now, and again whenever it is registered.
+    keys = []
+    registry.configure('push_notifications') { |r| keys << r.key }
+    assert_equal ['push_notifications'], keys
+  ensure
+    registry.unregister('scratch_menu_items')
+    configurations = registry.instance_variable_get(:@configurations)
+    configurations.delete('scratch_menu_items')
+    configurations['push_notifications']&.pop
+  end
+
+  test 'the 0.4 load hook still runs after each type is registered' do
     seen = {}
     # Runs at once for the types registered at boot, and again after every reload.
     ActiveSupport.on_load(:spree_admin_native_resource, yield: true) { |r| seen[r.key] = r.label }
@@ -226,9 +271,12 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     call(:patch, "/menu_items/#{item.dig('data', 'id')}", { is_visible: false })
     assert_nil MenuItem.find(item.dig('data', 'id')).is_visible, 'is_visible is not in the admin permitted params'
 
+    shown = call(:get, "/menu_items/#{item.dig('data', 'id')}")
+    assert_equal({ 'update' => true, 'destroy' => false }, shown.dig('data', 'can'), 'an item with children is kept')
     call(:delete, "/menu_items/#{item.dig('data', 'id')}")
-    assert_equal 422, response.status, 'an item with children is kept'
+    assert_equal 403, response.status
     assert MenuItem.exists?(item.dig('data', 'id'))
+    refute MenuItem.find(item.dig('data', 'id')).destroy, 'MenuItem still refuses it'
     call(:delete, "/menu_items/#{child.dig('data', 'id')}")
     assert_equal 204, response.status
     call(:delete, "/menu_items/#{item.dig('data', 'id')}")
@@ -335,12 +383,27 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
 
     call(:post, "/push_notifications/#{id}/actions/deliver")
     assert_equal 422, response.status, 'sent only once'
+    assert_equal({ 'update' => false, 'destroy' => false }, body.dig('data', 'can'))
     call(:patch, "/push_notifications/#{id}", { title: 'Rewritten' })
-    assert_equal 422, response.status
+    assert_equal 403, response.status
     call(:delete, "/push_notifications/#{id}")
-    assert_equal 422, response.status
+    assert_equal 403, response.status
     assert_equal 'Big sale', notification.reload.title
     assert_requested(:post, EXPO_URL, times: 1)
+    # The model still refuses it, for every other client.
+    refute notification.update(title: 'Rewritten')
+    refute notification.destroy
+  end
+
+  test 'a draft records the admin who made it, and is editable and deletable while a draft' do
+    body = call(:post, '/push_notifications', { title: 'Draft', body: 'Not yet', sent_by_id: create(:user).id })
+    assert_equal 201, response.status, response.body
+    assert_equal({ 'id' => @admin.id.to_s, 'title' => @admin.email }, body.dig('data', 'values', 'sent_by_id'))
+    assert_equal({ 'update' => true, 'destroy' => true }, body.dig('data', 'can'))
+    assert_equal @admin.id, PushNotification.find(body.dig('data', 'id')).sent_by_id
+    call(:patch, "/push_notifications/#{body.dig('data', 'id')}", { title: 'Still a draft' })
+    assert_equal 200, response.status
+    assert_equal @admin.id, PushNotification.find(body.dig('data', 'id')).sent_by_id, 'only set on create'
   end
 
   test 'Send now to one user, failures recorded, drafts deleted' do
@@ -409,26 +472,41 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
   test 'creator products are reviewed from the queue with a note' do
     marketplace_taxons
     product = sample('creator_reviews')
-    assert_equal %w[approve], actions_of('creator_reviews', product)
-    run_action('creator_reviews', product, 'reject')
-    assert_equal 422, response.status, 'a rejection needs a note'
+    assert_equal %w[approve request_changes reject], actions_of('creator_reviews', product)
+    inputs = manifest_of('creator_reviews')['actions'].map { |a| [a['name'], a['inputs'].map { |i| [i['name'], i['required']] }] }.to_h
+    assert_equal({ 'approve' => [['note', false]], 'request_changes' => [['note', true]], 'reject' => [['note', true]] }, inputs)
+
+    %w[reject request_changes].each do |action|
+      body = run_action('creator_reviews', product, action, { note: '  ' })
+      assert_equal 422, response.status, "#{action} needs a note"
+      assert_equal ["can't be blank"], body.dig('error', 'fields', 'note')
+    end
     assert_equal 'submitted', product.reload.review_state
 
-    call(:patch, "/creator_reviews/#{product.id}", { review_note: 'Trim the intro', name: 'Renamed', review_state: 'approved' })
+    call(:patch, "/creator_reviews/#{product.id}", { review_note: 'Draft note', name: 'Renamed', review_state: 'approved' })
     assert_equal 200, response.status, response.body
-    assert_equal ['submitted', 'Trim the intro'], [product.reload.review_state, product.review_note]
+    assert_equal ['submitted', 'Draft note'], [product.reload.review_state, product.review_note]
     refute_equal 'Renamed', product.name
-    assert_equal %w[approve request_changes reject], actions_of('creator_reviews', product)
-    run_action('creator_reviews', product, 'request_changes')
+    body = run_action('creator_reviews', product, 'request_changes', { note: 'Trim the intro' })
     assert_equal 200, response.status, response.body
-    assert_equal 'changes_requested', product.reload.review_state
+    assert body['removed'], 'a decided product leaves the queue'
+    assert_equal ['changes_requested', 'Trim the intro'], [product.reload.review_state, product.review_note]
     call(:get, "/creator_reviews/#{product.id}")
-    assert_equal 404, response.status, 'a decided product leaves the queue'
+    assert_equal 404, response.status
+    run_action('creator_reviews', product, 'reject', { note: 'Too late' })
+    assert_equal 404, response.status, 'no longer reviewable'
+
+    rejected = sample('creator_reviews')
+    run_action('creator_reviews', rejected, 'reject', { note: 'Not original' })
+    assert_equal 200, response.status, response.body
+    assert_equal ['rejected', 'Not original'], [rejected.reload.review_state, rejected.review_note]
 
     approved = sample('creator_reviews')
-    run_action('creator_reviews', approved, 'approve')
+    approved.update!(review_note: 'Saved earlier')
+    body = run_action('creator_reviews', approved, 'approve', { note: 'Lovely' })
     assert_equal 200, response.status, response.body
-    assert_equal 'approved', approved.reload.review_state
+    assert_equal 'Lovely', approved.reload.review_note
+    assert_equal 'approved', approved.review_state
     assert approved.available_on.present?
     assert approved.master.digital_assets.published.exists?
 
@@ -629,5 +707,333 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     assert_match %r{/rails/active_storage/blobs/}, body.dig('data', 'values', 'video_url')
     call(:delete, "/product_videos/#{video.id}")
     assert_equal 204, response.status
+  end
+
+  # --- Action inputs ---------------------------------------------------------------------------
+
+  def granting_purchase(user, key: 'pro')
+    product = create(:iap_product, entitlement: key)
+    transaction = create(:iap_transaction, user: user, iap_product: product, product_id: product.product_id)
+    EntitlementResolver.refresh(user)
+    transaction
+  end
+
+  test 'entitlements are revoked with a required note, through every purchase that grants them' do
+    skip 'this app has no in-app purchases' unless TYPES.include?('entitlements')
+
+    user = create(:iap_user)
+    purchase = granting_purchase(user)
+    entitlement = Spree::Entitlement.find_by!(user_id: user.id, key: 'pro')
+    assert entitlement.current?
+    assert_equal %w[revoke], actions_of('entitlements', entitlement)
+
+    body = run_action('entitlements', entitlement, 'revoke')
+    assert_equal 422, response.status
+    assert_equal ["can't be blank"], body.dig('error', 'fields', 'note')
+    assert_equal 'active', purchase.reload.status
+
+    body = run_action('entitlements', entitlement, 'revoke', { note: 'Chargeback' })
+    assert_equal 200, response.status, response.body
+    assert_equal 'Entitlement pro revoked.', body['message']
+    assert_equal 'revoked', purchase.reload.status
+    assert purchase.admin_revoked_at.present?
+    log = purchase.audit_logs.last
+    assert_equal ['revoke', 'Chargeback', @admin.id], [log.action, log.note, log.admin_user_id]
+    refute Spree::Entitlement.current_for(user, 'pro')
+
+    run_action('entitlements', entitlement, 'revoke', { note: 'Again' })
+    assert_equal 422, response.status, 'no longer current'
+
+    orphan = Spree::Entitlement.create!(user: create(:iap_user), key: 'pro', active: true)
+    body = run_action('entitlements', orphan, 'revoke', { note: 'No purchase' })
+    assert_equal 422, response.status
+    assert_includes body.dig('error', 'message'), 'No purchase currently grants this entitlement'
+  end
+
+  test 'in-app purchases are revoked once, with a required note' do
+    skip 'this app has no in-app purchases' unless TYPES.include?('iap_transactions')
+
+    user = create(:iap_user)
+    purchase = granting_purchase(user)
+    assert_equal %w[revoke], actions_of('iap_transactions', purchase)
+    body = run_action('iap_transactions', purchase, 'revoke', { note: '' })
+    assert_equal 422, response.status
+    assert_equal ["can't be blank"], body.dig('error', 'fields', 'note')
+    assert_nil purchase.reload.admin_revoked_at
+
+    body = run_action('iap_transactions', purchase, 'revoke', { note: 'Refunded by support' })
+    assert_equal 200, response.status, response.body
+    assert_equal 'Purchase revoked.', body['message']
+    assert_equal [], body.dig('data', 'actions')
+    assert_equal ['revoked', 'Refunded by support'], [purchase.reload.status, purchase.audit_logs.last.note]
+    refute Spree::Entitlement.current_for(user, 'pro')
+    run_action('iap_transactions', purchase, 'revoke', { note: 'Again' })
+    assert_equal 422, response.status
+  end
+
+  test 'creator payouts are recorded on the creator with a reference' do
+    account = create(:creator_account)
+    assert_equal [], actions_of('creator_accounts', account) - %w[suspend revoke], 'nothing payable yet'
+    create(:creator_earning, creator_account: account, amount: 7, payable_at: 1.day.ago)
+    create(:creator_earning, creator_account: account, amount: 3.5, state: 'payable', payable_at: 2.days.ago)
+    held = create(:creator_earning, creator_account: account, amount: 100)
+    assert_includes actions_of('creator_accounts', account), 'record_payout'
+    action = manifest_of('creator_accounts')['actions'].find { |a| a['name'] == 'record_payout' }
+    assert_equal [%w[reference string], %w[currency string], %w[note text]], action['inputs'].map { |i| [i['name'], i['type']] }
+
+    body = run_action('creator_accounts', account, 'record_payout', { note: 'Wire' })
+    assert_equal 422, response.status
+    assert_equal ["can't be blank"], body.dig('error', 'fields', 'reference')
+    assert_equal 0, Spree::CreatorPayout.where(creator_account: account).count
+
+    body = run_action('creator_accounts', account, 'record_payout', { reference: 'WIRE-42', note: 'March' })
+    assert_equal 200, response.status, response.body
+    assert_equal 'Payout of 10.50 USD recorded.', body['message']
+    payout = Spree::CreatorPayout.find_by!(creator_account: account)
+    assert_equal [BigDecimal('10.5'), 'USD', 'WIRE-42', 'March'], [payout.amount, payout.currency, payout.reference, payout.note]
+    assert_equal %w[paid paid], Spree::CreatorEarning.where(creator_payout_id: payout.id).pluck(:state)
+    assert held.reload.pending?
+    refute_includes body.dig('data', 'actions'), 'record_payout'
+
+    run_action('creator_accounts', account, 'record_payout', { reference: 'WIRE-43' })
+    assert_equal 422, response.status, 'nothing left to pay'
+    create(:creator_earning, creator_account: account, state: 'payable', payable_at: 1.day.ago)
+    body = run_action('creator_accounts', account, 'record_payout', { reference: 'WIRE-44', currency: 'eur' })
+    assert_equal 422, response.status
+    assert_includes body.dig('error', 'message'), 'Nothing is payable in EUR'
+  end
+
+  test 'affiliate payouts are recorded on the affiliate with a reference' do
+    account = create(:affiliate_account, :approved)
+    refute_includes actions_of('affiliate_accounts', account), 'record_payout'
+    commission = create(:affiliate_commission, affiliate_account: account, state: 'approved', amount: 12)
+    assert_includes actions_of('affiliate_accounts', account), 'record_payout'
+
+    body = run_action('affiliate_accounts', account, 'record_payout', { reference: ' ' })
+    assert_equal 422, response.status
+    assert_equal ["can't be blank"], body.dig('error', 'fields', 'reference')
+
+    body = run_action('affiliate_accounts', account, 'record_payout', { reference: 'PP-7' })
+    assert_equal 200, response.status, response.body
+    assert_equal "Payout of 12.00 #{commission.currency} recorded.", body['message']
+    assert_equal 'paid', commission.reload.state
+    assert_equal 'PP-7', commission.payout.reference
+    run_action('affiliate_accounts', account, 'record_payout', { reference: 'PP-8' })
+    assert_equal 422, response.status
+  end
+
+  test 'review decisions take the admin notes and overrides' do
+    account = sample('affiliate_accounts')
+    call(:patch, "/affiliate_accounts/#{account.id}", { commission_bps: 2500 })
+    assert_equal 200, response.status, response.body
+    run_action('affiliate_accounts', account, 'approve', { note: 'Big audience', unknown: 'ignored' })
+    assert_equal 200, response.status, response.body
+    assert_equal ['approved', 2500, 'Big audience'], [account.reload.status, account.commission_bps, account.review_note]
+    run_action('affiliate_accounts', account, 'suspend')
+    assert_equal ['suspended', 2500, 'Big audience'], [account.reload.status, account.commission_bps, account.review_note]
+
+    application = sample('creator_applications')
+    run_action('creator_applications', application, 'reject', { note: 'Samples too short' })
+    assert_equal 200, response.status
+    assert_equal ['rejected', 'Samples too short'], [application.reload.status, application.review_note]
+
+    report = sample('content_reports')
+    run_action('content_reports', report, 'hide_profile', { note: 'Spam links' })
+    assert_equal 200, response.status, response.body
+    assert_equal 'Profile hidden: Spam links', report.reload.resolution_note
+    assert_equal "Report ##{report.id}: Spam links", report.reportable.reload.hidden_reason
+    dismissed = sample('content_reports')
+    run_action('content_reports', dismissed, 'dismiss', { note: 'Not spam' })
+    assert_equal ['dismissed', 'Not spam'], [dismissed.reload.status, dismissed.resolution_note]
+
+    profile = sample('user_profiles')
+    hide = manifest_of('user_profiles')['actions'].find { |a| a['name'] == 'hide' }
+    assert_equal 'Hidden by an admin', hide['inputs'].first['default']
+    run_action('user_profiles', profile, 'hide', { reason: 'Impersonation' })
+    assert_equal 'Impersonation', profile.reload.hidden_reason
+
+    ownership = sample('digital_ownerships')
+    run_action('digital_ownerships', ownership, 'revoke', { reason: 'refund' })
+    assert_equal 200, response.status
+    assert_equal 'refund', ownership.reload.revoke_reason
+  end
+
+  # --- References, uploads, filters, versions ---------------------------------------------------
+
+  test 'user, product, variant and order ids come back with titles from the built-in lookups' do
+    lookups = call(:get, '')['data'].select { |type| type['key'].start_with?('spree_') }
+    assert_equal %w[spree_orders spree_products spree_users spree_variants], lookups.map { |t| t['key'] }.sort
+    assert lookups.all? { |t| t['hidden'] }
+    resources = call(:get, '')['data'].flat_map { |t| t['fields'].select { |f| f['type'] == 'reference' }.map { |f| f['resource'] } }
+    assert_includes resources, 'spree_users'
+
+    user = create(:iap_user)
+    granting_purchase(user)
+    entitlement = Spree::Entitlement.find_by!(user_id: user.id)
+    body = call(:get, "/entitlements?filter[user_id]=#{user.id}")
+    assert_equal [entitlement.id], ids_of(body)
+    assert_equal({ 'id' => user.id.to_s, 'title' => user.email }, body['data'].first.dig('values', 'user_id'))
+
+    video = sample('product_videos')
+    body = call(:get, "/product_videos/#{video.id}")
+    assert_equal({ 'id' => video.product_id.to_s, 'title' => video.product.name }, body.dig('data', 'values', 'product_id'))
+
+    commission = sample('affiliate_commissions')
+    body = call(:get, "/affiliate_commissions/#{commission.id}")
+    assert_equal({ 'id' => commission.order_id.to_s, 'title' => commission.order.number }, body.dig('data', 'values', 'order_id'))
+    assert_equal "10.00 #{commission.currency}", body.dig('data', 'title')
+
+    ownership = sample('digital_ownerships')
+    body = call(:get, "/digital_ownerships/#{ownership.id}")
+    assert_equal ownership.variant.sku.presence || "##{ownership.variant_id}", body.dig('data', 'values', 'variant_id', 'title')
+
+    account = sample('creator_accounts')
+    body = call(:get, "/creator_accounts/#{account.id}")
+    assert_equal account.user.email, body.dig('data', 'title')
+    assert_equal account.user.email, body.dig('data', 'values', 'user_id', 'title')
+
+    body = call(:get, "/spree_users?q=#{CGI.escape(user.email)}")
+    assert_equal [user.id], ids_of(body)
+    call(:post, '/spree_users', { email: 'new@example.com' })
+    assert_equal 403, response.status, 'lookups are read-only'
+  end
+
+  test 'content images are uploaded, created and replaced from the app' do
+    skip 'this app has no content images' unless TYPES.include?('content_assets')
+
+    blob = upload
+    assert_equal %w[byte_size content_type filename signed_id url], blob.keys.sort
+    body = call(:post, '/content_assets', { file: blob['signed_id'], alt_text: 'Hero', tag: 'Banners' })
+    assert_equal 201, response.status, response.body
+    asset = ContentAsset.find(body.dig('data', 'id'))
+    assert asset.file.attached?
+    assert_equal ['test-image.png', 'image/png', 'banners'], [asset.reload.original_filename, asset.content_type, asset.tag]
+    assert_match %r{/rails/active_storage/blobs/}, body.dig('data', 'values', 'file')
+
+    call(:post, '/content_assets', { alt_text: 'No file' })
+    assert_equal 422, response.status, 'a new image needs a file'
+    body = call(:post, '/content_assets', { file: 'not-a-signed-id' })
+    assert_equal 422, response.status
+    assert_includes body.dig('error', 'fields', 'file'), 'is not a valid upload'
+    text = upload(Rack::Test::UploadedFile.new(StringIO.new('just text'), 'text/plain', original_filename: 'notes.txt'))
+    body = call(:post, '/content_assets', { file: text['signed_id'] })
+    assert_equal 422, response.status, 'ContentAsset checks the type'
+    assert body.dig('error', 'fields', 'file').any?
+
+    replacement = upload('avatar.png', 'image/png')
+    call(:patch, "/content_assets/#{asset.id}", { file: replacement['signed_id'] })
+    assert_equal 200, response.status, response.body
+    assert_equal 'avatar.png', asset.reload.file.filename.to_s
+    call(:patch, "/content_assets/#{asset.id}", { file: nil })
+    assert_equal 422, response.status, 'a content image keeps its file'
+  end
+
+  test 'posters, the theme logo and favicon are uploaded; feedback screenshots and photos are not' do
+    video = sample('product_videos')
+    poster = upload('avatar.png', 'image/png')
+    call(:patch, "/product_videos/#{video.id}", { poster: poster['signed_id'], alt: 'New poster' })
+    assert_equal 200, response.status, response.body
+    assert_equal ['avatar.png', 'New poster'], [video.reload.poster.filename.to_s, video.alt]
+    call(:patch, "/product_videos/#{video.id}", { poster: nil })
+    assert_equal 422, response.status, 'ProductVideo needs a poster'
+
+    theme = sample('admin_theme')
+    logo = upload
+    body = call(:patch, "/admin_theme/#{theme.id}", { logo: logo['signed_id'], favicon: upload['signed_id'] })
+    assert_equal 200, response.status, response.body
+    assert theme.reload.logo.attached? && theme.favicon.attached?
+    assert_match %r{/rails/active_storage/blobs/}, body.dig('data', 'values', 'logo')
+    body = call(:patch, "/admin_theme/#{theme.id}", { logo: nil })
+    assert_equal 200, response.status, response.body
+    assert_nil body.dig('data', 'values', 'logo')
+    refute theme.reload.logo.attached?
+
+    feedback = sample('app_feedback')
+    feedback.screenshot.attach(io: StringIO.new(PNG_BYTES), filename: 'shot.png', content_type: 'image/png')
+    before = feedback.screenshot.blob_id
+    call(:patch, "/app_feedback/#{feedback.id}", { screenshot: upload['signed_id'], status: 'triaged' })
+    assert_equal 200, response.status
+    feedback.reload
+    assert_equal before, feedback.screenshot.blob_id, 'a screenshot is never replaced'
+    assert_equal 'triaged', feedback.status
+    readonly = %w[app_feedback user_profiles].map do |key|
+      manifest_of(key)['fields'].find { |f| f['type'] == 'image' }['readonly']
+    end
+    assert_equal [true, true], readonly
+  end
+
+  test 'uploads need an admin and a file' do
+    post "#{BASE}/uploads", params: { file: fixture_file_upload('test-image.png', 'image/png') }
+    assert_equal 401, response.status
+    post "#{BASE}/uploads", headers: { 'X-Spree-Token' => @admin.spree_api_key }
+    assert_equal 422, response.status
+  end
+
+  test 'filters by presence, date range and reference' do
+    locked = create(:user)
+    Profiles::Moderation.lock(locked)
+    open_account = create(:user)
+    filters = manifest_of('account_locks')['filters']
+    assert_equal({ 'name' => 'locked_at', 'label' => 'Locked at', 'type' => 'presence', 'options' => %w[set unset] }, filters.first)
+    set = ids_of(call(:get, '/account_locks?filter[locked_at]=set&per_page=100'))
+    assert_includes set, locked.id
+    refute_includes set, open_account.id
+    unset = ids_of(call(:get, '/account_locks?filter[locked_at]=unset&per_page=100'))
+    assert_includes unset, open_account.id
+    refute_includes unset, locked.id
+
+    old = sample('content_reports')
+    old.update_columns(created_at: 10.days.ago)
+    recent = sample('content_reports')
+    assert_equal 'date_range', manifest_of('content_reports')['filters'].find { |f| f['name'] == 'created_at' }['type']
+    from = 2.days.ago.to_date.iso8601
+    ids = ids_of(call(:get, "/content_reports?filter[created_at][from]=#{from}&per_page=100"))
+    assert_includes ids, recent.id
+    refute_includes ids, old.id
+    ids = ids_of(call(:get, "/content_reports?filter[created_at][to]=#{3.days.ago.to_date.iso8601}&per_page=100"))
+    assert_equal [old.id], ids
+
+    payout = sample('creator_payouts')
+    payout.update_columns(paid_at: 40.days.ago)
+    ids = ids_of(call(:get, "/creator_payouts?filter[paid_at][from]=#{1.week.ago.to_date.iso8601}"))
+    refute_includes ids, payout.id
+    ids = ids_of(call(:get, "/creator_payouts?filter[creator_account_id]=#{payout.creator_account_id}"))
+    assert_equal [payout.id], ids
+
+    location = sample('menu_locations')
+    item = MenuItem.create!(name: 'Here', menu_location: location)
+    other = sample('menu_items')
+    filter = manifest_of('menu_items')['filters'].find { |f| f['name'] == 'menu_location_id' }
+    assert_equal %w[reference menu_locations], [filter['type'], filter['resource']]
+    ids = ids_of(call(:get, "/menu_items?filter[menu_location_id]=#{location.id}&per_page=100"))
+    assert_includes ids, item.id
+    refute_includes ids, other.id
+  end
+
+  test 'labels, defaults and inferred required fields' do
+    assert_equal 'Account', manifest_of('account_locks')['singular']
+    assert_equal 'Product in review', manifest_of('creator_reviews')['singular']
+    assert_equal 'Menu item', manifest_of('menu_items')['singular']
+    fields = manifest_of('app_settings')['fields'].index_by { |f| f['name'] }
+    assert_equal AppSetting::DEFAULT_NAME, fields['name']['default']
+    fields = manifest_of('push_notifications')['fields'].index_by { |f| f['name'] }
+    assert_equal %w[custom all], [fields['notification_type']['default'], fields['target']['default']]
+    assert fields['title']['required']
+    fields = manifest_of('homepage_sections')['fields'].index_by { |f| f['name'] }
+    assert_equal true, fields['is_visible']['default']
+    refute fields['position']['required'], 'HomepageSection puts a blank position last'
+    assert manifest_of('menu_items')['fields'].find { |f| f['name'] == 'name' }['required']
+  end
+
+  test 'an edit based on an old version is refused' do
+    location = sample('menu_locations')
+    version = call(:get, "/menu_locations/#{location.id}").dig('data', 'version')
+    assert version.present?
+    call(:patch, "/menu_locations/#{location.id}", { title: 'First' }, @admin.spree_api_key, version: version)
+    assert_equal 200, response.status, response.body
+    body = call(:patch, "/menu_locations/#{location.id}", { title: 'Second' }, @admin.spree_api_key, version: version)
+    assert_equal 409, response.status
+    assert_equal 'conflict', body.dig('error', 'code')
+    assert_equal 'First', location.reload.title
   end
 end
