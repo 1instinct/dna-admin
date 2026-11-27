@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/1instinct/spree-admin-native.git
-  revision: 948c57c9f1dfbc3ec8ac3ea438fe03c0d986e0ca
-  ref: 948c57c9f1dfbc3ec8ac3ea438fe03c0d986e0ca
+  revision: fd825ac6ac5abfab47f30aac0ce0bfe57fd38ea9
+  ref: fd825ac6ac5abfab47f30aac0ce0bfe57fd38ea9
   glob: gems/spree_admin_native/*.gemspec
   specs:
-    spree_admin_native (0.5.0)
+    spree_admin_native (0.5.1)
       rqrcode (>= 2.0, < 4)
       spree_core (>= 4.2)
 
