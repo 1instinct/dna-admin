@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_26_170000) do
+ActiveRecord::Schema.define(version: 2026_11_28_120000) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -428,6 +428,17 @@ ActiveRecord::Schema.define(version: 2026_11_26_170000) do
     t.index ["eligible"], name: "index_spree_adjustments_on_eligible"
     t.index ["order_id"], name: "index_spree_adjustments_on_order_id"
     t.index ["source_id", "source_type"], name: "index_spree_adjustments_on_source_id_and_source_type"
+  end
+
+  create_table "spree_admin_native_app_versions", force: :cascade do |t|
+    t.string "platform", null: false
+    t.string "minimum_version"
+    t.string "recommended_version"
+    t.string "update_url"
+    t.boolean "allow_ahead_of_store", default: false, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["platform"], name: "index_spree_admin_native_app_versions_on_platform", unique: true
   end
 
   create_table "spree_admin_native_devices", force: :cascade do |t|

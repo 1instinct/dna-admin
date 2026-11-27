@@ -583,6 +583,7 @@ en:
         live_stream_menu: Live Streams
         generating: Generating Playback Id
         fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+        mux_not_configured: "Live streams aren't set up: add MUX_TOKEN_ID and MUX_TOKEN_SECRET (a Mux access token) to the server's environment."
         update_success: Live Stream updated successfully.
         added_success: Live Stream Added successfully.
         list_success: Live Stream listed successfully.
@@ -942,6 +943,7 @@ en:
       live_stream_menu: Live Streams
       generating: Generating Playback Id
       fail_to_execute_request: "Fail to execute request with error :%{live_stream_real_time_error}"
+      mux_not_configured: "Live streams aren't set up: add MUX_TOKEN_ID and MUX_TOKEN_SECRET (a Mux access token) to the server's environment."
       update_success: Live Stream updated successfully.
       added_success: Live Stream Added successfully.
       list_success: Live Stream listed successfully.
