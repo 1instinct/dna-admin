@@ -467,6 +467,32 @@ module Spree
           end
         end
 
+        # This class replaces Spree's API v1 UsersController, so Spree's index and show have to live
+        # here too; without them Rails renders Spree's templates with no users (500 on the list,
+        # an empty body for one user). Same behaviour as Spree 4.2: admins see every user, anyone
+        # else only themselves. No public cache headers, unlike Spree: the list holds emails.
+        def index
+          @users = Spree.user_class.accessible_by(current_ability, :show)
+          q = params[:q] || {}
+          if params[:ids]
+            @users = @users.where(id: params[:ids].to_s.split(','))
+          elsif q[:ship_address_firstname_start] || q[:ship_address_lastname_start] ||
+                q[:bill_address_firstname_start] || q[:bill_address_lastname_start]
+            address = q[:ship_address_firstname_start] || q[:ship_address_lastname_start] ||
+                      q[:bill_address_firstname_start] || q[:bill_address_lastname_start]
+            @users = @users.with_email_or_address(q[:email_start], address)
+          elsif q[:email_start]
+            @users = @users.with_email(q[:email_start])
+          end
+          @users = @users.page(params[:page]).per(params[:per_page])
+          respond_with(@users)
+        end
+
+        def show
+          @user = Spree.user_class.accessible_by(current_ability, :show).find(params[:id])
+          respond_with(@user)
+        end
+
         # A guest order token authenticates as an unsaved user, who can't follow anyone.
         def follow_needs_user
           error_model(401, "Sign in to follow users")
