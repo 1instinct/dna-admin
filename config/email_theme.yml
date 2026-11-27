@@ -31,6 +31,8 @@ muted: "#6f6266"
 muted_dark: "#b9aaad"
 footer: "#7a6a6d"
 footer_dark: "#c9b9bc"
+# Optional panel behind the footer text, for busy background tiles. Empty = none.
+footer_bg: ""
 
 # Accent: rating stars and links in the card.
 accent: "#eb8b8b"

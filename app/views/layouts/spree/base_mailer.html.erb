@@ -9,7 +9,10 @@
     .content-cell { padding: 0 !important; }
     .content-cell a { color: <%= email_theme[:link] %>; }
     body, td, th, p, h1, h2, h3 { font-family: <%= email_theme[:body_font] %>; }
-    h1, h2, h3, p, td, th, .content-cell { color: <%= email_theme[:text] %>; }
+    /* Spree's stylesheet colors text dark gray by class; the theme's text color wins so it reads on
+       any card color. */
+    .content-cell, .content-cell h1, .content-cell h2, .content-cell h3, .content-cell p,
+    .content-cell td, .content-cell th, .content-cell span, .content-cell strong { color: <%= email_theme[:text] %> !important; }
   </style>
 <% end %>
 <% content_for :email_body do %>
