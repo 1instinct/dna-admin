@@ -867,12 +867,21 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     resources = call(:get, '')['data'].flat_map { |t| t['fields'].select { |f| f['type'] == 'reference' }.map { |f| f['resource'] } }
     assert_includes resources, 'spree_users'
 
-    user = create(:iap_user)
-    granting_purchase(user)
-    entitlement = Spree::Entitlement.find_by!(user_id: user.id)
-    body = call(:get, "/entitlements?filter[user_id]=#{user.id}")
-    assert_equal [entitlement.id], ids_of(body)
+    ownership = sample('digital_ownerships')
+    user = ownership.user
+    sample('digital_ownerships')
+    body = call(:get, "/digital_ownerships?filter[user_id]=#{user.id}")
+    assert_equal [ownership.id], ids_of(body)
     assert_equal({ 'id' => user.id.to_s, 'title' => user.email }, body['data'].first.dig('values', 'user_id'))
+    assert_equal ownership.variant.sku.presence || "##{ownership.variant_id}", body['data'].first.dig('values', 'variant_id', 'title')
+
+    if TYPES.include?('entitlements')
+      buyer = create(:iap_user)
+      granting_purchase(buyer)
+      body = call(:get, "/entitlements?filter[user_id]=#{buyer.id}")
+      assert_equal Spree::Entitlement.where(user_id: buyer.id).pluck(:id), ids_of(body)
+      assert_equal({ 'id' => buyer.id.to_s, 'title' => buyer.email }, body['data'].first.dig('values', 'user_id'))
+    end
 
     video = sample('product_videos')
     body = call(:get, "/product_videos/#{video.id}")
@@ -882,10 +891,6 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     body = call(:get, "/affiliate_commissions/#{commission.id}")
     assert_equal({ 'id' => commission.order_id.to_s, 'title' => commission.order.number }, body.dig('data', 'values', 'order_id'))
     assert_equal "10.00 #{commission.currency}", body.dig('data', 'title')
-
-    ownership = sample('digital_ownerships')
-    body = call(:get, "/digital_ownerships/#{ownership.id}")
-    assert_equal ownership.variant.sku.presence || "##{ownership.variant_id}", body.dig('data', 'values', 'variant_id', 'title')
 
     account = sample('creator_accounts')
     body = call(:get, "/creator_accounts/#{account.id}")
