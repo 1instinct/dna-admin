@@ -7,8 +7,9 @@
     /* Spree's stylesheet sets its own page background and card; the frame provides those. */
     body, .email-wrapper, .email-body, .email-content { background-color: transparent !important; }
     .content-cell { padding: 0 !important; }
-    .content-cell a { color: #b84f4f; }
-    body, td, th, p, h1, h2, h3 { font-family: Helvetica, Arial, sans-serif; }
+    .content-cell a { color: <%= email_theme[:link] %>; }
+    body, td, th, p, h1, h2, h3 { font-family: <%= email_theme[:body_font] %>; }
+    h1, h2, h3, p, td, th, .content-cell { color: <%= email_theme[:text] %>; }
   </style>
 <% end %>
 <% content_for :email_body do %>

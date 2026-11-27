@@ -1,20 +1,21 @@
 <%# Shared by request_review and reminder; layouts/store_mailer adds the background, logo and footer.
     Inline styles for the light look; the em-* classes are the dark-mode hooks (shared/_email_frame). %>
+<% t = email_theme %>
 <% content_for :email_preheader do %>
   <%= @reminder ? 'There’s still time to rate' : 'Tap a star to rate' %> what you got in order <%= @order.number %>.
 <% end %>
 <% content_for :email_footer_note do %>
   This link is just for you<% if @expires_on %> and works until <%= l(@expires_on, format: :long) %><% end %>.
-  Don't want these emails? <a href="<%= @opt_out_url %>" style="color:#7a6a6d;">Stop review emails</a>.
+  Don't want these emails? <a href="<%= @opt_out_url %>" style="color:<%= t[:footer] %>;">Stop review emails</a>.
 <% end %>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="em-text">
   <tr>
-    <td style="padding:0 0 10px 0;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:20px;line-height:28px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#1a1a1a;">
+    <td style="padding:0 0 10px 0;font-family:<%= t[:heading_font] %>;font-size:20px;line-height:28px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:<%= t[:text] %>;">
       <%= @subject %>
     </td>
   </tr>
   <tr>
-    <td style="padding:0 0 22px 0;font-size:15px;line-height:23px;color:#1a1a1a;">
+    <td style="padding:0 0 22px 0;font-size:15px;line-height:23px;color:<%= t[:text] %>;">
       <% if @reminder %>
         You can still rate the pieces from order <%= @order.number %>.
       <% else %>
@@ -25,7 +26,7 @@
   </tr>
   <% @items.each do |item| %>
     <tr>
-      <td class="em-rule" style="padding:18px 0;border-top:1px solid #f0dcd7;" id="item-<%= item[:line_item_id] %>">
+      <td class="em-rule" style="padding:18px 0;border-top:1px solid <%= t[:rule] %>;" id="item-<%= item[:line_item_id] %>">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <% if item[:image_url] %>
@@ -34,12 +35,12 @@
               </td>
             <% end %>
             <td valign="top">
-              <div style="font-size:16px;line-height:22px;font-weight:bold;color:#1a1a1a;"><%= item[:name] %></div>
+              <div style="font-size:16px;line-height:22px;font-weight:bold;color:<%= t[:text] %>;"><%= item[:name] %></div>
               <% if item[:variant_label].present? %>
-                <div class="em-muted" style="font-size:13px;line-height:20px;color:#6f6266;"><%= item[:variant_label] %></div>
+                <div class="em-muted" style="font-size:13px;line-height:20px;color:<%= t[:muted] %>;"><%= item[:variant_label] %></div>
               <% end %>
               <div style="padding-top:6px;white-space:nowrap;">
-                <% item[:stars].each do |star| %><a href="<%= star[:url] %>" aria-label="<%= star[:label] %>" title="<%= star[:label] %>" class="em-link" style="display:inline-block;padding:2px 8px 2px 0;font-size:34px;line-height:40px;color:#eb8b8b;text-decoration:none;">&#9734;</a><% end %>
+                <% item[:stars].each do |star| %><a href="<%= star[:url] %>" aria-label="<%= star[:label] %>" title="<%= star[:label] %>" class="em-link" style="display:inline-block;padding:2px 8px 2px 0;font-size:34px;line-height:40px;color:<%= t[:accent] %>;text-decoration:none;">&#9734;</a><% end %>
               </div>
             </td>
           </tr>
@@ -48,11 +49,11 @@
     </tr>
   <% end %>
   <tr>
-    <td class="em-rule" style="padding:22px 0 0 0;border-top:1px solid #f0dcd7;">
+    <td class="em-rule" style="padding:22px 0 0 0;border-top:1px solid <%= t[:rule] %>;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="em-button" style="background-color:#1a1a1a;border-radius:999px;">
-            <a href="<%= @review_url %>" class="em-button" style="display:inline-block;padding:13px 26px;font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#ffffff;text-decoration:none;border-radius:999px;">Open your review page</a>
+          <td class="em-button" style="background-color:<%= t[:button_bg] %>;border-radius:999px;">
+            <a href="<%= @review_url %>" class="em-button" style="display:inline-block;padding:13px 26px;font-family:<%= t[:heading_font] %>;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:<%= t[:button_text] %>;text-decoration:none;border-radius:999px;">Open your review page</a>
           </td>
         </tr>
       </table>
@@ -60,7 +61,7 @@
   </tr>
   <% if @points %>
     <tr>
-      <td class="em-muted" style="padding:16px 0 0 0;font-size:14px;line-height:21px;color:#6f6266;">
+      <td class="em-muted" style="padding:16px 0 0 0;font-size:14px;line-height:21px;color:<%= t[:muted] %>;">
         Members earn <%= @points %> points for every review<% if @photo_bonus %>, plus <%= @photo_bonus %> with a photo<% end %>, whatever the rating.
       </td>
     </tr>

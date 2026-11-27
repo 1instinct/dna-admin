@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 # The shared email frame (shared/_email_frame): review emails and Spree's own emails get the
 # background, logo badge, card, dark mode and copyright footer.
@@ -57,5 +58,25 @@ class StoreMailerFrameTest < ActionMailer::TestCase
     assert_includes body, 'class="em-bg"'
     assert_includes body, "© #{Time.current.year} DNA. All rights reserved."
     assert_includes body, @order.number
+  end
+
+  test "a store's config/email_theme.yml changes colors, tiles, scheme and the default logo" do
+    custom = { 'color_scheme' => 'dark', 'page_bg' => '#0a0020', 'card_bg' => '#140a2e', 'accent' => '#00ffff',
+               'pattern' => '/email/store-tile.png', 'default_logo' => '/email/store-logo.png' }
+    Rails.application.routes.default_url_options.merge!(host: 'admin.example.com', protocol: 'https')
+    EmailTheme.stub(:current, EmailTheme::DEFAULTS.merge(custom.symbolize_keys)) do
+      body = html(ReviewRequestMailer.request_review(@request, 'tok'))
+      assert_includes body, '<meta name="color-scheme" content="dark" />'
+      assert_includes body, 'background-color:#0a0020'
+      assert_includes body, 'background-color:#140a2e'
+      assert_includes body, 'color:#00ffff', 'stars use the accent'
+      assert_includes body, "url('https://admin.example.com/email/store-tile.png')"
+      assert_includes body, 'src="https://admin.example.com/email/store-logo.png"', 'no store logo uploaded: the theme default'
+    end
+  end
+
+  test 'missing theme keys fall back to the defaults' do
+    assert_equal EmailTheme::DEFAULTS.keys.sort, EmailTheme.load_file.keys.sort
+    assert_equal '#eb8b8b', EmailTheme.load_file[:accent]
   end
 end

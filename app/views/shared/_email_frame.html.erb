@@ -1,60 +1,62 @@
 <%#
-  The shared email frame: a patterned background, the store logo in a badge, a white card for the
+  The shared email frame: a patterned background, the store logo in a badge, a card for the
   content (yield :email_body), and a footer with the copyright notice, address and links.
+  Colors, fonts, tiles and the default logo come from config/email_theme.yml (EmailTheme).
 
-  Email rules apply: layout tables, inline styles for the light look (Gmail drops most <style>),
-  and a <style> block only for dark mode, which Apple Mail, iOS Mail and Outlook for Mac honour.
-  Gmail and Outlook.com pick their own dark colours from the light ones; the logo sits on a white
-  badge so it reads either way.
+  Email rules apply: layout tables, inline styles for the default look (Gmail drops most <style>),
+  and a <style> block for dark mode, which Apple Mail, iOS Mail and Outlook for Mac honour. Gmail
+  and Outlook.com pick their own dark colours from the inline ones.
 
   Optional content blocks: :email_preheader (inbox preview text), :email_head (extra <head>
   content), :email_footer_note (why the customer got this email, unsubscribe link).
 %>
+<% t = email_theme %>
 <% bg_light = mailer_background_url(:light) %>
 <% bg_dark = mailer_background_url(:dark) %>
 <% logo_url = mailer_logo_url %>
+<% scheme = EmailTheme.always_dark? ? 'dark' : 'light dark' %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="<%= I18n.locale %>">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="x-apple-disable-message-reformatting" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="color-scheme" content="<%= scheme %>" />
+    <meta name="supported-color-schemes" content="<%= scheme %>" />
     <title><%= @subject || mailer_store_name %></title>
     <%= yield :email_head %>
     <style type="text/css">
-      :root { color-scheme: light dark; supported-color-schemes: light dark; }
-      html, body { margin: 0; padding: 0; min-height: 100%; background-color: #faece9; -webkit-text-size-adjust: 100%; }
-      .em-card a { color: #b84f4f; }
+      :root { color-scheme: <%= scheme %>; supported-color-schemes: <%= scheme %>; }
+      html, body { margin: 0; padding: 0; min-height: 100%; background-color: <%= t[:page_bg] %>; -webkit-text-size-adjust: 100%; }
+      .em-card a { color: <%= t[:link] %>; }
       a { text-decoration: underline; }
       @media only screen and (max-width: 620px) {
         .em-pad { padding-left: 20px !important; padding-right: 20px !important; }
         .em-outer { padding: 20px 10px !important; }
       }
       @media (prefers-color-scheme: dark) {
-        html, body, .em-body { background-color: #211a1c !important; }
-        .em-card a { color: #f2a7a7 !important; }
-        .em-bg { background-color: #211a1c !important; <% if bg_dark %>background-image: url('<%= bg_dark %>') !important;<% end %> }
-        .em-card { background-color: #2a2124 !important; border-color: #3a2e32 !important; }
-        .em-text, .em-text td, .em-text div, .em-text p, .em-text span { color: #f3ecec !important; }
-        .em-muted, .em-muted a { color: #b9aaad !important; }
-        .em-rule { border-color: #3d3034 !important; }
-        .em-link { color: #f2a7a7 !important; }
-        .em-button { background-color: #eb8b8b !important; color: #1b0f10 !important; }
-        .em-foot, .em-foot a, .em-foot span { color: #c9b9bc !important; }
+        html, body, .em-body { background-color: <%= t[:page_bg_dark] %> !important; }
+        .em-card a { color: <%= t[:link_dark] %> !important; }
+        .em-bg { background-color: <%= t[:page_bg_dark] %> !important; <% if bg_dark %>background-image: url('<%= bg_dark %>') !important;<% end %> }
+        .em-card { background-color: <%= t[:card_bg_dark] %> !important; border-color: <%= t[:card_border_dark] %> !important; }
+        .em-text, .em-text td, .em-text div, .em-text p, .em-text span { color: <%= t[:text_dark] %> !important; }
+        .em-muted, .em-muted a { color: <%= t[:muted_dark] %> !important; }
+        .em-rule { border-color: <%= t[:rule_dark] %> !important; }
+        .em-link { color: <%= t[:accent_dark] %> !important; }
+        .em-button { background-color: <%= t[:button_bg_dark] %> !important; color: <%= t[:button_text_dark] %> !important; }
+        .em-foot, .em-foot a, .em-foot span { color: <%= t[:footer_dark] %> !important; }
       }
-      [data-ogsc] .em-card { background-color: #2a2124 !important; }
-      [data-ogsc] .em-text { color: #f3ecec !important; }
+      [data-ogsc] .em-card { background-color: <%= t[:card_bg_dark] %> !important; }
+      [data-ogsc] .em-text { color: <%= t[:text_dark] %> !important; }
     </style>
   </head>
-  <body class="em-body" style="margin:0;padding:0;background-color:#faece9;">
+  <body class="em-body" style="margin:0;padding:0;background-color:<%= t[:page_bg] %>;">
     <% if content_for?(:email_preheader) %>
       <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;"><%= yield :email_preheader %>&#8203;&#847;&#8203;&#847;&#8203;&#847;</div>
     <% end %>
     <table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" class="em-bg"
            <% if bg_light %>background="<%= bg_light %>"<% end %>
-           style="min-height:100vh;background-color:#faece9;<% if bg_light %>background-image:url('<%= bg_light %>');background-repeat:repeat;background-position:center top;<% end %>">
+           style="min-height:100vh;background-color:<%= t[:page_bg] %>;<% if bg_light %>background-image:url('<%= bg_light %>');background-repeat:repeat;background-position:center top;<% end %>">
       <tr>
         <td align="center" class="em-outer" style="padding:36px 16px 40px 16px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
@@ -63,14 +65,15 @@
               <td align="center" style="padding:0 0 20px 0;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
-                    <td align="center" style="background-color:#ffffff;border-radius:999px;padding:12px 26px;box-shadow:0 2px 10px rgba(80,40,50,0.12);">
+                    <td align="center" style="background-color:<%= t[:badge_bg] %>;border:1px solid <%= t[:badge_border] %>;border-radius:999px;padding:12px 26px;box-shadow:<%= t[:badge_shadow] %>;">
+                      <% logo_height = t[:logo_height].to_i.positive? ? t[:logo_height].to_i : 40 %>
                       <% logo_tag = if logo_url
-                                      image_tag(logo_url, alt: mailer_store_name, height: 40, style: 'display:block;border:0;height:40px;width:auto;max-width:220px;')
+                                      image_tag(logo_url, alt: mailer_store_name, height: logo_height, style: "display:block;border:0;height:#{logo_height}px;width:auto;max-width:240px;")
                                     else
-                                      content_tag(:span, mailer_store_name, style: "font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:18px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:#1a1a1a;")
+                                      content_tag(:span, mailer_store_name, style: "font-family:#{t[:heading_font]};font-size:18px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:#{t[:text]};")
                                     end %>
                       <% if mailer_site_url %>
-                        <a href="<%= mailer_site_url %>" style="text-decoration:none;color:#1a1a1a;"><%= logo_tag %></a>
+                        <a href="<%= mailer_site_url %>" style="text-decoration:none;color:<%= t[:text] %>;"><%= logo_tag %></a>
                       <% else %>
                         <%= logo_tag %>
                       <% end %>
@@ -81,22 +84,22 @@
             </tr>
             <%# Card %>
             <tr>
-              <td class="em-card em-text em-pad" style="background-color:#ffffff;border:1px solid #f0dcd7;border-radius:18px;padding:32px 36px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;color:#1a1a1a;">
+              <td class="em-card em-text em-pad" style="background-color:<%= t[:card_bg] %>;border:1px solid <%= t[:card_border] %>;border-radius:<%= t[:radius] %>;padding:32px 36px;font-family:<%= t[:body_font] %>;font-size:15px;line-height:22px;color:<%= t[:text] %>;">
                 <%= yield :email_body %>
               </td>
             </tr>
             <%# Footer %>
             <tr>
-              <td align="center" class="em-foot" style="padding:24px 12px 0 12px;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#7a6a6d;">
+              <td align="center" class="em-foot" style="padding:24px 12px 0 12px;font-family:<%= t[:body_font] %>;font-size:12px;line-height:18px;color:<%= t[:footer] %>;">
                 <% if content_for?(:email_footer_note) %>
                   <div style="padding-bottom:10px;"><%= yield :email_footer_note %></div>
                 <% end %>
                 <% links = mailer_social_links %>
                 <% if mailer_site_url || links.any? %>
                   <div style="padding-bottom:10px;">
-                    <% if mailer_site_url %><a href="<%= mailer_site_url %>" style="color:#7a6a6d;">Visit <%= mailer_store_name %></a><% end %>
+                    <% if mailer_site_url %><a href="<%= mailer_site_url %>" style="color:<%= t[:footer] %>;">Visit <%= mailer_store_name %></a><% end %>
                     <% links.each do |label, url| %>
-                      <span style="color:#c9b3b0;">&nbsp;·&nbsp;</span><a href="<%= url %>" style="color:#7a6a6d;"><%= label %></a>
+                      <span style="color:<%= t[:footer] %>;opacity:0.6;">&nbsp;·&nbsp;</span><a href="<%= url %>" style="color:<%= t[:footer] %>;"><%= label %></a>
                     <% end %>
                   </div>
                 <% end %>
@@ -104,7 +107,7 @@
                   <div style="padding-bottom:4px;"><%= mailer_store.address.to_s.squish %></div>
                 <% end %>
                 <% if mailer_store&.customer_support_email.present? %>
-                  <div style="padding-bottom:4px;">Questions? <a href="mailto:<%= mailer_store.customer_support_email %>" style="color:#7a6a6d;"><%= mailer_store.customer_support_email %></a></div>
+                  <div style="padding-bottom:4px;">Questions? <a href="mailto:<%= mailer_store.customer_support_email %>" style="color:<%= t[:footer] %>;"><%= mailer_store.customer_support_email %></a></div>
                 <% end %>
                 <div><%= mailer_copyright %></div>
               </td>

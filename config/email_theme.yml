@@ -1,0 +1,59 @@
+# The look of every customer email (shared/_email_frame and the review request email). A store
+# repo changes this file, the background tiles and the default logo to match its brand; the
+# templates read everything from here (EmailTheme). Colors are hex; fonts are CSS stacks.
+#
+# Light values are what most clients show; *_dark values apply when the reader's system is in
+# dark mode (Apple Mail, iOS Mail, Outlook for Mac). For an always-dark brand, set the light
+# values to dark colors too and color_scheme to "dark", so clients don't invert it.
+
+# "light dark" (follow the reader) or "dark" (always dark; clients won't auto-invert).
+color_scheme: "light dark"
+
+# Page behind the card; the tile repeats over the color. Paths are under public/.
+page_bg: "#faece9"
+page_bg_dark: "#211a1c"
+pattern: "/email/pattern-light.png"
+pattern_dark: "/email/pattern-dark.png"
+
+# The content card.
+card_bg: "#ffffff"
+card_bg_dark: "#2a2124"
+card_border: "#f0dcd7"
+card_border_dark: "#3a2e32"
+rule: "#f0dcd7"
+rule_dark: "#3d3034"
+radius: "18px"
+
+# Text.
+text: "#1a1a1a"
+text_dark: "#f3ecec"
+muted: "#6f6266"
+muted_dark: "#b9aaad"
+footer: "#7a6a6d"
+footer_dark: "#c9b9bc"
+
+# Accent: rating stars and links in the card.
+accent: "#eb8b8b"
+accent_dark: "#f2a7a7"
+link: "#b84f4f"
+link_dark: "#f2a7a7"
+
+# Main button.
+button_bg: "#1a1a1a"
+button_text: "#ffffff"
+button_bg_dark: "#eb8b8b"
+button_text_dark: "#1b0f10"
+
+# The badge the logo sits on, above the card.
+badge_bg: "#ffffff"
+badge_border: "#ffffff"
+badge_shadow: "0 2px 10px rgba(80,40,50,0.12)"
+
+# Fonts.
+heading_font: "'IBM Plex Mono',Menlo,Consolas,monospace"
+body_font: "Helvetica,Arial,sans-serif"
+
+# Logo used when the store has no Mailer logo or logo uploaded (Configurations > Stores), as a
+# path under public/. Leave empty to show the store name instead.
+default_logo: ""
+logo_height: 40

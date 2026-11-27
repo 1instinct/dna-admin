@@ -2,7 +2,10 @@
 # patterned background, copyright footer. Everything here returns absolute URLs or nil, because
 # email can't use paths; nil means "leave it out".
 module StoreMailerHelper
-  BACKGROUNDS = { light: '/email/pattern-light.png', dark: '/email/pattern-dark.png' }.freeze
+  # Colors, fonts, tiles and the default logo: config/email_theme.yml.
+  def email_theme
+    EmailTheme.current
+  end
 
   def mailer_store
     @mailer_store ||= @order&.store || @store || Spree::Store.default
@@ -27,18 +30,22 @@ module StoreMailerHelper
   end
 
   def mailer_background_url(scheme = :light)
-    mailer_asset_url(BACKGROUNDS.fetch(scheme))
+    path = email_theme[scheme == :dark ? :pattern_dark : :pattern].to_s
+    path.present? ? mailer_asset_url(path) : nil
   end
 
-  # The store's email logo (Stores > store > Mailer logo), else its logo, as an absolute URL.
+  # The store's email logo (Stores > store > Mailer logo), else its logo, else the theme's
+  # default_logo, as an absolute URL.
   def mailer_logo_url
-    return unless mailer_base_url && mailer_store
+    return unless mailer_base_url
 
-    logo = [mailer_store.mailer_logo, mailer_store.logo].find { |attachment| attachment.respond_to?(:attached?) && attachment.attached? }
-    return unless logo
-
-    target = logo.variable? ? logo.variant(resize: '480x160>') : logo
-    Rails.application.routes.url_helpers.url_for(target)
+    logo = mailer_store && [mailer_store.mailer_logo, mailer_store.logo].find { |attachment| attachment.respond_to?(:attached?) && attachment.attached? }
+    if logo
+      target = logo.variable? ? logo.variant(resize: '480x160>') : logo
+      Rails.application.routes.url_helpers.url_for(target)
+    elsif email_theme[:default_logo].present?
+      mailer_asset_url(email_theme[:default_logo])
+    end
   rescue StandardError
     nil
   end
