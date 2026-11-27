@@ -3,6 +3,9 @@ module Spree
     class LiveStreamController < Spree::Admin::BaseController
       include Spree::FrontendHelper
       before_action :set_session
+      # Mux calls need an access token: MUX_TOKEN_ID and MUX_TOKEN_SECRET (Mux dashboard →
+      # Settings → Access Tokens, with Mux Video read and write).
+      before_action :require_mux_credentials, only: %i[show create destroy generate_playback]
       def index
         @q = LiveStream.ransack(params[:q])
     		@collection = @q.result(distinct: true).order(created_at: :desc).page(params[:page]).per(params[:per_page])
@@ -35,8 +38,8 @@ module Spree
         @response = RestClient::Request.new({
           method: :get,
           url: url,
-          user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
-          password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+          user: mux_token_id,
+          password: mux_token_secret,
           headers: headers
           }).execute do |response, request, result|
             case response.code
@@ -69,8 +72,8 @@ module Spree
           @response = RestClient::Request.new({
             method: :post,
             url: url,
-            user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
-            password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+            user: mux_token_id,
+            password: mux_token_secret,
             body: { "playback_policy": "public", "new_asset_settings": { "playback_policy": "public" } },
             headers: headers
             }).execute do |response, request, result|
@@ -116,8 +119,8 @@ module Spree
             @response = RestClient::Request.new({
               method: :delete,
               url: url,
-              user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
-              password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+              user: mux_token_id,
+              password: mux_token_secret,
               headers: headers
               }).execute do |response, request, result|
                 case response.code
@@ -151,8 +154,8 @@ module Spree
               @response = RestClient::Request.new({
                 method: :post,
                 url: url,
-                user: 'b49f3013-0715-47aa-84cb-315be5dc52bd',
-                password: 'bmUuqEkhjHVKQr5xjMofA42y9EWKPy+YwesaTvikkY759n25brxn5evZZt+C/tu109A8DK4DmeR',
+                user: mux_token_id,
+                password: mux_token_secret,
                 payload: '{ "policy": "public" }',
                 headers: headers
                 }).execute do |response, request, result|
@@ -178,6 +181,18 @@ module Spree
                 end
               end
               private
+              def mux_token_id
+                ENV['MUX_TOKEN_ID'].presence
+              end
+              def mux_token_secret
+                ENV['MUX_TOKEN_SECRET'].presence
+              end
+              def require_mux_credentials
+                return if mux_token_id && mux_token_secret
+
+                flash[:error] = Spree.t('live_stream.mux_not_configured')
+                redirect_to admin_live_stream_index_path
+              end
               def set_session
                 session[:return_to] = request.url
               end
