@@ -169,6 +169,14 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'forks can change each type after it is registered' do
+    seen = {}
+    # Runs at once for the types registered at boot, and again after every reload.
+    ActiveSupport.on_load(:spree_admin_native_resource, yield: true) { |r| seen[r.key] = r.label }
+    MODELS.each_key { |key| assert seen.key?(key), "no hook for #{key}" }
+    assert_equal 'Push notifications', seen['push_notifications']
+  end
+
   test 'every available type lists, with or without records' do
     SpreeAdminNative.resources.available.each do |definition|
       call(:get, "/#{definition.key}")

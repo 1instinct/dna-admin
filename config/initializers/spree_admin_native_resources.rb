@@ -11,11 +11,24 @@
 #
 # Foreign keys to types registered here are :reference fields; keys to Spree's own records (users,
 # products, variants, orders, stores) are plain ids, since the app shows those on its own screens.
+#
+# A fork changes one of these types (a column of its own, another action) from its own initializer,
+# with a hook that runs after each type here is registered, on every reload:
+#
+#   ActiveSupport.on_load(:spree_admin_native_resource, yield: true) do |r|
+#     r.field :extra_column, :string if r.key == 'homepage_sections'
+#   end
 
 Rails.application.config.to_prepare do
   next unless defined?(SpreeAdminNative) && SpreeAdminNative.respond_to?(:resources)
 
   resources = SpreeAdminNative.resources
+  register = lambda do |key, &block|
+    resources.register(key) do |r|
+      block.call(r)
+      ActiveSupport.run_load_hooks(:spree_admin_native_resource, r)
+    end
+  end
   read_only = ->(r) { r.actions create: false, update: false, destroy: false }
   user_class = Spree.user_class(constantize: false)
   # Option lists come from the models' constants; nil when the model isn't in this install (the
@@ -24,7 +37,7 @@ Rails.application.config.to_prepare do
 
   # --- Storefront ----------------------------------------------------------------------------
 
-  resources.register 'menu_locations' do |r|
+  register.call 'menu_locations' do |r|
     r.model 'MenuLocation'
     r.label 'Menu locations'
     r.group 'Storefront'
@@ -42,7 +55,7 @@ Rails.application.config.to_prepare do
     r.field :updated_at
   end
 
-  resources.register 'menu_items' do |r|
+  register.call 'menu_items' do |r|
     r.model 'MenuItem'
     r.label 'Menu items'
     r.group 'Storefront'
@@ -67,7 +80,7 @@ Rails.application.config.to_prepare do
     # Deleting an item with children is refused by MenuItem, as in the admin.
   end
 
-  resources.register 'homepage_sections' do |r|
+  register.call 'homepage_sections' do |r|
     r.model 'HomepageSection'
     r.label 'Homepage sections'
     r.group 'Storefront'
@@ -91,7 +104,7 @@ Rails.application.config.to_prepare do
     r.field :updated_at
   end
 
-  resources.register 'app_settings' do |r|
+  register.call 'app_settings' do |r|
     r.model 'AppSetting'
     r.label 'App versions'
     r.group 'Storefront'
@@ -113,7 +126,7 @@ Rails.application.config.to_prepare do
     r.actions update: false
   end
 
-  resources.register 'admin_theme' do |r|
+  register.call 'admin_theme' do |r|
     r.model 'AdminTheme'
     r.label 'Admin theme'
     r.group 'Storefront'
@@ -139,7 +152,7 @@ Rails.application.config.to_prepare do
     r.actions create: false, destroy: false
   end
 
-  resources.register 'pages' do |r|
+  register.call 'pages' do |r|
     r.model 'Spree::Page'
     r.label 'Pages'
     r.group 'Storefront'
@@ -170,7 +183,7 @@ Rails.application.config.to_prepare do
 
   # --- Engagement ----------------------------------------------------------------------------
 
-  resources.register 'push_notifications' do |r|
+  register.call 'push_notifications' do |r|
     r.model 'PushNotification'
     r.label 'Push notifications'
     r.group 'Engagement'
@@ -207,7 +220,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'push_subscriptions' do |r|
+  register.call 'push_subscriptions' do |r|
     r.model 'PushSubscription'
     r.label 'Push devices'
     r.group 'Engagement'
@@ -225,7 +238,7 @@ Rails.application.config.to_prepare do
     read_only.call(r)
   end
 
-  resources.register 'live_streams' do |r|
+  register.call 'live_streams' do |r|
     r.model 'LiveStream'
     r.label 'Live streams'
     r.group 'Engagement'
@@ -253,7 +266,7 @@ Rails.application.config.to_prepare do
     r.actions create: false, destroy: false
   end
 
-  resources.register 'contacts' do |r|
+  register.call 'contacts' do |r|
     r.model 'Contact'
     r.label 'Contacts'
     r.group 'Engagement'
@@ -272,7 +285,7 @@ Rails.application.config.to_prepare do
     r.field :updated_at
   end
 
-  resources.register 'messages' do |r|
+  register.call 'messages' do |r|
     r.model 'Message'
     r.label 'Messages'
     r.group 'Engagement'
@@ -296,7 +309,7 @@ Rails.application.config.to_prepare do
     r.field :updated_at
   end
 
-  resources.register 'threads' do |r|
+  register.call 'threads' do |r|
     r.model 'ThreadTable'
     r.label 'Threads'
     r.group 'Engagement'
@@ -313,7 +326,7 @@ Rails.application.config.to_prepare do
 
   # --- Community and creators ----------------------------------------------------------------
 
-  resources.register 'creator_applications' do |r|
+  register.call 'creator_applications' do |r|
     r.model 'Spree::CreatorApplication'
     r.label 'Creator applications'
     r.group 'Community and creators'
@@ -341,7 +354,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'creator_accounts' do |r|
+  register.call 'creator_accounts' do |r|
     r.model 'Spree::CreatorAccount'
     r.label 'Creators'
     r.group 'Community and creators'
@@ -380,7 +393,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'creator_reviews' do |r|
+  register.call 'creator_reviews' do |r|
     r.model 'Spree::Product'
     r.label 'Creator product reviews'
     r.group 'Community and creators'
@@ -417,7 +430,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'creator_earnings' do |r|
+  register.call 'creator_earnings' do |r|
     r.model 'Spree::CreatorEarning'
     r.label 'Creator earnings'
     r.group 'Community and creators'
@@ -441,7 +454,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'creator_payouts' do |r|
+  register.call 'creator_payouts' do |r|
     r.model 'Spree::CreatorPayout'
     r.label 'Creator payouts'
     r.group 'Community and creators'
@@ -457,7 +470,7 @@ Rails.application.config.to_prepare do
     read_only.call(r)
   end
 
-  resources.register 'content_reports' do |r|
+  register.call 'content_reports' do |r|
     r.model 'Spree::ContentReport'
     r.label 'Reports'
     r.group 'Community and creators'
@@ -507,7 +520,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'account_locks' do |r|
+  register.call 'account_locks' do |r|
     r.model user_class
     r.label 'Account locks'
     r.group 'Community and creators'
@@ -533,7 +546,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'user_profiles' do |r|
+  register.call 'user_profiles' do |r|
     r.model 'Spree::UserProfile'
     r.label 'Profiles'
     r.group 'Community and creators'
@@ -560,7 +573,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'app_feedback' do |r|
+  register.call 'app_feedback' do |r|
     r.model 'AppFeedback'
     r.label 'App feedback'
     r.group 'Community and creators'
@@ -590,7 +603,7 @@ Rails.application.config.to_prepare do
 
   # --- Commerce extras -----------------------------------------------------------------------
 
-  resources.register 'affiliate_accounts' do |r|
+  register.call 'affiliate_accounts' do |r|
     r.model 'AffiliateAccount'
     r.label 'Affiliates'
     r.group 'Commerce extras'
@@ -635,7 +648,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'affiliate_commissions' do |r|
+  register.call 'affiliate_commissions' do |r|
     r.model 'AffiliateCommission'
     r.label 'Affiliate commissions'
     r.group 'Commerce extras'
@@ -659,7 +672,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'affiliate_payouts' do |r|
+  register.call 'affiliate_payouts' do |r|
     r.model 'AffiliatePayout'
     r.label 'Affiliate payouts'
     r.group 'Commerce extras'
@@ -675,7 +688,7 @@ Rails.application.config.to_prepare do
     read_only.call(r)
   end
 
-  resources.register 'digital_assets' do |r|
+  register.call 'digital_assets' do |r|
     r.model 'Spree::DigitalAsset'
     r.label 'Digital assets'
     r.group 'Commerce extras'
@@ -701,7 +714,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'digital_ownerships' do |r|
+  register.call 'digital_ownerships' do |r|
     r.model 'Spree::DigitalOwnership'
     r.label 'Digital ownerships'
     r.group 'Commerce extras'
@@ -721,7 +734,7 @@ Rails.application.config.to_prepare do
     end
   end
 
-  resources.register 'content_assets' do |r|
+  register.call 'content_assets' do |r|
     r.model 'ContentAsset'
     r.label 'Content images'
     r.group 'Commerce extras'
@@ -743,7 +756,7 @@ Rails.application.config.to_prepare do
     r.actions create: false
   end
 
-  resources.register 'entitlements' do |r|
+  register.call 'entitlements' do |r|
     r.model 'Spree::Entitlement'
     r.label 'Entitlements'
     r.group 'Commerce extras'
@@ -760,7 +773,7 @@ Rails.application.config.to_prepare do
     read_only.call(r)
   end
 
-  resources.register 'iap_products' do |r|
+  register.call 'iap_products' do |r|
     r.model 'Spree::IapProduct'
     r.label 'In-app products'
     r.group 'Commerce extras'
@@ -783,7 +796,7 @@ Rails.application.config.to_prepare do
     r.field :updated_at
   end
 
-  resources.register 'iap_transactions' do |r|
+  register.call 'iap_transactions' do |r|
     r.model 'Spree::IapTransaction'
     r.label 'In-app purchases'
     r.group 'Commerce extras'
@@ -804,7 +817,7 @@ Rails.application.config.to_prepare do
     read_only.call(r)
   end
 
-  resources.register 'product_videos' do |r|
+  register.call 'product_videos' do |r|
     r.model 'Spree::ProductVideo'
     r.label 'Product videos'
     r.group 'Commerce extras'
