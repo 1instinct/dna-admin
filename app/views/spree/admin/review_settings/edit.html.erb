@@ -75,9 +75,9 @@
         <div class="card-header"><h2 class="card-title mb-0 h5">AI summary</h2></div>
         <div class="card-body">
           <%= render 'check_box', f: f, field: :ai_summary_enabled, label: 'Write AI summaries',
-                                  help: 'Product pages show a short AI-written summary of retail reviews, labelled "AI summary of N reviews". You can hide it per product on the product\'s Reviews tab. Generation arrives in milestone M7.' %>
+                                  help: 'Product pages show a short AI-written summary of retail reviews, labelled "AI summary of N reviews". You can hide or regenerate it per product on the product\'s Reviews tab. The storefront writes it when the hourly review email task asks, which needs SITE_URL and INTERNAL_CRON_SECRET set on dna-admin.' %>
           <%= render 'number_field', f: f, field: :ai_summary_min_reviews, label: 'Minimum reviews', unit: 'reviews', min: 1, max: nil,
-                                     help: 'A product needs at least this many published retail reviews before it gets a summary.' %>
+                                     help: 'A product needs at least this many published retail reviews with text before it gets a summary.' %>
         </div>
       </div>
     </div>

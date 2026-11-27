@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 # The "Reviews" tab on a product: stats per channel, the AI summary preview and its Hide/Show
 # switch, and the product's reviews. Admins only.
@@ -128,7 +129,7 @@ class Spree::Admin::ProductReviewsControllerTest < ActionDispatch::IntegrationTe
     assert_select '#ai_summary_empty'
     assert_select '#regenerate_ai_summary[disabled]'
     assert_select '#toggle_ai_summary', count: 0
-    assert_includes response.body, 'milestone M7'
+    assert_select '#regenerate_ai_summary[title=?]', 'AI summaries are switched off in Review settings'
   end
 
   test 'AI summary preview, then hide and show again (logged)' do
@@ -138,7 +139,7 @@ class Spree::Admin::ProductReviewsControllerTest < ActionDispatch::IntegrationTe
     assert_select '#ai_summary_headline', 'Soft fabric, runs small'
     assert_select '#ai_summary_pros', /Soft fabric\s*\(12 mentions\)/
     assert_select '#ai_summary_cons', /Runs small\s*\(4 mentions\)/
-    assert_select '#ai_summary_meta', /16 retail reviews/
+    assert_select '#ai_summary_review_count', /16/
     assert_select '#ai_summary_state', 'Shown on the product page'
 
     log = with_captured_log { post "#{@base}/toggle_ai_summary", params: { scope: 'wholesale' } }
@@ -164,5 +165,102 @@ class Spree::Admin::ProductReviewsControllerTest < ActionDispatch::IntegrationTe
     end
     assert_redirected_to @base
     assert_equal 'This product has no AI summary yet.', flash[:error]
+  end
+
+  # M7: Regenerate marks the summary stale and asks the storefront (on a thread) to rewrite it.
+  def with_trigger_envs(&block)
+    with_env({ 'SITE_URL' => 'https://shop.example.com', 'INTERNAL_CRON_SECRET' => 'cron-secret' }, &block)
+  end
+
+  def regenerate(calls)
+    Reviews::SummaryTrigger.stub(:call_in_background, -> { calls << :called }) { post "#{@base}/regenerate_ai_summary" }
+  end
+
+  test 'Regenerate: marks the summary stale, keeps it live, calls the trigger; shows model and dates' do
+    reviews_enable!(ai_summary_enabled: true, ai_summary_min_reviews: 2)
+    published_reviews(@product, 2)
+    add_summary
+    retail_stat(@product).update!(ai_summary: retail_stat(@product).ai_summary.merge('model' => 'claude-opus-5-5'))
+    login_as(@admin, scope: :spree_user)
+
+    get @base
+    assert_select '#regenerate_ai_summary:not([disabled])'
+    assert_select '#ai_summary_model', 'claude-opus-5-5'
+    assert_select '#ai_summary_generated_at', /November 20, 2026/
+    assert_select '#ai_summary_review_count', /16/
+    assert_select '#ai_summary_regenerating', count: 0
+
+    calls = []
+    with_trigger_envs { regenerate(calls) }
+    assert_redirected_to @base
+    assert_equal [:called], calls
+    assert_match(/appear here in a minute or two/, flash[:success])
+    assert_equal [@product.id], Reviews::AiSummaries.stale(settings: Spree::ReviewSetting.current).map(&:reviewable_id)
+    assert_equal 'Soft fabric, runs small', Reviews::Presenter.new.summary(@product, 'retail')[:ai_summary]['headline'],
+                 'the current summary stays up meanwhile'
+
+    follow_redirect!
+    assert_select '#ai_summary_regenerating', 'Regeneration requested'
+    assert_select '#ai_summary_headline', 'Soft fabric, runs small'
+  end
+
+  test 'Regenerate explains missing SITE_URL / INTERNAL_CRON_SECRET' do
+    reviews_enable!(ai_summary_enabled: true, ai_summary_min_reviews: 2)
+    published_reviews(@product, 2)
+    add_summary
+    login_as(@admin, scope: :spree_user)
+
+    calls = []
+    with_env('SITE_URL' => 'https://shop.example.com', 'INTERNAL_CRON_SECRET' => nil) { regenerate(calls) }
+    assert_empty calls
+    assert_match(/SITE_URL and INTERNAL_CRON_SECRET must both be set/, flash[:error])
+    assert Reviews::AiSummaries.regeneration_requested_at(retail_stat(@product)), 'still marked'
+
+    with_env('SITE_URL' => 'https://shop.example.com', 'INTERNAL_CRON_SECRET' => nil) { get @base }
+    assert_includes response.body, 'once SITE_URL and INTERNAL_CRON_SECRET are set'
+  end
+
+  test 'Regenerate refuses when off, hidden, or short of reviews' do
+    login_as(@admin, scope: :spree_user)
+    calls = []
+    published_reviews(@product, 1)
+
+    with_trigger_envs { regenerate(calls) }
+    assert_match(/switched off/, flash[:error])
+
+    reviews_enable!(ai_summary_enabled: true, ai_summary_min_reviews: 2)
+    with_trigger_envs { regenerate(calls) }
+    assert_match(/at least 2 published retail reviews with text; this product has 1/, flash[:error])
+    get @base
+    assert_select '#regenerate_ai_summary[disabled]'
+
+    published_reviews(@product, 1)
+    add_summary(hidden: true)
+    with_trigger_envs { regenerate(calls) }
+    assert_match(/hidden/, flash[:error])
+    assert_empty calls
+    assert_nil Reviews::AiSummaries.regeneration_requested_at(retail_stat(@product))
+  end
+
+  test 'Regenerate without a summary yet just asks for one' do
+    reviews_enable!(ai_summary_enabled: true, ai_summary_min_reviews: 2)
+    published_reviews(@product, 2)
+    login_as(@admin, scope: :spree_user)
+    calls = []
+    with_trigger_envs { regenerate(calls) }
+    assert_equal [:called], calls
+    assert flash[:success].present?
+    assert_nil retail_stat(@product).ai_summary
+  end
+
+  test 'Regenerate is admin only' do
+    reviews_enable!(ai_summary_enabled: true, ai_summary_min_reviews: 1)
+    published_reviews(@product, 1)
+    add_summary
+    login_as(create(:user), scope: :spree_user)
+    calls = []
+    with_trigger_envs { regenerate(calls) }
+    assert_empty calls
+    assert_nil Reviews::AiSummaries.regeneration_requested_at(retail_stat(@product))
   end
 end

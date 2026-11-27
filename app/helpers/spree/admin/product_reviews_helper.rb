@@ -51,6 +51,23 @@ module Spree
       def product_review_ai_items(summary, key)
         Array(summary && summary[key]).select { |item| item.is_a?(Hash) && item['label'].present? }
       end
+
+      # Why Regenerate is disabled, or nil when it can be pressed.
+      def product_review_regenerate_blocker(stat, settings)
+        return 'AI summaries are switched off in Review settings' unless settings.ai_summary_enabled
+        return 'Show the summary on the product page before regenerating it' if stat.ai_summary_hidden
+        return if stat.reviews_count >= settings.ai_summary_min_reviews
+
+        "Needs at least #{settings.ai_summary_min_reviews} published retail reviews with text (has #{stat.reviews_count})"
+      end
+
+      def product_review_regenerate_blocked?(stat, settings)
+        product_review_regenerate_blocker(stat, settings).present?
+      end
+
+      def product_review_regenerate_title(stat, settings)
+        product_review_regenerate_blocker(stat, settings) || 'Write a new summary from the current retail reviews'
+      end
     end
   end
 end

@@ -7,6 +7,8 @@ module ReviewRequests
   #   2. expired:   scheduled/sent/reminded requests past expires_at
   #   3. sent:      scheduled and due (send_after passed) -> fresh token, request email
   #   4. reminded:  sent, reminder_delay_days after sent_at, nothing reviewed -> fresh token, one reminder
+  #   5. AI summaries: when they're switched on and SITE_URL and INTERNAL_CRON_SECRET are set, one
+  #      POST to the storefront's summarize route (Reviews::SummaryTrigger)
   #
   # Steps 3 and 4 only run while reviews are switched on; a request that has nothing left to review
   # becomes completed (all reviewed) or cancelled (order canceled, no email, address opted out)
@@ -37,16 +39,25 @@ module ReviewRequests
         send_due
         remind_due
       end
-      # TODO(M7): ping the storefront to refresh stale AI summaries, e.g.
-      #   POST "#{SITE_URL}/api/internal/reviews/summarize" with the shared secret.
-      # Not built yet: see docs/plans/2026-11-26-product-reviews-plan.md (M7).
+      refresh_ai_summaries
       counts
     end
+
+    # :ok, :failed, :error or :not_configured from Reviews::SummaryTrigger; nil when AI summaries
+    # are off or SITE_URL / INTERNAL_CRON_SECRET aren't set (so it wasn't called).
+    attr_reader :summary_trigger
 
     private
 
     def scope
       Spree::ReviewRequest
+    end
+
+    # 5. Ask the storefront to rewrite stale AI summaries, once per run. Never fails the run.
+    def refresh_ai_summaries
+      return unless settings.ai_summary_enabled && Reviews::SummaryTrigger.configured?
+
+      @summary_trigger = Reviews::SummaryTrigger.call(logger: @logger)
     end
 
     # Only requests with a review from their order can have become complete; the send and remind

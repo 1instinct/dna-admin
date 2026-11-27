@@ -23,8 +23,9 @@ module Spree
       (1..5).index_with { |n| histogram.fetch(n.to_s, 0).to_i }
     end
 
+    # The stored summary minus the admin's "regenerate requested" marker (Reviews::AiSummaries).
     def visible_ai_summary
-      ai_summary if ai_summary.present? && !ai_summary_hidden
+      ai_summary.except(Reviews::AiSummaries::REGENERATE_KEY) if ai_summary.present? && !ai_summary_hidden
     end
   end
 end

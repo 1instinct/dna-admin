@@ -3,6 +3,9 @@
   <div class="card-header d-flex align-items-center flex-wrap">
     <h2 class="card-title mb-0 h5 mr-2">AI summary</h2>
     <% if summary %>
+      <% if (requested_at = Reviews::AiSummaries.regeneration_requested_at(stat)) %>
+        <span class="badge badge-info mr-1" id="ai_summary_regenerating" title="Requested <%= l(requested_at, format: :long) %>">Regeneration requested</span>
+      <% end %>
       <% if stat.ai_summary_hidden %>
         <span class="badge badge-dark" id="ai_summary_state">Hidden from the product page</span>
       <% else %>
@@ -17,8 +20,12 @@
                       class: "btn btn-sm #{stat.ai_summary_hidden ? 'btn-outline-success' : 'btn-outline-secondary'}",
                       data: { confirm: (stat.ai_summary_hidden ? nil : 'Hide this AI summary from the product page? You can show it again later.') } %>
       <% end %>
-      <button type="button" class="btn btn-sm btn-outline-primary" id="regenerate_ai_summary" disabled
-              title="Generation isn't built yet (milestone M7)">Regenerate</button>
+      <%= button_to 'Regenerate',
+                    spree.regenerate_ai_summary_admin_product_product_reviews_path(@product, scope: (@scope unless @scope == 'retail')),
+                    method: :post, id: 'regenerate_ai_summary', class: 'btn btn-sm btn-outline-primary',
+                    disabled: product_review_regenerate_blocked?(stat, settings),
+                    title: product_review_regenerate_title(stat, settings),
+                    data: { confirm: (summary ? 'Write a new AI summary from the current reviews? The current one stays up until the new one is ready.' : nil) } %>
     </div>
   </div>
   <div class="card-body">
@@ -45,22 +52,36 @@
           </div>
         <% end %>
       </div>
-      <p class="small text-muted mb-0" id="ai_summary_meta">
-        Written from <%= pluralize(stat.ai_summary_review_count.to_i, 'retail review') %>
-        <% if stat.ai_summary_generated_at %>on <%= l(stat.ai_summary_generated_at, format: :long) %><% end %>.
-        The product page labels it “AI summary of <%= stat.ai_summary_review_count.to_i %> reviews”.
-      </p>
+      <% if summary['fit_consensus'].present? %>
+        <p class="small mb-2" id="ai_summary_fit">Fit: <%= summary['fit_consensus'].to_s.humanize %></p>
+      <% end %>
+      <dl class="row small text-muted mb-0" id="ai_summary_meta">
+        <dt class="col-5 col-md-3 font-weight-normal">Generated</dt>
+        <dd class="col-7 col-md-9 mb-1" id="ai_summary_generated_at">
+          <%= stat.ai_summary_generated_at ? l(stat.ai_summary_generated_at, format: :long) : 'Unknown' %>
+        </dd>
+        <dt class="col-5 col-md-3 font-weight-normal">Reviews summarized</dt>
+        <dd class="col-7 col-md-9 mb-1" id="ai_summary_review_count">
+          <%= stat.ai_summary_review_count.to_i %>
+          (the product page labels it “AI summary of <%= stat.ai_summary_review_count.to_i %> reviews”)
+        </dd>
+        <dt class="col-5 col-md-3 font-weight-normal">Model</dt>
+        <dd class="col-7 col-md-9 mb-1" id="ai_summary_model"><%= summary['model'].presence || 'Not recorded' %></dd>
+      </dl>
     <% else %>
       <p class="mb-0" id="ai_summary_empty">This product has no AI summary yet.</p>
     <% end %>
     <hr>
     <p class="small text-muted mb-0">
       The summary is always written from retail reviews, whichever channel is selected above, and must
-      reflect criticism as often as reviews raise it. Automatic generation arrives in milestone M7: once it's
-      built, a product gets a summary when it has at least <%= settings.ai_summary_min_reviews %> published reviews
+      reflect criticism as often as reviews raise it. The storefront writes it with Claude once a product has at least
+      <%= settings.ai_summary_min_reviews %> published retail reviews with text
       <% unless settings.ai_summary_enabled %>
         and AI summaries are switched on in <%= link_to 'Review settings', spree.edit_admin_review_settings_path %> (currently off)
-      <% end %>.
+      <% end %>,
+      and rewrites it after 3 new written reviews, after 30 days, or when you press Regenerate. The hourly
+      review email task asks for stale summaries<% unless Reviews::SummaryTrigger.configured? %>
+        <strong>once SITE_URL and INTERNAL_CRON_SECRET are set on dna-admin (they aren't yet, so nothing is generated)</strong><% end %>.
       Hiding or showing a summary is logged with your admin user ID and the time.
     </p>
   </div>
