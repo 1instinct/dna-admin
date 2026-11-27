@@ -28,11 +28,11 @@ module EmailTheme
     @current = load_file
   end
 
-  def load_file
-    data = PATH.exist? ? YAML.safe_load(PATH.read) || {} : {}
+  def load_file(path = PATH)
+    data = path.exist? ? YAML.safe_load(path.read) || {} : {}
     DEFAULTS.merge(data.to_h.symbolize_keys.slice(*DEFAULTS.keys).compact).freeze
   rescue Psych::Exception => e
-    Rails.logger.error("[email_theme] #{PATH} is invalid (#{e.class}); using defaults")
+    Rails.logger.error("[email_theme] #{path} is invalid (#{e.class}); using defaults")
     DEFAULTS
   end
 

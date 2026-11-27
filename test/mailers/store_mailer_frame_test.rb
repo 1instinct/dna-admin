@@ -25,13 +25,16 @@ class StoreMailerFrameTest < ActionMailer::TestCase
     body = html(ReviewRequestMailer.request_review(@request, 'tok'))
     assert_includes body, 'class="em-bg"'
     assert_includes body, 'prefers-color-scheme: dark'
-    assert_includes body, '<meta name="color-scheme" content="light dark" />'
+    scheme = EmailTheme.always_dark? ? 'dark' : 'light dark'
+    assert_includes body, %(<meta name="color-scheme" content="#{scheme}" />)
     assert_includes body, "© #{Time.current.year} DNA. All rights reserved."
     assert_includes body, '1 Mercer St, New York'
     assert_includes body, 'mailto:help@dna.example'
     assert_includes body, 'https://instagram.com/dna'
     assert_includes body, 'Stop review emails'
-    assert_includes body, 'letter-spacing:4px', 'no logo uploaded: the store name stands in'
+    if EmailTheme.current[:default_logo].blank?
+      assert_includes body, 'letter-spacing:4px', 'no logo uploaded and no theme default: the store name stands in'
+    end
 
     text = ReviewRequestMailer.request_review(@request, 'tok').text_part.body.to_s
     assert_includes text, "© #{Time.current.year} DNA. All rights reserved."
@@ -76,7 +79,13 @@ class StoreMailerFrameTest < ActionMailer::TestCase
   end
 
   test 'missing theme keys fall back to the defaults' do
-    assert_equal EmailTheme::DEFAULTS.keys.sort, EmailTheme.load_file.keys.sort
-    assert_equal '#eb8b8b', EmailTheme.load_file[:accent]
+    Dir.mktmpdir do |dir|
+      path = Pathname(dir).join('email_theme.yml')
+      path.write(%(accent: "#123456"\n))
+      theme = EmailTheme.load_file(path)
+      assert_equal EmailTheme::DEFAULTS.keys.sort, theme.keys.sort
+      assert_equal '#123456', theme[:accent]
+      assert_equal EmailTheme::DEFAULTS[:card_bg], theme[:card_bg]
+    end
   end
 end
