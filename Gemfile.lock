@@ -466,6 +466,13 @@ GEM
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
+    sentry-rails (7.2.0)
+      railties (>= 5.2.0)
+      sentry-ruby (~> 7.2.0)
+    sentry-ruby (7.2.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      logger
     spree_api (4.2.5)
       doorkeeper (~> 5.2, >= 5.2.1)
       jsonapi-serializer (~> 2.1)
@@ -635,6 +642,8 @@ DEPENDENCIES
   sass-rails (~> 5.0)
   sassc-rails
   selenium-webdriver (~> 3.142)
+  sentry-rails
+  sentry-ruby
   spree!
   spree_admin_native!
   spree_auth_devise (~> 4.3)

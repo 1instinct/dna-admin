@@ -77,6 +77,12 @@ gem 'rest-client'
 gem 'jwt', '~> 2.7'
 # Tool to create APi and it's documentation
 gem 'swagger-blocks'
+
+# Error and performance reporting; off until SENTRY_DSN is set (config/initializers/sentry.rb).
+# Unpinned on purpose so bundler picks a release that supports Ruby 2.7.2; newer sentry-ruby
+# releases need Ruby 3.
+gem 'sentry-ruby'
+gem 'sentry-rails'
 # gem 'spree_promo_users_codes', github: 'vinsol-spree-contrib/spree_promo_users_codes', branch: 'master'
 
 group :development, :test do
