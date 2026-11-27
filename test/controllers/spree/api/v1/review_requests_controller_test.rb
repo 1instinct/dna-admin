@@ -36,7 +36,11 @@ class Spree::Api::V1::ReviewRequestsControllerTest < ActionDispatch::Integration
     top = items.fetch(@top.id)
     assert_equal [@lines.fetch(@top.id).id, @top.slug, 'Wrap Top', nil], top.values_at('line_item_id', 'slug', 'name', 'existing_review')
     assert_equal ['fit'], top['questions'].map { |q| q['key'] }
-    assert_equal({ 'enabled' => true, 'existing_review' => nil }, body['store_review'])
+    assert_equal({ 'enabled' => true, 'existing_review' => nil, 'questions' => [] }, body['store_review'])
+
+    create(:review_attribute, key: 'delivery', label: 'Delivery', applies_to: 'store')
+    get "/api/v1/review_requests/#{@token}"
+    assert_equal ['delivery'], json['store_review']['questions'].map { |q| q['key'] }
     assert_equal({ 'per_review' => 50, 'photo_bonus' => 50 }, body['points'])
     assert_equal false, body['has_account']
     assert_equal 5, body['limits']['max_photos']

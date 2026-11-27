@@ -60,7 +60,8 @@ module Spree
             items: review_request.items.map { |item| item_json(item) },
             store_review: {
               enabled: settings.store_reviews_enabled,
-              existing_review: store_review(order)
+              existing_review: store_review(order),
+              questions: Spree::ReviewAttribute.for_store.map { |attribute| presenter.question(attribute) }
             },
             points: presenter.points_offer(settings),
             has_account: order.user_id.present?,
