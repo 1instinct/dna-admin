@@ -1,6 +1,8 @@
 class MenuItem < Spree::Base
   before_create :set_item_position
   before_save :assign_default_values
+  # Before the childrens association's dependent destroy, which would otherwise delete them first.
+  before_destroy :keep_items_with_children, prepend: true
   belongs_to :menu_location,
               foreign_key: :menu_location_id
   belongs_to :parent,
@@ -41,6 +43,16 @@ class MenuItem < Spree::Base
   end
 
   protected
+
+  # An item with children is deleted only along with its parent or menu location, as in the admin
+  # (MenuItemsController#destroy): its children are deleted or moved first.
+  def keep_items_with_children
+    return if destroyed_by_association
+    return unless childrens.exists?
+
+    errors.add(:base, 'Delete or move its child items first.')
+    throw :abort
+  end
 
   def set_item_position
     self.position = MenuItem.where(parent_id: parent_id).count
