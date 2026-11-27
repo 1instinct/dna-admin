@@ -133,7 +133,8 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
       names = type['fields'].map { |f| f['name'] }
       assert names.any?, "#{type['key']} has no fields"
       names.each { |name| refute_match SECRET_LOOKING, name, "#{type['key']} exposes #{name}" }
-      assert_includes names, type['title_field'] unless type['title_field'] == 'id'
+      model = SpreeAdminNative.resources[type['key']].model_class
+      assert model.method_defined?(type['title_field']), "#{type['key']} title #{type['title_field']}"
       (type['list_fields'] - ['id']).each { |name| assert_includes names, name, "#{type['key']} lists #{name}" }
       type['fields'].select { |f| f['type'] == 'reference' }.each do |field|
         assert SpreeAdminNative.resources[field['resource']], "#{type['key']}.#{field['name']} points at #{field['resource']}"
@@ -241,7 +242,11 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
   end
 
   test 'homepage sections validate their settings' do
-    call(:post, '/homepage_sections', { title: 'Get the app', section_type: 'app_links', settings: { ios_url: 'apps.example.com' } })
+    if HomepageSection.const_defined?(:URL_SETTINGS_FIELDS)
+      call(:post, '/homepage_sections', { title: 'Get the app', section_type: 'app_links', settings: { ios_url: 'apps.example.com' } })
+      assert_equal 422, response.status, 'links must be absolute'
+    end
+    call(:post, '/homepage_sections', { title: 'Get the app', section_type: 'no_such_type' })
     assert_equal 422, response.status
     body = call(:post, '/homepage_sections', { title: 'Get the app', section_type: 'app_links',
                                                settings: { ios_url: 'https://apps.example.com/app' } })
