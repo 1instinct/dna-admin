@@ -46,6 +46,16 @@ class Spree::Api::V1::ProductReviewsControllerTest < ActionDispatch::Integration
     assert photo['thumb_url'].start_with?('http://www.example.com/'), photo['thumb_url']
   end
 
+  test 'with ADMIN_URL set, photo URLs use it even when a storefront proxies the request' do
+    original = ENV['ADMIN_URL']
+    ENV['ADMIN_URL'] = 'https://admin.example.com'
+    review_by(rating: 5, photos: [reviews_photo])
+    get "#{@base}/review_summary", headers: { 'Host' => 'shop.example.com' }
+    assert json['latest_photos'].first['thumb_url'].start_with?('https://admin.example.com/rails/active_storage/')
+  ensure
+    ENV['ADMIN_URL'] = original
+  end
+
   test 'retail is the default and never includes wholesale reviews, whatever the params' do
     retail = review_by(rating: 5)
     review_by(reviews_wholesale_user, rating: 2)

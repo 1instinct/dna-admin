@@ -19,6 +19,15 @@ module Reviews
     (?:\+?\d[\s().-]?){9,}
   }xi.freeze
 
+  # The host for image URLs in review JSON: this app's public address (ADMIN_URL, see
+  # config/initializers/mailer_host.rb) when set, else the request's. A storefront that proxies
+  # /api/v1 through its own domain would otherwise get image URLs on its own host, which it doesn't
+  # serve.
+  def self.asset_base_url(request)
+    admin_url = ENV['ADMIN_URL'].to_s.strip.chomp('/')
+    admin_url.match?(%r{\Ahttps?://[^/\s]+\z}) ? admin_url : request.base_url
+  end
+
   # Raised by services for a request the caller should refuse (not found, not allowed).
   class Error < StandardError
     attr_reader :code

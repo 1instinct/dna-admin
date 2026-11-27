@@ -2,7 +2,7 @@ module Reviews
   # JSON for the public review endpoints (docs/plans/2026-11-26-reviews-api-contract.md). Never
   # includes who the reviewer is beyond their display name: no user id, email or order.
   #
-  #   presenter = Reviews::Presenter.new(base_url: request.base_url)
+  #   presenter = Reviews::Presenter.new(base_url: Reviews.asset_base_url(request))
   #   presenter.review(review)
   #   presenter.summary(product, scope)
   class Presenter

@@ -57,7 +57,7 @@ module Spree
         private
 
         def presenter
-          @presenter ||= Reviews::Presenter.new(base_url: request.base_url)
+          @presenter ||= Reviews::Presenter.new(base_url: Reviews.asset_base_url(request))
         end
 
         def reviewable(item)
