@@ -107,6 +107,14 @@
     <ul class="nav nav-sidebar border-bottom" id="sidebarReviews">
       <%= tab :reviews, label: 'Reviews', icon: 'review.svg', url: spree.admin_reviews_path %>
       <%# reviews-menu: more review tabs go below this line %>
+      <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'reviews' && params[:subject] == 'store' %>" id="sidebar_store_reviews">
+        <%= link_to_with_icon 'store.svg', 'Store reviews', spree.admin_reviews_path(subject: 'store'), class: 'w-100 p-3 d-flex align-items-center' %>
+      </li>
+      <% if can? :admin, Spree::ProductQuestion %>
+        <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'product_questions' %>" id="sidebar_product_questions">
+          <%= link_to_with_icon 'chat.svg', 'Questions', spree.admin_product_questions_path, class: 'w-100 p-3 d-flex align-items-center' %>
+        </li>
+      <% end %>
       <%= tab :review_requests, label: 'Review emails', icon: 'envelope.svg', url: spree.admin_review_requests_path %>
       <% if can? :admin, Spree::ReviewAttribute %>
         <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'review_attributes' %>" id="sidebar_review_questions">

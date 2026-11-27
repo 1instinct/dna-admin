@@ -1,5 +1,5 @@
 <% content_for :page_title do %>
-  Reviews
+  <%= @filters[:subject] == 'store' ? 'Store reviews' : 'Reviews' %>
 <% end %>
 
 <% content_for :page_actions do %>

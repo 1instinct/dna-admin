@@ -7,6 +7,7 @@
 #   Reviews::RefreshStats  per-channel rating aggregates on Spree::ReviewStat and the product
 #   Reviews::AwardPoints   loyalty points for a published product review, once
 #   Reviews::Anonymize     what account deletion does to a user's reviews, votes and questions
+#   Reviews::Questions     product questions: staff answers, the public shape, the asker's email
 #
 # Settings live on Spree::ReviewSetting.current (admin: Reviews > Settings).
 module Reviews
@@ -18,6 +19,12 @@ module Reviews
     [\w.+-]+@[\w-]+\.[\w.]+|
     (?:\+?\d[\s().-]?){9,}
   }xi.freeze
+
+  # The store that store reviews (M5) are about: the default store, read fresh rather than
+  # through Spree::Store.default, which is cached.
+  def self.store
+    Spree::Store.where(default: true).order(:id).first || Spree::Store.order(:id).first
+  end
 
   # The host for image URLs in review JSON: this app's public address (ADMIN_URL, see
   # config/initializers/mailer_host.rb) when set, else the request's. A storefront that proxies

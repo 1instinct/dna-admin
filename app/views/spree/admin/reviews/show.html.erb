@@ -1,5 +1,9 @@
 <% content_for :page_title do %>
-  <%= link_to 'Reviews', spree.admin_reviews_path %> / Review #<%= @review.id %>
+  <% if @review.reviewable_type == Spree::Store.name %>
+    <%= link_to 'Store reviews', spree.admin_reviews_path(subject: 'store') %> / Review #<%= @review.id %>
+  <% else %>
+    <%= link_to 'Reviews', spree.admin_reviews_path %> / Review #<%= @review.id %>
+  <% end %>
 <% end %>
 
 <div class="row">
@@ -51,7 +55,7 @@
       <div class="card-body">
         <%= form_tag spree.reply_admin_review_path(@review), method: :post do %>
           <div class="form-group">
-            <%= label_tag :reply_body, 'Shown under the review on the product page', class: 'small text-muted' %>
+            <%= label_tag :reply_body, "Shown under the review on the #{@review.product ? 'product' : 'store reviews'} page", class: 'small text-muted' %>
             <%= text_area_tag :reply_body, @review.reply_body, rows: 4, maxlength: Spree::Review::REPLY_MAX, class: 'form-control' %>
           </div>
           <% if @review.replied_at %>

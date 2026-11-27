@@ -84,13 +84,18 @@ module Reviews
 
         [item.order, item.line_item]
       elsif store?
-        order ||= Reviews::Eligibility.latest_shipped_order(user)
+        # An edit keeps the order the review was written for.
+        order ||= own_store_review&.order || Reviews::Eligibility.latest_shipped_order(user)
         raise Reviews::Error.new(:not_eligible, 'You can review us once an order has shipped') unless order
 
         [order, nil]
       else
         raise ArgumentError, "can't review a #{reviewable.class.name}"
       end
+    end
+
+    def own_store_review
+      user && Spree::Review.where(reviewable: reviewable).find_by(user_id: user.id)
     end
 
     def find_existing(order)

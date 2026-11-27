@@ -1,0 +1,78 @@
+<% content_for :page_title do %>
+  <%= link_to 'Questions', spree.admin_product_questions_path %> / Question #<%= @question.id %>
+<% end %>
+
+<div class="row">
+  <div class="col-12 col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h1 class="card-title mb-0 h5"><%= question_product_link(@question) %></h1>
+        <span><%= question_status_badge(@question) %></span>
+      </div>
+      <div class="card-body">
+        <%= simple_format(@question.body) %>
+        <p class="small text-muted mb-0">Asked by <%= @question.display_name %> · <%= l(@question.created_at, format: :long) %></p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Answers</h2></div>
+      <div class="card-body">
+        <% if @answers.any? %>
+          <% @answers.each do |answer| %>
+            <div class="border-bottom pb-2 mb-3" id="answer_<%= answer.id %>">
+              <%= simple_format(answer.body) %>
+              <p class="small text-muted mb-1">
+                <%= answer.official ? 'Official answer' : answer.display_name %>
+                <% if answer.user %> · by <%= answer.user.email %><% end %>
+                · <%= l(answer.published_at || answer.created_at, format: :short) %>
+                <% unless answer.published? %> · <span class="badge badge-light"><%= answer.status %></span><% end %>
+              </p>
+              <%= button_to 'Remove answer', spree.destroy_answer_admin_product_question_path(@question, answer_id: answer.id), method: :delete,
+                                             class: 'btn btn-link btn-sm p-0 text-danger', form: { data: { confirm: 'Remove this answer from the product page?' } } %>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted"><em>No answers yet. The question isn't shown on the product page until it has one.</em></p>
+        <% end %>
+
+        <%= form_tag spree.answer_admin_product_question_path(@question), method: :post, id: 'answer_form' do %>
+          <div class="form-group">
+            <%= label_tag :answer_body, 'Your answer (shown as an official answer from the store)', class: 'small text-muted' %>
+            <%= text_area_tag :answer_body, nil, rows: 5, maxlength: Spree::ProductAnswer::BODY_MAX, class: 'form-control', required: true %>
+          </div>
+          <%= submit_tag 'Publish answer', class: 'btn btn-primary btn-sm' %>
+          <span class="small text-muted ml-2">
+            <%= @question.user&.email.present? ? 'The customer gets an email with your answer.' : 'No email: this question has no customer address.' %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Decision</h2></div>
+      <div class="card-body">
+        <% unless @question.status == 'rejected' %>
+          <%= button_to 'Reject', spree.reject_admin_product_question_path(@question), class: 'btn btn-outline-danger btn-sm mb-2',
+                                  form: { data: { confirm: "Reject this question? It won't be shown, and the customer isn't emailed." } } %>
+        <% end %>
+        <p class="small text-muted mb-0">Rejecting keeps the question off the product page and sends no email. Answering a rejected question publishes it.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><h2 class="card-title mb-0 h6">Details</h2></div>
+      <div class="card-body">
+        <dl class="mb-0 small">
+          <dt>Shown as</dt><dd><%= @question.display_name %></dd>
+          <dt>Customer</dt>
+          <dd><%= @question.user ? link_to(@question.user.email, spree.edit_admin_user_path(@question.user)) : 'Deleted account' %></dd>
+          <dt>Asked</dt><dd><%= l(@question.created_at, format: :long) %></dd>
+          <dt>Published</dt><dd><%= @question.published_at ? l(@question.published_at, format: :long) : '—' %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

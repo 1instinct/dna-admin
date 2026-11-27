@@ -46,6 +46,9 @@ module Spree
       def review_subject(review)
         if review.product
           link_to review.product.name, spree.edit_admin_product_path(review.product)
+        elsif review.reviewable_type == Spree::Store.name
+          name = review.reviewable&.name.to_s.strip.presence
+          name ? "The store (#{name})" : 'The store'
         else
           'The store'
         end

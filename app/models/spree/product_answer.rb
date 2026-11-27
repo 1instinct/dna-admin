@@ -15,7 +15,13 @@ module Spree
     validates :status, inclusion: { in: STATUSES }
 
     scope :published, -> { where(status: 'published') }
+    # Official answers first, then oldest first (the public order).
+    scope :display_order, -> { order(official: :desc, published_at: :asc, id: :asc) }
 
     after_commit -> { question&.refresh_answers_count! }, on: %i[create update destroy]
+
+    def published?
+      status == 'published'
+    end
   end
 end

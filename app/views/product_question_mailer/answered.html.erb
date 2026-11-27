@@ -1,0 +1,40 @@
+<%# layouts/store_mailer adds the background, logo and footer. Inline styles for the light look;
+    the em-* classes are the dark-mode hooks (shared/_email_frame). %>
+<% t = email_theme %>
+<% content_for :email_preheader do %>
+  <%= @store_name || 'We' %> answered your question about <%= @product.name %>.
+<% end %>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="em-text">
+  <tr>
+    <td style="padding:0 0 10px 0;font-family:<%= t[:heading_font] %>;font-size:20px;line-height:28px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:<%= t[:text] %>;">
+      Your question has an answer
+    </td>
+  </tr>
+  <tr>
+    <td class="em-muted" style="padding:0 0 6px 0;font-size:13px;line-height:20px;color:<%= t[:muted] %>;">
+      You asked about <%= @product.name %>:
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0 0 18px 0;font-size:15px;line-height:23px;font-style:italic;color:<%= t[:text] %>;">
+      &ldquo;<%= @question.body %>&rdquo;
+    </td>
+  </tr>
+  <tr>
+    <td class="em-rule" style="padding:18px 0;border-top:1px solid <%= t[:rule] %>;">
+      <div style="font-size:13px;line-height:20px;font-weight:bold;color:<%= t[:text] %>;"><%= @store_name || 'Our answer' %></div>
+      <div style="padding-top:4px;font-size:15px;line-height:23px;color:<%= t[:text] %>;"><%= simple_format(@answer.body, {}, wrapper_tag: 'div') %></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="em-rule" style="padding:22px 0 0 0;border-top:1px solid <%= t[:rule] %>;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="em-button" style="background-color:<%= t[:button_bg] %>;border-radius:999px;">
+            <a href="<%= @question_url %>" class="em-button" style="display:inline-block;padding:13px 26px;font-family:<%= t[:heading_font] %>;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:<%= t[:button_text] %>;text-decoration:none;border-radius:999px;">See it on the product page</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

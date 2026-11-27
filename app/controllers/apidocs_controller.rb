@@ -33,6 +33,8 @@ class ApidocsController < ActionController::Base
     Spree::Api::V1::ThreadsController,
     Spree::Api::V1::ProductReviewsController,
     Spree::Api::V1::Admin::ReviewSummariesController,
+    Spree::Api::V1::StoreReviewsController,
+    Spree::Api::V1::ProductQuestionsController,
     SwaggerGlobalModel,
     self,
   ].freeze

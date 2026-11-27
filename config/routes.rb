@@ -258,6 +258,13 @@ Spree::Core::Engine.add_routes do
       resources :reviews, only: %i[create update destroy] do
         post :votes, on: :member
       end
+      # M5 store reviews.
+      get 'store_reviews/summary', to: 'store_reviews#summary', as: :store_review_summary
+      get 'store_reviews/form', to: 'store_reviews#form', as: :store_review_form
+      resources :store_reviews, only: %i[index create update]
+      # M6 product questions.
+      get 'products/:product_id/questions', to: 'product_questions#index', as: :product_questions_list
+      post 'products/:product_id/questions', to: 'product_questions#create', as: :product_questions_create
     end
   end
 end
@@ -289,6 +296,14 @@ Spree::Core::Engine.add_routes do
     resources :products, only: [] do
       resources :product_reviews, only: [], path: 'reviews' do
         collection { post :regenerate_ai_summary }
+      end
+    end
+    # Reviews > Questions (M6): the product question queue and its answer form.
+    resources :product_questions, path: 'questions', only: %i[index show] do
+      member do
+        post :answer
+        post :reject
+        delete 'answers/:answer_id', action: :destroy_answer, as: :destroy_answer
       end
     end
     resources :review_requests, only: %i[index]

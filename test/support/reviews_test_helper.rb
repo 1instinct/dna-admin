@@ -52,6 +52,13 @@ module ReviewsTestHelper
     user
   end
 
+  # The store that store reviews belong to (Reviews.store): a real default row. media_store can
+  # return a cached Spree::Store.default that another test rolled back.
+  def reviews_store
+    Reviews.store || Spree::Store.create!(name: 'Test Store', url: 'store-reviews.example.com', code: "sr-#{SecureRandom.hex(3)}",
+                                          mail_from_address: 'store@example.com', default_currency: 'USD', default: true)
+  end
+
   def reviews_submit(reviewable, user: nil, review_request: nil, **params)
     Reviews::Submit.call(reviewable: reviewable, user: user, review_request: review_request, params: params)
   end
