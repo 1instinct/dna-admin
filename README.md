@@ -1,3 +1,5 @@
+> DNA is a boilerplate: each store keeps its own repo that tracks this one as `upstream`. To start a store or take DNA updates, see [docs/STARTING_A_STORE.md](docs/STARTING_A_STORE.md).
+
 # DOCKER SETUP ✻
 
 This repo is using Spree 4.2.4
