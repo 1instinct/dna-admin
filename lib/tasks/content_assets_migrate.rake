@@ -62,55 +62,60 @@ namespace :content_assets do
 
     puts "\n=== Migrating CMS Page Images ==="
 
-    Spree::Page.find_each do |page|
-      body = page.body.to_s
-      next if body.blank?
+    # CMS pages come from spree_static_content, which a store may not install.
+    if defined?(Spree::Page)
+      Spree::Page.find_each do |page|
+        body = page.body.to_s
+        next if body.blank?
 
-      begin
-        sections = JSON.parse(body)
-        next unless sections.is_a?(Array)
+        begin
+          sections = JSON.parse(body)
+          next unless sections.is_a?(Array)
 
-        changed = false
-        sections.each_with_index do |section, si|
-          next unless section.is_a?(Hash) && section["content"].is_a?(Hash)
-          section["content"].each do |key, val|
-            if val.is_a?(String) && image_url?(val) && !already_proxied?(val)
-              asset = download_and_create(val)
-              if asset
-                sections[si]["content"][key] = absolute_asset_url(asset)
-                changed = true
-                created += 1
-                puts "  [#{page.slug}] section[#{si}].#{key}: migrated"
-              else
-                failed += 1
+          changed = false
+          sections.each_with_index do |section, si|
+            next unless section.is_a?(Hash) && section["content"].is_a?(Hash)
+            section["content"].each do |key, val|
+              if val.is_a?(String) && image_url?(val) && !already_proxied?(val)
+                asset = download_and_create(val)
+                if asset
+                  sections[si]["content"][key] = absolute_asset_url(asset)
+                  changed = true
+                  created += 1
+                  puts "  [#{page.slug}] section[#{si}].#{key}: migrated"
+                else
+                  failed += 1
+                end
               end
-            end
 
-            if val.is_a?(Array)
-              val.each_with_index do |item, idx|
-                next unless item.is_a?(Hash)
-                item.each do |ik, iv|
-                  if iv.is_a?(String) && image_url?(iv) && !already_proxied?(iv)
-                    asset = download_and_create(iv)
-                    if asset
-                      sections[si]["content"][key][idx][ik] = absolute_asset_url(asset)
-                      changed = true
-                      created += 1
-                      puts "  [#{page.slug}] section[#{si}].#{key}[#{idx}].#{ik}: migrated"
-                    else
-                      failed += 1
+              if val.is_a?(Array)
+                val.each_with_index do |item, idx|
+                  next unless item.is_a?(Hash)
+                  item.each do |ik, iv|
+                    if iv.is_a?(String) && image_url?(iv) && !already_proxied?(iv)
+                      asset = download_and_create(iv)
+                      if asset
+                        sections[si]["content"][key][idx][ik] = absolute_asset_url(asset)
+                        changed = true
+                        created += 1
+                        puts "  [#{page.slug}] section[#{si}].#{key}[#{idx}].#{ik}: migrated"
+                      else
+                        failed += 1
+                      end
                     end
                   end
                 end
               end
             end
           end
-        end
 
-        page.update_column(:body, sections.to_json) if changed
-      rescue JSON::ParserError
-        skipped += 1
+          page.update_column(:body, sections.to_json) if changed
+        rescue JSON::ParserError
+          skipped += 1
+        end
       end
+    else
+      puts 'Spree::Page is not installed (spree_static_content); skipping CMS pages.'
     end
 
     puts "\n=== Migration Summary ==="
