@@ -14,6 +14,8 @@ class AdminTheme < Spree::Base
   validate  :safe_custom_css
 
   before_validation -> { self.singleton_guard = 0 }
+  # Every save shows at once, whichever client made it (admin page or the mobile admin app).
+  after_commit -> { self.class.bust_cache! }
 
   CACHE_KEY = 'admin_theme/current'.freeze
   CACHE_TTL = 5.minutes
