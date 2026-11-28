@@ -60,8 +60,9 @@ class Spree::Admin::MessagesController < Spree::Admin::BaseController
 	# pair's threads on the right. (Restored: the action was dropped by mistake
 	# in 6a01cea, which left the page raising on @users_array.)
 	def conversations
-	  # One entry per pair, whichever direction its messages went.
-	  @users_array = Message.distinct
+	  # One entry per pair, whichever direction its messages went. Chat messages with one party
+	  # (a customer message to nobody in particular, a staff note) are in the inbox, not here.
+	  @users_array = Message.where.not(sender_id: nil).where.not(receiver_id: nil).distinct
 	                        .pluck(:sender_id, :sender_type, :receiver_id, :receiver_type)
 	                        .uniq { |s_id, s_type, r_id, r_type| [[s_type, s_id], [r_type, r_id]].sort_by(&:to_s) }
 	  return unless params[:users].present?
@@ -81,6 +82,10 @@ class Spree::Admin::MessagesController < Spree::Admin::BaseController
 
 	def conversation
 	  message = Message.find_by_id(params[:id])
+	  # A chat message with one party (to the store, or a staff note): its thread's conversation page.
+	  if message&.thread_table_id && (message.sender.nil? || message.receiver.nil?)
+	    return redirect_to conversation_admin_thread_path(message.thread_table_id)
+	  end
 	  @user_1 = message.sender
 	  @user_2 = message.receiver
 	  @one_to_one_messages = conversation_between_two_parties(message.sender, message.receiver)
