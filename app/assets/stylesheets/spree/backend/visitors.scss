@@ -1,0 +1,72 @@
+// Visitors (/admin/visitors): live sessions, carts and a visit's timeline.
+
+body.admin .visitors {
+  .visitors__table td {
+    vertical-align: top;
+  }
+
+  .visitors__page {
+    max-width: 280px;
+  }
+
+  .visitors__dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: #94a3b8;
+
+    &.is-online {
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+    }
+  }
+
+  .visitors__facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 12px;
+    font-size: 13px;
+
+    dt {
+      font-weight: 600;
+      color: var(--admin-text-muted, #64748b);
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .visitors__cart li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    img {
+      border-radius: 4px;
+      object-fit: cover;
+    }
+  }
+
+  .visitors__timeline li {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--admin-border, rgba(0, 0, 0, 0.08));
+    overflow-wrap: anywhere;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .visitors__timeline-time {
+    flex: 0 0 120px;
+    font-size: 12px;
+    color: var(--admin-text-muted, #64748b);
+  }
+}

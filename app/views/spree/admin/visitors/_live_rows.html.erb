@@ -1,0 +1,48 @@
+<% if sessions.empty? %>
+  <tr data-total="0">
+    <td colspan="8" class="text-center text-muted py-4">Nobody is on the storefront right now.</td>
+  </tr>
+<% end %>
+<% sessions.each_with_index do |session, index| %>
+  <tr data-session="<%= session[:id] %>" <%= "data-total=#{@total}" if index.zero? && @total %>>
+    <td>
+      <div class="d-flex align-items-center">
+        <%= visitor_online_dot(session[:online]) %>
+        <%= link_to visitor_label(session), spree.admin_visitor_path(session[:id]), class: 'ml-2 font-weight-bold' %>
+      </div>
+      <% if session.dig(:contact, :email).present? && session.dig(:contact, :name).present? %>
+        <div class="small text-muted"><%= session.dig(:contact, :email) %></div>
+      <% end %>
+    </td>
+    <td class="visitors__page">
+      <% if session[:current_url].present? %>
+        <div class="text-truncate"><%= session[:current_title].presence || session[:current_url] %></div>
+        <%= link_to session[:current_url], session[:current_url], target: '_blank', rel: 'noopener', class: 'small text-truncate d-block' %>
+      <% end %>
+      <div class="small text-muted"><%= pluralize(session[:page_views], 'page') %> viewed</div>
+    </td>
+    <td><%= visitor_span(session[:started_at], session[:last_seen_at]) %></td>
+    <td class="text-capitalize"><%= session[:device] %></td>
+    <td><%= session[:country].presence || '—' %></td>
+    <td class="small"><%= visitor_utm(session[:utm]).presence || '—' %></td>
+    <td>
+      <% if (cart = session[:cart]) %>
+        <%= link_to spree.cart_admin_order_path(cart[:order_number]) do %>
+          <%= pluralize(cart[:item_count], 'item') %> · <%= cart[:total] %> <%= cart[:currency] %>
+        <% end %>
+      <% else %>
+        <span class="text-muted">—</span>
+      <% end %>
+    </td>
+    <td class="text-right text-nowrap">
+      <% if session[:conversation_id] %>
+        <%= link_to 'Open chat', spree.admin_inbox_path(conversation: session[:conversation_id]),
+                    class: 'btn btn-sm btn-outline-primary', 'aria-label': "Open chat with #{visitor_label(session)}" %>
+      <% else %>
+        <%= button_to spree.admin_visitor_conversation_path(session[:id]), method: :post,
+                      class: 'btn btn-sm btn-primary', form: { class: 'd-inline' },
+                      'aria-label': "Message #{visitor_label(session)}" do %>Message<% end %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

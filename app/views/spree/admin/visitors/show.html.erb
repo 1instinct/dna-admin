@@ -1,0 +1,93 @@
+<% content_for :page_title do %>
+  <%= link_to 'Visitors', spree.admin_visitors_path %>
+  <%= visitor_label(@session) %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <% if @session[:conversation_id] %>
+    <%= link_to 'Open chat', spree.admin_inbox_path(conversation: @session[:conversation_id]), class: 'btn btn-outline-primary' %>
+  <% else %>
+    <%= button_to spree.admin_visitor_conversation_path(@session[:id]), method: :post, class: 'btn btn-primary',
+                  form: { class: 'd-inline' } do %>Message<% end %>
+  <% end %>
+<% end %>
+
+<div class="row visitors">
+  <div class="col-12 col-lg-4 mb-3">
+    <div class="card">
+      <div class="card-header"><h2 class="h6 mb-0">Visit</h2></div>
+      <div class="card-body">
+        <dl class="visitors__facts mb-0">
+          <dt>Status</dt>
+          <dd><%= visitor_online_dot(@session[:online]) %> <%= @session[:online] ? 'Online now' : "Last seen #{visitor_span(@session[:last_seen_at])} ago" %></dd>
+          <% if @session.dig(:contact, :email).present? %>
+            <dt>Email</dt>
+            <dd><%= mail_to @session.dig(:contact, :email) %></dd>
+          <% end %>
+          <dt>Started</dt>
+          <dd><%= visitor_time(@session[:started_at]) %> (<%= visitor_span(@session[:started_at], @session[:last_seen_at]) %> on site)</dd>
+          <dt>Device</dt>
+          <dd class="text-capitalize"><%= @session[:device] %></dd>
+          <dt>Country</dt>
+          <dd><%= @session[:country].presence || '—' %></dd>
+          <dt>Came from</dt>
+          <dd><%= @session[:referrer].presence || 'Direct' %></dd>
+          <% if (utm = visitor_utm(@session[:utm])).present? %>
+            <dt>Campaign</dt>
+            <dd><%= utm %></dd>
+          <% end %>
+          <% if @session.dig(:contact, :id) %>
+            <dt>Records</dt>
+            <dd>
+              <%= link_to 'Contact record', spree.admin_contact_path(@session.dig(:contact, :id)) %>
+              <% if @session[:user_id] %> · <%= link_to 'Customer account', spree.edit_admin_user_path(@session[:user_id]) %><% end %>
+            </dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h2 class="h6 mb-0">Cart</h2></div>
+      <div class="card-body">
+        <% if @cart %>
+          <ul class="list-unstyled visitors__cart">
+            <% @cart[:items].each do |item| %>
+              <li>
+                <% if item[:image_url] %><img src="<%= item[:image_url] %>" alt="" width="32" height="32"><% end %>
+                <span><%= item[:name] %></span> <span class="text-muted">× <%= item[:quantity] %></span>
+              </li>
+            <% end %>
+          </ul>
+          <p class="mb-0"><strong><%= @cart[:total] %> <%= @cart[:currency] %></strong> ·
+            <%= link_to @cart[:order_number], spree.cart_admin_order_path(@cart[:order_number]) %></p>
+        <% else %>
+          <p class="text-muted mb-0">Nothing in the cart.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header"><h2 class="h6 mb-0">Pages, newest first (<%= pluralize(@session[:page_views], 'view') %>)</h2></div>
+      <div class="card-body">
+        <% if @session[:pages].empty? %>
+          <p class="text-muted mb-0">No pages recorded.</p>
+        <% else %>
+          <ol class="visitors__timeline list-unstyled mb-0">
+            <% @session[:pages].each do |page| %>
+              <li>
+                <time datetime="<%= page[:at] %>" class="visitors__timeline-time"><%= visitor_time(page[:at]) %></time>
+                <div>
+                  <div><%= page[:title].presence || page[:url] %></div>
+                  <%= link_to page[:url], page[:url], target: '_blank', rel: 'noopener', class: 'small' %>
+                </div>
+              </li>
+            <% end %>
+          </ol>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

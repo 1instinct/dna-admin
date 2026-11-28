@@ -1,0 +1,7 @@
+<% content_for :page_tabs do %>
+  <% [['Live', spree.admin_visitors_path, current == :live], ['Carts', spree.admin_visitor_carts_path, current == :carts]].each do |label, url, active| %>
+    <li class="nav-item <%= 'active' if active %>">
+      <%= link_to label, url, class: "nav-link #{'active' if active}", 'aria-current': (active ? 'page' : nil) %>
+    </li>
+  <% end %>
+<% end %>

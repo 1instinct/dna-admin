@@ -406,3 +406,13 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Visitors: who is on the storefront now, their carts and visits (Spree::Admin::VisitorsController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'visitors', to: 'visitors#index', as: :visitors
+    get 'visitors/carts', to: 'visitors#carts', as: :visitor_carts
+    get 'visitors/:id', to: 'visitors#show', as: :visitor
+    post 'visitors/:id/conversation', to: 'visitors#conversation', as: :visitor_conversation
+  end
+end

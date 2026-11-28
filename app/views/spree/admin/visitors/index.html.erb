@@ -1,0 +1,44 @@
+<% content_for :page_title do %>
+  Visitors
+<% end %>
+<%= render 'tabs', current: :live %>
+
+<div class="visitors" id="visitors-live" data-rows-url="<%= spree.admin_visitors_path(rows: 1, page: (@page if @page > 1)) %>">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <p class="mb-0" data-role="summary">
+      <strong data-role="count"><%= @total %></strong> <%= 'visitor'.pluralize(@total) %> online now
+    </p>
+    <p class="text-muted small mb-0">
+      Refreshes every 15 seconds while this tab is open.
+      <span data-role="updated" aria-live="off"></span>
+    </p>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table visitors__table">
+      <caption class="sr-only">Visitors online now</caption>
+      <thead>
+        <tr>
+          <th scope="col">Visitor</th>
+          <th scope="col">Page</th>
+          <th scope="col">On site</th>
+          <th scope="col">Device</th>
+          <th scope="col">Country</th>
+          <th scope="col">Campaign</th>
+          <th scope="col">Cart</th>
+          <th scope="col" class="text-right"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody data-role="rows">
+        <%= render 'live_rows', sessions: @sessions %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @total > Spree::Admin::VisitorsController::PER_PAGE %>
+    <nav aria-label="Pages" class="d-flex justify-content-between">
+      <%= link_to '← Newer', spree.admin_visitors_path(page: @page - 1), class: 'btn btn-sm btn-outline-secondary' if @page > 1 %>
+      <%= link_to 'Older →', spree.admin_visitors_path(page: @page + 1), class: 'btn btn-sm btn-outline-secondary ml-auto' if @page * Spree::Admin::VisitorsController::PER_PAGE < @total %>
+    </nav>
+  <% end %>
+</div>
