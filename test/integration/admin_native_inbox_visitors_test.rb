@@ -75,8 +75,11 @@ class AdminNativeInboxVisitorsTest < ActionDispatch::IntegrationTest
     closed = call(:patch, "/inbox/conversations/#{@conversation.id}", { status: 'closed' })
     assert_equal 'closed', closed.dig('data', 'status')
 
+    mine = call(:patch, "/inbox/conversations/#{@conversation.id}", { assignee_id: 'me' })
+    assert_equal @admin.id.to_s, mine.dig('data', 'assignee', 'id'), "the app's Assign to me"
+
     summary = call(:get, '/inbox/summary')
-    assert_equal({ 'open' => 0, 'unassigned' => 0, 'unread' => 0 }, summary['data'])
+    assert_equal({ 'open' => 0, 'unassigned' => 0, 'unread' => 0 }, summary['data'].slice('open', 'unassigned', 'unread'))
   end
 
   test 'a reply with an uploaded photo' do

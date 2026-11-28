@@ -61,8 +61,8 @@ gem 'spree_editor', github: 'spree-contrib/spree_editor'
 # Companion gem for the Spree Admin Native mobile admin app (and its forks): QR device
 # pairing, new-order push notifications, the Home summary, tree views, the inbox, carts and
 # visitors (0.7.0). Pinned to a commit; see
-# https://github.com/1instinct/spree-admin-native/tree/d8afcb62d87ddf4b325d1b43b6147383f4bb73b0/gems/spree_admin_native
-gem 'spree_admin_native', github: '1instinct/spree-admin-native', ref: 'd8afcb62d87ddf4b325d1b43b6147383f4bb73b0',
+# https://github.com/1instinct/spree-admin-native/tree/520fe6a57b429cc8cc611bf079046fe717518b45/gems/spree_admin_native
+gem 'spree_admin_native', github: '1instinct/spree-admin-native', ref: '520fe6a57b429cc8cc611bf079046fe717518b45',
                           glob: 'gems/spree_admin_native/*.gemspec'
 
 gem 'paperclip', '~> 6.1.0'
