@@ -1,0 +1,9 @@
+<%= @contact.display_name.present? ? "Hi #{@contact.display_name}," : 'Hi,' %>
+
+<%= @staff_name %> replied to your message:
+
+<%= @message.body %>
+
+Continue the conversation: <%= @link %>
+
+You get this email because you gave your address in the chat on <%= @store_name %>.
