@@ -13,7 +13,8 @@
 # tokens are left out here as well.
 #
 # Foreign keys are :reference fields: to types registered here, or to the gem's built-in hidden
-# lookups for Spree's own records (spree_users, spree_products, spree_variants, spree_orders).
+# lookups for Spree's own records (spree_users, spree_products, spree_variants, spree_orders,
+# spree_taxons).
 # Image fields are writable (upload with POST resources/uploads, then send the signed_id) only
 # where the admin uploads the file as it is; elsewhere they are read-only.
 #
@@ -58,50 +59,9 @@ Rails.application.config.to_prepare do
 
   # --- Storefront ----------------------------------------------------------------------------
 
-  register.call 'menu_locations' do |r|
-    r.model 'MenuLocation'
-    r.label 'Menu locations'
-    r.group 'Storefront'
-    r.icon 'list.bullet.rectangle'
-    r.title :title
-    r.subtitle :location
-    r.list :title, :location, :is_visible
-    r.search :title, :location
-    r.filter :is_visible
-    r.order :created_at, :desc
-    r.field :title, :string
-    r.field :location, :string
-    r.field :is_visible, :boolean, label: 'Visible'
-    r.field :created_at
-    r.field :updated_at
-  end
-
-  register.call 'menu_items' do |r|
-    r.model 'MenuItem'
-    r.label 'Menu items'
-    r.group 'Storefront'
-    r.icon 'list.bullet.indent'
-    r.title :name
-    r.subtitle :url
-    r.list :name, :url, :menu_location_id, :position
-    r.search :name, :url
-    r.filter :menu_location_id
-    r.order :position, :asc
-    r.field :name, :string
-    r.field :url, :url
-    r.field :menu_location_id, :reference, resource: 'menu_locations', label: 'Menu'
-    r.field :parent_id, :reference, resource: 'menu_items', label: 'Parent item'
-    r.field :position, :integer
-    r.field :item_class, :string, label: 'Item class'
-    r.field :item_id, :string, label: 'Item id'
-    r.field :item_target, :string, label: 'Link target'
-    # Not in the admin's permitted params.
-    r.field :is_visible, :boolean, label: 'Visible', readonly: true
-    r.field :created_at
-    r.field :updated_at
-    # MenuItem refuses to delete an item with children, as in the admin; the app doesn't offer it.
-    r.deletable_if ->(item) { item.childrens.none? }
-  end
+  # The menu builder: a tree per menu location (app/services/admin_native/menus.rb).
+  register.call('menu_locations') { |r| AdminNative::Menus.locations(r) }
+  register.call('menu_items') { |r| AdminNative::Menus.items(r) }
 
   register.call 'homepage_sections' do |r|
     r.model 'HomepageSection'
@@ -297,23 +257,34 @@ Rails.application.config.to_prepare do
     r.actions create: false, destroy: false
   end
 
+  # Contacts, messages and threads as flat records. The app's Inbox and Visitors screens replace
+  # them (Chat::InboxAdapter, Visitors::Adapter), so they are hidden: still registered, as
+  # reference targets (a live stream's thread, a message's thread) and for CRUD, but no longer
+  # under More.
+
   register.call 'contacts' do |r|
     r.model 'Contact'
     r.label 'Contacts'
     r.group 'Engagement'
     r.icon 'person.crop.rectangle'
-    r.title :full_name
+    r.title ->(contact) { contact.display_name || "Contact ##{contact.id}" }
     r.subtitle :email
-    r.list :full_name, :email, :phone
-    r.search :full_name, :email
+    r.list :full_name, :email, :phone, :last_seen_at
+    r.search :full_name, :name, :email
     r.order :created_at, :desc
     r.field :full_name, :string
     r.field :email, :email
     r.field :phone, :string
     r.field :ip, :string, label: 'IP'
-    user_ref.call(r, :actor_id, 'Owner', required: true)
+    # actor_id is the admin form's name for the account; user_id follows it (Contact).
+    user_ref.call(r, :actor_id, 'Account')
+    # Set by the storefront chat.
+    r.field :name, :string, label: 'Name in chat', readonly: true
+    r.field :email_opt_in, :boolean, label: 'Email replies', readonly: true
+    r.field :last_seen_at, :datetime, label: 'Last seen', readonly: true
     r.field :created_at
     r.field :updated_at
+    r.hidden
   end
 
   register.call 'messages' do |r|
@@ -322,10 +293,11 @@ Rails.application.config.to_prepare do
     r.group 'Engagement'
     r.icon 'bubble.left'
     r.title :message
-    r.list :message, :sender_type, :receiver_type, :is_read, :created_at
+    r.list :message, :direction, :sender_type, :receiver_type, :is_read, :created_at
     r.search :message
     r.filter :is_read
     r.filter :is_received
+    r.filter :direction, Message::DIRECTIONS
     r.order :created_at, :desc
     r.field :message, :text
     r.field :sender_type, :enum, options: [user_class, 'Contact']
@@ -336,8 +308,15 @@ Rails.application.config.to_prepare do
     r.field :is_received, :boolean, label: 'Received'
     r.field :sentiment, :integer
     r.field :thread_table_id, :reference, resource: 'threads', label: 'Thread', readonly: true
+    # Set by the chat (Chat::Conversations).
+    r.field :direction, :enum, options: Message::DIRECTIONS, readonly: true
+    r.field :channel, :string, readonly: true
+    user_ref.call(r, :author_id, 'Staff author', readonly: true)
+    r.field :read_at, :datetime, readonly: true
+    r.field :delivery_status, :string, label: 'Delivery', readonly: true
     r.field :created_at
     r.field :updated_at
+    r.hidden
   end
 
   register.call 'threads' do |r|
@@ -345,14 +324,23 @@ Rails.application.config.to_prepare do
     r.label 'Threads'
     r.group 'Engagement'
     r.icon 'bubble.left.and.bubble.right'
-    r.list :id, :archived, :stale, :created_at
+    r.list :id, :status, :contact_id, :last_message_at, :archived
     r.filter :archived
     r.filter :stale
+    r.filter :status, ThreadTable::STATUSES
     r.order :created_at, :desc
     r.field :archived, :boolean
     r.field :stale, :boolean
+    # Set by the chat (Chat::Conversations); the inbox changes them.
+    r.field :status, :enum, options: ThreadTable::STATUSES, readonly: true
+    r.field :channel, :string, readonly: true
+    r.field :contact_id, :reference, resource: 'contacts', label: 'Contact', readonly: true
+    user_ref.call(r, :assignee_id, 'Assignee', readonly: true)
+    r.field :last_message_at, :datetime, label: 'Last message', readonly: true
+    r.field :staff_unread_count, :integer, label: 'Unread (staff)', readonly: true
     r.field :created_at
     r.field :updated_at
+    r.hidden
   end
 
   # --- Community and creators ----------------------------------------------------------------
