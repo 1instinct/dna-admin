@@ -38,7 +38,9 @@ class AdminNativeMenusTest < ActionDispatch::IntegrationTest
     assert_equal 'Menus', items['label']
     link = items['fields'].find { |f| f['name'] == 'link' }
     assert_equal 'link', link['type']
-    assert_equal %w[url product taxon page], link['kinds'].map { |k| k['kind'] }
+    # A fork without static pages (no pages type) offers the other kinds.
+    kinds = %w[url product taxon] + (SpreeAdminNative.resources['pages'] ? %w[page] : [])
+    assert_equal kinds, link['kinds'].map { |k| k['kind'] }
     assert_empty items['fields'].map { |f| f['name'] } & %w[url item_class item_id], 'the link owns its columns'
     assert manifest_of('menu_locations')['hidden']
     %w[contacts messages threads].each { |key| assert manifest_of(key)['hidden'], "#{key} gives way to the inbox" }
