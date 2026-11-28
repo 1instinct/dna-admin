@@ -1,0 +1,51 @@
+<div class="modal fade menu-item-modal" id="menu-item-modal" tabindex="-1" role="dialog" aria-labelledby="menu-item-modal-title" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form class="modal-content" data-role="item-form" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="menu-item-modal-title">Edit item</h2>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger d-none" role="alert" data-role="form-error"></div>
+        <div class="form-group">
+          <label for="menu-item-name">Name</label>
+          <input type="text" class="form-control" id="menu-item-name" name="name" required maxlength="255" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="menu-item-kind">Link to</label>
+          <select class="form-control" id="menu-item-kind" name="kind">
+            <option value="">Nothing (a heading)</option>
+            <% @link_kinds.each do |kind| %>
+              <option value="<%= kind[:kind] %>" data-resource="<%= kind[:resource] %>"><%= kind[:label] %></option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group d-none" data-role="url-group">
+          <label for="menu-item-url">URL</label>
+          <input type="text" class="form-control" id="menu-item-url" name="url" placeholder="/about or https://example.com"
+                 aria-describedby="menu-item-url-hint" autocomplete="off">
+          <small class="form-text text-muted" id="menu-item-url-hint">A path on the storefront, or a full address.</small>
+        </div>
+        <div class="form-group d-none" data-role="record-group">
+          <label for="menu-item-record" data-role="record-label">Record</label>
+          <select class="form-control" id="menu-item-record" name="record_id" style="width: 100%"></select>
+        </div>
+        <div class="form-group">
+          <label for="menu-item-target">Opens in</label>
+          <select class="form-control" id="menu-item-target" name="item_target">
+            <option value="_self">The same tab</option>
+            <option value="_blank">A new tab</option>
+          </select>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="menu-item-visible" name="is_visible" value="1">
+          <label class="form-check-label" for="menu-item-visible">Visible on the storefront</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-role="submit">Save</button>
+      </div>
+    </form>
+  </div>
+</div>

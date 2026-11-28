@@ -8,4 +8,6 @@
 
 //= require_tree .
 //= require spree/backend/spree_navigator
+//= require spree/backend/admin_tools
+//= require spree/backend/menu_builder
 //= require spree/backend/spree_loyalty_points

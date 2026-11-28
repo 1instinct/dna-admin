@@ -373,3 +373,20 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Menu builder: location tabs and one nested tree of items per location (Spree::Admin::MenusController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'menus', to: 'menus#index', as: :menus
+    post 'menus/locations', to: 'menus#create_location', as: :menus_locations
+    patch 'menus/locations/:id', to: 'menus#update_location', as: :menus_location
+    delete 'menus/locations/:id', to: 'menus#destroy_location', as: nil
+    scope 'menus/:location_id', constraints: { location_id: /\d+/ }, defaults: { format: :json } do
+      get 'tree', to: 'menus#tree', as: :menus_tree
+      patch 'tree', to: 'menus#move', as: nil
+      post 'items', to: 'menus#create_item', as: :menus_items
+      patch 'items/:id', to: 'menus#update_item', as: :menus_item
+      delete 'items/:id', to: 'menus#destroy_item', as: nil
+    end
+  end
+end
