@@ -1,7 +1,25 @@
+# A message in a thread. Chat messages (Chat::Conversations) carry a direction: inbound (from the
+# customer), outbound (a staff reply, delivered on the conversation's channel) or note (staff
+# only, never shown to the customer). Older messages have no direction and work as before.
 class Message < Spree::Base
-  belongs_to :sender, polymorphic: true
-  belongs_to :receiver, polymorphic: true
+  DIRECTIONS = %w[inbound outbound note].freeze
+  DELIVERY_STATUSES = %w[sent delivered failed].freeze
+  BODY_MAX = 4000
+
+  belongs_to :sender, polymorphic: true, optional: true
+  belongs_to :receiver, polymorphic: true, optional: true
   belongs_to :thread_table, class_name: "ThreadTable", optional: :true
+  belongs_to :author, class_name: 'Spree::User', optional: true
+  has_many_attached :attachments
+
+  validates :direction, inclusion: { in: DIRECTIONS }, allow_nil: true
+  validates :delivery_status, inclusion: { in: DELIVERY_STATUSES }, allow_nil: true
+
+  # Everything but staff notes; older messages without a direction included.
+  scope :visible_to_customer, -> { where("#{table_name}.direction IS NULL OR #{table_name}.direction <> 'note'") }
+  scope :inbound, -> { where(direction: 'inbound') }
+  scope :outbound, -> { where(direction: 'outbound') }
+  scope :unread, -> { where(read_at: nil) }
 
   self.whitelisted_ransackable_attributes = %w[message]
   self.whitelisted_ransackable_scopes = %w[search_by_message]
@@ -13,10 +31,22 @@ class Message < Spree::Base
       where("LOWER(#{Message.table_name}.message) LIKE LOWER(:query)", query: "%#{query}%")
     end
   end
-  after_create :assign_thread_id
+
+  # The chat calls the text a body; the column is message.
+  def body
+    message
+  end
+
+  def note?
+    direction == 'note'
+  end
+
+  # Older callers create messages without a thread and get one here. The chat sets the thread
+  # itself, so this only runs when none is given.
+  after_create :assign_thread_id, unless: :thread_table_id?
 
   def assign_thread_id
-    unless self.thread_table_id.present?
+    unless self.thread_table_id.present? || sender.nil? || receiver.nil?
       messages = message_transaction_between_two_parties(self.sender, self.receiver)
       message = messages.first
       if messages.count > 0

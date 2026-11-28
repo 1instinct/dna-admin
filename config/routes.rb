@@ -357,3 +357,19 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Customer chat and visitor tracking: the storefront widget's public API (Chat, Visitors).
+Spree::Core::Engine.add_routes do
+  namespace :api, defaults: { format: 'json' } do
+    namespace :v1 do
+      namespace :storefront do
+        post 'visits', to: 'visits#create', as: :visits
+        get 'chat', to: 'chat#show', as: :chat
+        get 'chat/messages', to: 'chat#messages', as: :chat_messages
+        post 'chat/messages', to: 'chat#create_message'
+        post 'chat/read', to: 'chat#read', as: :chat_read
+        get 'chat/resume', to: 'chat#resume', as: :chat_resume
+      end
+    end
+  end
+end

@@ -262,8 +262,10 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
   test 'menu locations and items are written as in the admin' do
     location = call(:post, '/menu_locations', { title: 'Footer', location: 'footer', is_visible: true })
     assert_equal 201, response.status, response.body
-    item = call(:post, '/menu_items', { name: 'About', url: '/about', menu_location_id: location.dig('data', 'id') })
+    item = call(:post, '/menu_items', { name: 'About', link: { kind: 'url', url: '/about' }, menu_location_id: location.dig('data', 'id') })
     assert_equal 201, response.status, response.body
+    assert_equal({ 'kind' => 'url', 'url' => '/about' }, item.dig('data', 'values', 'link').slice('kind', 'url'))
+    assert_equal ['/about', 'url', nil], MenuItem.find(item.dig('data', 'id')).values_at(:url, :item_class, :item_id)
     assert_equal({ 'id' => location.dig('data', 'id'), 'title' => 'Footer' }, item.dig('data', 'values', 'menu_location_id'))
 
     child = call(:post, '/menu_items', { name: 'Team', menu_location_id: location.dig('data', 'id'), parent_id: item.dig('data', 'id') })
@@ -862,7 +864,7 @@ class SpreeAdminNativeResourcesTest < ActionDispatch::IntegrationTest
 
   test 'user, product, variant and order ids come back with titles from the built-in lookups' do
     lookups = call(:get, '')['data'].select { |type| type['key'].start_with?('spree_') }
-    assert_equal %w[spree_orders spree_products spree_users spree_variants], lookups.map { |t| t['key'] }.sort
+    assert_equal %w[spree_orders spree_products spree_taxons spree_users spree_variants], lookups.map { |t| t['key'] }.sort
     assert lookups.all? { |t| t['hidden'] }
     resources = call(:get, '')['data'].flat_map { |t| t['fields'].select { |f| f['type'] == 'reference' }.map { |f| f['resource'] } }
     assert_includes resources, 'spree_users'

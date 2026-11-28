@@ -185,7 +185,7 @@ class Spree::Api::V1::MenuItemsController < Spree::Api::BaseController
     menu_item = {
       id: menu_item&.id || 0,
       name: menu_item&.name || "",
-      url: menu_item&.url || "",
+      url: menu_item&.storefront_url || "",
       item_class: menu_item&.item_class || "",
       item_id: menu_item&.item_id || "",
       item_target: menu_item&.item_target || "",

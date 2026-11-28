@@ -42,7 +42,52 @@ class MenuItem < Spree::Base
     result
   end
 
+  # Storefront path patterns for typed links, one per kind. A storefront with other routes sets
+  # MENU_PRODUCT_PATH, MENU_TAXON_PATH or MENU_PAGE_PATH; %{slug}, %{permalink}, %{name} and
+  # %{id} are filled in (the name URL-encoded).
+  LINK_PATHS = {
+    'product' => -> { ENV['MENU_PRODUCT_PATH'].presence || '/%{slug}' },
+    'taxon' => -> { ENV['MENU_TAXON_PATH'].presence || '/browse?categories=%{name}' },
+    'page' => -> { ENV['MENU_PAGE_PATH'].presence || '%{slug}' }
+  }.freeze
+
+  # Where the item points on the storefront. A URL link (or an older item whose item_class is a
+  # CSS class) is its url; a product, taxon or page link is built from the record now, so it
+  # follows slug and name changes. A missing record falls back to the stored url.
+  def storefront_url
+    kind = item_class.to_s
+    return url.to_s unless LINK_PATHS.key?(kind) && item_id.present?
+
+    values = link_values(kind)
+    return url.to_s unless values
+
+    pattern = LINK_PATHS.fetch(kind).call
+    # Slugs and permalinks are already path-safe (a page slug keeps its slashes); a name is encoded.
+    format(pattern, values.merge(name: ERB::Util.url_encode(values[:name].to_s)))
+  rescue KeyError, ArgumentError
+    url.to_s
+  end
+
   protected
+
+  def link_values(kind)
+    case kind
+    when 'product'
+      product = Spree::Product.find_by(id: item_id)
+      product && { slug: product.slug, id: product.id, name: product.name, permalink: product.slug }
+    when 'taxon'
+      taxon = Spree::Taxon.find_by(id: item_id)
+      taxon && { slug: taxon.permalink, permalink: taxon.permalink, name: taxon.name, id: taxon.id }
+    when 'page'
+      page = defined?(Spree::Page) && Spree::Page.find_by(id: item_id)
+      return nil unless page
+      return { slug: page.foreign_link, id: page.id, name: page.title, permalink: page.foreign_link } if page.respond_to?(:foreign_link) && page.foreign_link.present?
+
+      slug = page.slug.to_s
+      slug = "/#{slug}" unless slug.start_with?('/')
+      { slug: slug, id: page.id, name: page.title, permalink: slug }
+    end
+  end
 
   # An item with children is deleted only along with its parent or menu location, as in the admin
   # (MenuItemsController#destroy): its children are deleted or moved first.

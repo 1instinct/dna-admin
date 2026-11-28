@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_28_120000) do
+ActiveRecord::Schema.define(version: 2026_11_28_130300) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -199,6 +199,14 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
     t.text "ip"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "visitor_token"
+    t.string "name"
+    t.bigint "user_id"
+    t.datetime "last_seen_at"
+    t.boolean "email_opt_in", default: false, null: false
+    t.index ["last_seen_at"], name: "index_contacts_on_last_seen_at"
+    t.index ["user_id"], name: "index_contacts_on_user_id"
+    t.index ["visitor_token"], name: "index_contacts_on_visitor_token", unique: true
   end
 
   create_table "content_assets", force: :cascade do |t|
@@ -345,8 +353,17 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
     t.bigint "receiver_id"
     t.bigint "thread_table_id"
     t.text "message"
+    t.string "direction"
+    t.string "channel"
+    t.bigint "author_id"
+    t.string "external_id"
+    t.datetime "read_at"
+    t.string "delivery_status"
+    t.index ["author_id"], name: "index_messages_on_author_id"
+    t.index ["external_id"], name: "index_messages_on_external_id"
     t.index ["receiver_type", "receiver_id"], name: "index_messages_on_receiver"
     t.index ["sender_type", "sender_id"], name: "index_messages_on_sender"
+    t.index ["thread_table_id", "id"], name: "index_messages_on_thread_table_id_and_id"
     t.index ["thread_table_id"], name: "index_messages_on_thread_table_id"
   end
 
@@ -2041,6 +2058,21 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
     t.boolean "stale"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "contact_id"
+    t.string "status", default: "open", null: false
+    t.string "channel"
+    t.string "subject"
+    t.bigint "assignee_id"
+    t.datetime "snoozed_until"
+    t.datetime "last_message_at"
+    t.integer "staff_unread_count", default: 0, null: false
+    t.integer "customer_unread_count", default: 0, null: false
+    t.bigint "visitor_session_id"
+    t.index ["assignee_id"], name: "index_thread_tables_on_assignee_id"
+    t.index ["contact_id"], name: "index_thread_tables_on_contact_id"
+    t.index ["status", "last_message_at"], name: "index_thread_tables_on_status_and_last_message_at"
+    t.index ["updated_at"], name: "index_thread_tables_on_updated_at"
+    t.index ["visitor_session_id"], name: "index_thread_tables_on_visitor_session_id"
   end
 
   create_table "user_follows", force: :cascade do |t|
@@ -2050,6 +2082,40 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "visitor_page_views", force: :cascade do |t|
+    t.bigint "visitor_session_id", null: false
+    t.text "url", null: false
+    t.string "title"
+    t.datetime "created_at", null: false
+    t.index ["created_at"], name: "index_visitor_page_views_on_created_at"
+    t.index ["visitor_session_id", "created_at"], name: "index_visitor_page_views_on_visitor_session_id_and_created_at"
+  end
+
+  create_table "visitor_sessions", force: :cascade do |t|
+    t.bigint "contact_id", null: false
+    t.string "token", null: false
+    t.datetime "started_at", null: false
+    t.datetime "last_seen_at", null: false
+    t.text "current_url"
+    t.string "current_title"
+    t.text "referrer"
+    t.string "utm_source"
+    t.string "utm_medium"
+    t.string "utm_campaign"
+    t.text "user_agent"
+    t.string "device"
+    t.string "ip"
+    t.string "country"
+    t.bigint "order_id"
+    t.integer "page_views", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["contact_id", "last_seen_at"], name: "index_visitor_sessions_on_contact_id_and_last_seen_at"
+    t.index ["last_seen_at"], name: "index_visitor_sessions_on_last_seen_at"
+    t.index ["order_id"], name: "index_visitor_sessions_on_order_id"
+    t.index ["token"], name: "index_visitor_sessions_on_token", unique: true
+  end
+
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "affiliate_clicks", "affiliate_accounts", on_delete: :cascade
   add_foreign_key "affiliate_commissions", "affiliate_accounts"
@@ -2057,12 +2123,14 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
   add_foreign_key "affiliate_commissions", "spree_orders", column: "order_id"
   add_foreign_key "affiliate_payouts", "affiliate_accounts"
   add_foreign_key "app_feedbacks", "spree_users", column: "user_id", on_delete: :nullify
+  add_foreign_key "contacts", "spree_users", column: "user_id", on_delete: :nullify
   add_foreign_key "favorites", "spree_users", column: "user_id"
   add_foreign_key "favorites", "spree_variants", column: "variant_id"
   add_foreign_key "live_stream_contacts", "contacts"
   add_foreign_key "live_stream_contacts", "live_streams"
   add_foreign_key "live_streams", "spree_users", column: "actor_id"
   add_foreign_key "live_streams", "thread_tables"
+  add_foreign_key "messages", "spree_users", column: "author_id", on_delete: :nullify
   add_foreign_key "messages", "thread_tables"
   add_foreign_key "push_notifications", "spree_users", column: "sent_by_id"
   add_foreign_key "push_subscriptions", "spree_users", column: "user_id"
@@ -2085,4 +2153,10 @@ ActiveRecord::Schema.define(version: 2026_11_28_120000) do
   add_foreign_key "spree_user_blocks", "spree_users", column: "blocker_id"
   add_foreign_key "spree_user_profiles", "spree_users", column: "user_id"
   add_foreign_key "spree_user_tracks", "spree_users", column: "user_id", on_delete: :cascade
+  add_foreign_key "thread_tables", "contacts", on_delete: :nullify
+  add_foreign_key "thread_tables", "spree_users", column: "assignee_id", on_delete: :nullify
+  add_foreign_key "thread_tables", "visitor_sessions", on_delete: :nullify
+  add_foreign_key "visitor_page_views", "visitor_sessions", on_delete: :cascade
+  add_foreign_key "visitor_sessions", "contacts", on_delete: :cascade
+  add_foreign_key "visitor_sessions", "spree_orders", column: "order_id", on_delete: :nullify
 end

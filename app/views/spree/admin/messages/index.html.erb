@@ -52,6 +52,9 @@
           <% elsif message&.sender_type == "Contact" %>
             <td>Contact</td>
             <td><%= message&.sender&.full_name %></td>
+          <% else %>
+            <td></td>
+            <td></td>
           <% end %>
           <% if message&.receiver_type == "Spree::User" %>
             <td>User</td>
@@ -59,6 +62,10 @@
           <% elsif message&.receiver_type == "Contact" %>
             <td>Contact</td>
             <td><%= message&.receiver&.full_name %></td>
+          <% else %>
+            <%# A chat message to the store (no one assigned) or a staff note. %>
+            <td><%= message&.direction&.capitalize %></td>
+            <td></td>
           <% end %>
           <td><%= message&.is_received %></td>
           <td><%= message&.is_read %></td>
