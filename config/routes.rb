@@ -390,3 +390,19 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Customer inbox: conversations, the chat and the customer's context (Spree::Admin::InboxController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'inbox', to: 'inbox#index', as: :inbox
+    scope 'inbox', defaults: { format: :json } do
+      get 'summary', to: 'inbox#summary', as: :inbox_summary
+      get 'conversations', to: 'inbox#conversations', as: :inbox_conversations
+      get 'conversations/:id', to: 'inbox#show', as: :inbox_conversation
+      patch 'conversations/:id', to: 'inbox#update', as: nil
+      get 'conversations/:id/messages', to: 'inbox#messages', as: :inbox_conversation_messages
+      post 'conversations/:id/messages', to: 'inbox#reply', as: nil
+      post 'conversations/:id/read', to: 'inbox#read', as: :inbox_conversation_read
+    end
+  end
+end

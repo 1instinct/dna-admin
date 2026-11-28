@@ -1,0 +1,420 @@
+// The customer inbox (/admin/inbox): three panes that fill the window below the page header.
+// Colours come from the admin theme's variables, with fallbacks.
+
+body.admin .inbox {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(240px, 300px);
+  gap: 12px;
+  height: calc(100vh - 190px);
+  min-height: 480px;
+
+  .inbox__pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--admin-surface, #fff);
+    border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+    border-radius: var(--admin-radius, 6px);
+    color: var(--admin-text, #1e293b);
+    overflow: hidden;
+  }
+
+  // List
+  .inbox__filters {
+    padding: 8px 8px 0;
+
+    .btn {
+      flex: 1 1 0;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+  }
+
+  .inbox__search {
+    padding: 8px;
+    border-bottom: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+  }
+
+  .inbox__conversations {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .inbox__empty {
+    padding: 16px;
+  }
+
+  .inbox__conversation {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--admin-border, rgba(0, 0, 0, 0.08));
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--admin-surface-raised, #f1f5f9);
+    }
+
+    &:focus {
+      outline: 2px solid var(--admin-primary, #2563eb);
+      outline-offset: -2px;
+    }
+
+    &.is-selected {
+      background: color-mix(in srgb, var(--admin-primary, #2563eb) 12%, transparent);
+      box-shadow: inset 3px 0 0 var(--admin-primary, #2563eb);
+    }
+
+    &.is-unread .inbox__conversation-name,
+    &.is-unread .inbox__conversation-preview {
+      font-weight: 700;
+      color: var(--admin-text, #1e293b);
+    }
+  }
+
+  .inbox__conversation-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .inbox__dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 50%;
+    background: var(--admin-primary, #2563eb);
+  }
+
+  .inbox__conversation-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .inbox__conversation-time {
+    flex: 0 0 auto;
+    font-size: 11px;
+    color: var(--admin-text-muted, #64748b);
+  }
+
+  .inbox__conversation-preview {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--admin-text-muted, #64748b);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .inbox__conversation-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  // Chat
+  .inbox__placeholder {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .inbox__chat-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    &.d-none {
+      display: none;
+    }
+  }
+
+  .inbox__chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+
+    h2:focus {
+      outline: none;
+    }
+  }
+
+  .inbox__messages {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 12px 14px;
+    background: var(--admin-bg, #f8fafc);
+  }
+
+  .inbox__message {
+    display: flex;
+    flex-direction: column;
+    max-width: 78%;
+    margin-bottom: 10px;
+  }
+
+  .inbox__message--inbound {
+    align-items: flex-start;
+    margin-right: auto;
+  }
+
+  .inbox__message--outbound,
+  .inbox__message--note {
+    align-items: flex-end;
+    margin-left: auto;
+  }
+
+  .inbox__bubble {
+    padding: 8px 12px;
+    border-radius: 14px;
+    line-height: 1.45;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .inbox__message--inbound .inbox__bubble {
+    background: var(--admin-surface, #fff);
+    border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+    border-bottom-left-radius: 4px;
+    color: var(--admin-text, #1e293b);
+  }
+
+  .inbox__message--outbound .inbox__bubble {
+    background: var(--admin-primary, #2563eb);
+    border-bottom-right-radius: 4px;
+    color: #fff;
+
+    a {
+      color: #fff;
+      text-decoration: underline;
+    }
+  }
+
+  // Staff notes: a dashed amber card, never mistaken for a reply the customer sees.
+  .inbox__message--note .inbox__bubble {
+    background: #fff8db;
+    border: 1px dashed #b7791f;
+    color: #5f370e;
+    border-radius: 8px;
+  }
+
+  .inbox__note-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8a5a00;
+    margin-bottom: 2px;
+  }
+
+  .inbox__text {
+    white-space: pre-wrap;
+  }
+
+  .inbox__attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+
+    img {
+      max-width: 180px;
+      max-height: 140px;
+      border-radius: 6px;
+      display: block;
+    }
+  }
+
+  .inbox__meta {
+    font-size: 11px;
+    color: var(--admin-text-muted, #64748b);
+    margin-top: 2px;
+  }
+
+  .inbox__composer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+
+    textarea {
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    &.is-note textarea {
+      background: #fff8db;
+      border-color: #b7791f;
+      color: #5f370e;
+    }
+  }
+
+  .inbox__composer-mode {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  // The admin styles labels as small caps headings; these are controls.
+  .custom-control-label,
+  label.btn {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 13px;
+    color: var(--admin-text, #1e293b);
+  }
+
+  label.btn {
+    font-weight: 500;
+  }
+
+  // The admin's fixed select height clips descenders at this font size.
+  select.form-control {
+    height: auto;
+    line-height: 1.4;
+  }
+
+  .inbox__composer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .inbox__files {
+    margin: 6px 0 0;
+    font-size: 12px;
+  }
+
+  // Context
+  .inbox__context > div {
+    overflow-y: auto;
+    flex: 1 1 auto;
+  }
+
+  .inbox__section {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--admin-border, rgba(0, 0, 0, 0.08));
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .inbox__section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-text-muted, #64748b);
+    margin-bottom: 6px;
+  }
+
+  .inbox__customer-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .inbox__links {
+    margin-top: 4px;
+  }
+
+  .inbox__presence {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .inbox__online-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #94a3b8;
+
+    &.is-online {
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+    }
+  }
+
+  .inbox__current-page {
+    margin-top: 4px;
+  }
+
+  .inbox__cart-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    img,
+    .inbox__cart-noimage {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: var(--admin-surface-raised, #f1f5f9);
+    }
+  }
+
+  .inbox__cart-name {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .inbox__cart-qty {
+    color: var(--admin-text-muted, #64748b);
+  }
+
+  .inbox__orders li {
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 1199.98px) {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    height: auto;
+
+    .inbox__chat {
+      height: calc(100vh - 190px);
+      min-height: 480px;
+    }
+
+    .inbox__context {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    grid-template-columns: 1fr;
+
+    .inbox__list {
+      max-height: 320px;
+    }
+  }
+}
+
+// The sidebar's unread count.
+body.admin #main-sidebar .inbox-unread-badge {
+  margin-left: auto;
+  min-width: 20px;
+  font-size: 11px;
+}
