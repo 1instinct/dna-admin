@@ -23,11 +23,12 @@ class Spree::Admin::MessagesConversationsTest < ActionDispatch::IntegrationTest
     [{ type: 'Contact', id: @contact.id }, { type: 'User', id: @admin.id }]
   end
 
-  test 'the messages list renders its conversation links' do
+  test 'the messages list gives way to the inbox, and its conversation pages still open' do
     get '/admin/messages'
+    assert_redirected_to '/admin/inbox'
 
+    get "/admin/messages/conversation?id=#{Message.first.id}"
     assert_response :success
-    assert_select "a[href='/admin/messages/conversation?id=#{Message.first.id}']"
   end
 
   test 'the inbox lists each pair once, whichever way the messages went' do

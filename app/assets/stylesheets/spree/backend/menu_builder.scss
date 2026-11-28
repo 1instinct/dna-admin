@@ -1,0 +1,134 @@
+// The menu builder (/admin/menus). Colours come from the admin theme's variables
+// (_theme_variables.html.erb), with fallbacks for a store without them.
+
+body.admin .menu-builder {
+  .menu-tree,
+  .menu-tree__children {
+    margin: 0;
+    padding: 0;
+  }
+
+  .menu-tree__children {
+    // Room to drop an item inside one that has no children yet.
+    min-height: 8px;
+    margin-left: 28px;
+    border-left: 1px dashed var(--admin-border, rgba(0, 0, 0, 0.12));
+    padding-left: 8px;
+  }
+
+  .menu-tree__item {
+    margin: 4px 0;
+  }
+
+  .menu-tree__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--admin-surface, #fff);
+    border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12));
+    border-radius: var(--admin-radius, 6px);
+    color: var(--admin-text, #1e293b);
+
+    &:focus-within {
+      border-color: var(--admin-primary, #2563eb);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-primary, #2563eb) 25%, transparent);
+    }
+  }
+
+  .menu-tree__row--hidden .menu-tree__name {
+    color: var(--admin-text-muted, #64748b);
+  }
+
+  .menu-tree__handle {
+    cursor: grab;
+    padding: 2px 6px;
+    color: var(--admin-text-muted, #64748b);
+    letter-spacing: -3px;
+    font-weight: 700;
+    line-height: 1;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    &:focus {
+      outline: 2px solid var(--admin-primary, #2563eb);
+      outline-offset: 1px;
+    }
+  }
+
+  .menu-tree__main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .menu-tree__name {
+    font-weight: 600;
+  }
+
+  .menu-tree__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .menu-tree__url {
+    color: var(--admin-link, #2563eb);
+    word-break: break-all;
+  }
+
+  .menu-tree__url--none {
+    color: var(--admin-text-muted, #64748b);
+    font-style: italic;
+  }
+
+  .menu-tree__kind {
+    font-weight: 500;
+  }
+
+  .menu-tree__actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+
+  .menu-tree__step {
+    min-width: 30px;
+  }
+
+  .menu-tree__item--ghost > .menu-tree__row {
+    opacity: 0.5;
+    border-style: dashed;
+    border-color: var(--admin-primary, #2563eb);
+  }
+
+  .menu-tree__inline {
+    margin: 4px 0;
+    padding: 6px 10px;
+    border: 1px dashed var(--admin-primary, #2563eb);
+    border-radius: var(--admin-radius, 6px);
+
+    .form-control {
+      max-width: 360px;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .menu-tree__row {
+      flex-wrap: wrap;
+    }
+
+    .menu-tree__actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .menu-tree__children {
+      margin-left: 14px;
+    }
+  }
+}

@@ -1,6 +1,9 @@
 module Spree
   module Admin
     class MenuItemsController < Spree::Admin::BaseController
+      # The menu builder (/admin/menus) replaced this list; the other pages stay, since forks may link to them.
+      # The JSON index (the older menu navigator's script) still answers.
+      before_action(only: :index) { redirect_to spree.admin_menus_path if request.format.html? }
       before_action :set_menu_item, only: [:edit, :update, :destroy, :children]
 
       def index

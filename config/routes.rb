@@ -373,3 +373,46 @@ Spree::Core::Engine.add_routes do
     end
   end
 end
+
+# Menu builder: location tabs and one nested tree of items per location (Spree::Admin::MenusController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'menus', to: 'menus#index', as: :menus
+    post 'menus/locations', to: 'menus#create_location', as: :menus_locations
+    patch 'menus/locations/:id', to: 'menus#update_location', as: :menus_location
+    delete 'menus/locations/:id', to: 'menus#destroy_location', as: nil
+    scope 'menus/:location_id', constraints: { location_id: /\d+/ }, defaults: { format: :json } do
+      get 'tree', to: 'menus#tree', as: :menus_tree
+      patch 'tree', to: 'menus#move', as: nil
+      post 'items', to: 'menus#create_item', as: :menus_items
+      patch 'items/:id', to: 'menus#update_item', as: :menus_item
+      delete 'items/:id', to: 'menus#destroy_item', as: nil
+    end
+  end
+end
+
+# Customer inbox: conversations, the chat and the customer's context (Spree::Admin::InboxController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'inbox', to: 'inbox#index', as: :inbox
+    scope 'inbox', defaults: { format: :json } do
+      get 'summary', to: 'inbox#summary', as: :inbox_summary
+      get 'conversations', to: 'inbox#conversations', as: :inbox_conversations
+      get 'conversations/:id', to: 'inbox#show', as: :inbox_conversation
+      patch 'conversations/:id', to: 'inbox#update', as: nil
+      get 'conversations/:id/messages', to: 'inbox#messages', as: :inbox_conversation_messages
+      post 'conversations/:id/messages', to: 'inbox#reply', as: nil
+      post 'conversations/:id/read', to: 'inbox#read', as: :inbox_conversation_read
+    end
+  end
+end
+
+# Visitors: who is on the storefront now, their carts and visits (Spree::Admin::VisitorsController).
+Spree::Core::Engine.add_routes do
+  namespace :admin, path: Spree.admin_path do
+    get 'visitors', to: 'visitors#index', as: :visitors
+    get 'visitors/carts', to: 'visitors#carts', as: :visitor_carts
+    get 'visitors/:id', to: 'visitors#show', as: :visitor
+    post 'visitors/:id/conversation', to: 'visitors#conversation', as: :visitor_conversation
+  end
+end

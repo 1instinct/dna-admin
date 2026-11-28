@@ -1,4 +1,6 @@
 class Spree::Admin::MenuLocationsController <  Spree::Admin::BaseController
+	# The menu builder (/admin/menus) replaced this list; the other pages stay, since forks may link to them.
+	before_action(only: :index) { redirect_to spree.admin_menus_path if request.format.html? }
 	before_action :set_session
 
 	def index

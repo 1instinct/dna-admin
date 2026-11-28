@@ -1,0 +1,100 @@
+<% content_for :page_title do %>
+  Inbox
+<% end %>
+
+<% content_for :page_actions do %>
+  <button type="button" class="btn btn-outline-secondary d-none" data-role="notify-toggle">
+    Turn on desktop notifications
+  </button>
+<% end %>
+
+<%
+  me = try_spree_current_user
+  urls = {
+    conversations: spree.admin_inbox_conversations_path,
+    conversation: spree.admin_inbox_conversation_path('__ID__'),
+    summary: spree.admin_inbox_summary_path,
+    order: spree.edit_admin_order_path('__ID__'),
+    cart: spree.cart_admin_order_path('__ID__'),
+    contact: spree.admin_contact_path('__ID__'),
+    user: spree.edit_admin_user_path('__ID__'),
+    visitor: (spree.admin_visitor_path('__ID__') if spree.respond_to?(:admin_visitor_path))
+  }
+%>
+<div class="inbox"
+     id="inbox"
+     data-urls="<%= urls.to_json %>"
+     data-staff="<%= @staff.map { |u| { id: u.id.to_s, email: u.email } }.to_json %>"
+     data-me="<%= { id: me&.id.to_s, email: me&.email }.to_json %>"
+     data-snooze="<%= @snooze_options.to_json %>"
+     data-time-zone="<%= Chat.config.time_zone %>"
+     data-initial="<%= params[:conversation].to_s %>">
+
+  <section class="inbox__pane inbox__list" aria-labelledby="inbox-list-title">
+    <h2 class="sr-only" id="inbox-list-title">Conversations</h2>
+    <div class="inbox__filters btn-group btn-group-sm w-100" role="group" aria-label="Show conversations">
+      <% [%w[open Open], %w[mine Mine], %w[unassigned Unassigned], %w[closed Closed]].each do |key, label| %>
+        <button type="button" class="btn btn-outline-secondary <%= 'active' if key == 'open' %>" data-filter="<%= key %>"
+                aria-pressed="<%= key == 'open' %>">
+          <%= label %>
+          <% if key == 'open' && @summary[:open].to_i.positive? %>
+            <span class="badge badge-light ml-1" data-role="count-open"><%= @summary[:open] %></span>
+          <% elsif key == 'unassigned' && @summary[:unassigned].to_i.positive? %>
+            <span class="badge badge-light ml-1" data-role="count-unassigned"><%= @summary[:unassigned] %></span>
+          <% end %>
+        </button>
+      <% end %>
+    </div>
+    <form class="inbox__search" role="search" data-role="search">
+      <label for="inbox-search" class="sr-only">Search conversations</label>
+      <input type="search" id="inbox-search" class="form-control form-control-sm" placeholder="Search name, email or message" autocomplete="off">
+    </form>
+    <ul class="inbox__conversations list-unstyled" data-role="conversations" aria-label="Conversations" aria-busy="true"></ul>
+    <p class="inbox__empty text-muted small d-none" data-role="list-empty">No conversations here.</p>
+    <button type="button" class="btn btn-link btn-sm d-none" data-role="more">Load more</button>
+  </section>
+
+  <section class="inbox__pane inbox__chat" aria-labelledby="inbox-chat-title">
+    <div class="inbox__placeholder" data-role="placeholder">
+      <p class="text-muted mb-0">Choose a conversation to read and reply.</p>
+    </div>
+    <div class="inbox__chat-body d-none" data-role="chat">
+      <header class="inbox__chat-header">
+        <div>
+          <h2 class="h6 mb-0" id="inbox-chat-title" data-role="chat-title" tabindex="-1">Conversation</h2>
+          <div class="small text-muted" data-role="chat-subtitle"></div>
+        </div>
+        <span class="badge" data-role="chat-status"></span>
+      </header>
+      <div class="inbox__messages" data-role="messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages">
+      </div>
+      <form class="inbox__composer" data-role="composer" novalidate>
+        <div class="inbox__composer-mode">
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="inbox-note-toggle" data-role="note-toggle">
+            <label class="custom-control-label" for="inbox-note-toggle">Internal note (only staff see it)</label>
+          </div>
+        </div>
+        <label for="inbox-composer-body" class="sr-only" data-role="composer-label">Reply</label>
+        <textarea id="inbox-composer-body" class="form-control" rows="3" maxlength="4000" data-role="body"
+                  placeholder="Write a reply…" aria-describedby="inbox-composer-hint"></textarea>
+        <ul class="inbox__files list-unstyled d-none" data-role="files" aria-label="Attachments to send"></ul>
+        <div class="inbox__composer-actions">
+          <small class="text-muted" id="inbox-composer-hint">Enter sends. Shift+Enter starts a new line.</small>
+          <div class="d-flex align-items-center">
+            <label class="btn btn-sm btn-outline-secondary mb-0 mr-2" for="inbox-attach">Attach files</label>
+            <input type="file" id="inbox-attach" class="sr-only" multiple data-role="attach">
+            <button type="submit" class="btn btn-sm btn-primary" data-role="send">Send</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <aside class="inbox__pane inbox__context" aria-labelledby="inbox-context-title">
+    <h2 class="sr-only" id="inbox-context-title">Customer</h2>
+    <div data-role="context"><p class="text-muted small p-3 mb-0">The customer's details show here.</p></div>
+  </aside>
+
+  <div class="sr-only" aria-live="polite" aria-atomic="true" data-role="status"></div>
+</div>

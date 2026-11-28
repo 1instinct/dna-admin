@@ -1,0 +1,90 @@
+<% content_for :page_title do %>
+  Menus
+<% end %>
+
+<% content_for :page_actions do %>
+  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#menu-location-new-modal">
+    <%= svg_icon name: 'add.svg', classes: 'mr-1', width: 14, height: 14 %> Add menu
+  </button>
+<% end %>
+
+<% if @locations.any? %>
+  <% content_for :page_tabs do %>
+    <% @locations.each do |location| %>
+      <% current = location == @location %>
+      <li class="nav-item <%= 'active' if current %>">
+        <%= link_to spree.admin_menus_path(location: location.id),
+                    class: "nav-link #{'active' if current}",
+                    'aria-current': (current ? 'page' : nil) do %>
+          <%= location.title.presence || "Menu ##{location.id}" %>
+          <% if location.is_visible == false %><span class="badge badge-secondary ml-1">Hidden</span><% end %>
+        <% end %>
+      </li>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if @location %>
+  <div class="menu-builder"
+       id="menu-builder"
+       data-tree-url="<%= spree.admin_menus_tree_path(@location, format: :json) %>"
+       data-items-url="<%= spree.admin_menus_items_path(@location, format: :json) %>"
+       data-link-kinds="<%= @link_kinds.to_json %>"
+       data-location-title="<%= @location.title %>">
+
+    <div class="menu-builder__toolbar d-flex flex-wrap align-items-center justify-content-between mb-3">
+      <div class="menu-builder__location text-muted small">
+        <% if @location.location.present? %>
+          Location key <code><%= @location.location %></code>
+        <% end %>
+      </div>
+      <div class="d-flex flex-wrap">
+        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" data-toggle="modal" data-target="#menu-location-edit-modal">
+          <%= svg_icon name: 'edit.svg', classes: 'mr-1', width: 12, height: 12 %> Rename
+        </button>
+        <%= button_to spree.admin_menus_location_path(@location), method: :delete,
+                      class: 'btn btn-sm btn-outline-danger',
+                      form: { class: 'd-inline' },
+                      data: { confirm: "Delete the #{@location.title} menu and all of its items? This can't be undone." } do %>
+          <%= svg_icon name: 'delete.svg', classes: 'mr-1', width: 12, height: 12 %> Delete menu
+        <% end %>
+      </div>
+    </div>
+
+    <p class="menu-builder__help text-muted small" id="menu-builder-help">
+      Drag the handle to reorder or nest items. With an item focused, Alt+Up and Alt+Down move it,
+      Alt+Right indents it under the item above and Alt+Left outdents it. Changes save as you make them.
+    </p>
+
+    <div class="menu-builder__tree card" aria-describedby="menu-builder-help">
+      <div class="card-body p-2">
+        <div class="menu-builder__loading text-muted p-3" data-role="loading">Loading items…</div>
+        <ul class="menu-tree list-unstyled mb-0" data-role="root" aria-label="<%= @location.title %> menu items"></ul>
+        <div class="menu-builder__empty text-muted p-3 d-none" data-role="empty">No items yet. Add the first one below.</div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button type="button" class="btn btn-primary btn-sm" data-action="add-root">
+        <%= svg_icon name: 'add.svg', classes: 'mr-1', width: 12, height: 12 %> Add item
+      </button>
+    </div>
+
+    <div class="sr-only" aria-live="polite" aria-atomic="true" data-role="status"></div>
+  </div>
+
+  <%= render 'item_modal' %>
+  <%= render 'delete_modal' %>
+  <%= render 'location_modal', id: 'menu-location-edit-modal', title: 'Rename menu', location: @location,
+                               url: spree.admin_menus_location_path(@location), method: :patch, submit: 'Save' %>
+<% else %>
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <p class="mb-3">No menus yet. A menu holds the links a storefront shows in one place, such as the header or the footer.</p>
+      <button type="button" class="btn btn-success" data-toggle="modal" data-target="#menu-location-new-modal">Add a menu</button>
+    </div>
+  </div>
+<% end %>
+
+<%= render 'location_modal', id: 'menu-location-new-modal', title: 'Add menu', location: MenuLocation.new(is_visible: true),
+                             url: spree.admin_menus_locations_path, method: :post, submit: 'Add menu' %>

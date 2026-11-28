@@ -1,0 +1,69 @@
+<% content_for :page_title do %>
+  Visitors
+<% end %>
+<%= render 'tabs', current: :carts %>
+
+<div class="visitors">
+  <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Show carts">
+    <% { 'active' => 'Active', 'abandoned' => 'Abandoned' }.each do |key, label| %>
+      <%= link_to spree.admin_visitor_carts_path(status: key), class: "btn btn-outline-secondary #{'active' if @status == key}",
+                                                               'aria-current': (@status == key ? 'page' : nil) do %>
+        <%= label %> <span class="badge badge-light ml-1"><%= @counts[key] %></span>
+      <% end %>
+    <% end %>
+  </div>
+  <p class="text-muted small">
+    <% if @status == 'abandoned' %>
+      Carts with an email address that haven't changed for an hour or more.
+    <% else %>
+      Carts changed in the last <%= active_minutes %> minutes.
+    <% end %>
+  </p>
+
+  <div class="table-responsive">
+    <table class="table visitors__table">
+      <caption class="sr-only"><%= @status.capitalize %> carts</caption>
+      <thead>
+        <tr>
+          <th scope="col">Cart</th>
+          <th scope="col">Customer</th>
+          <th scope="col">Items</th>
+          <th scope="col" class="text-right">Total</th>
+          <th scope="col">Last change</th>
+          <th scope="col">Step</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @carts.empty? %>
+          <tr><td colspan="6" class="text-center text-muted py-4">No <%= @status %> carts.</td></tr>
+        <% end %>
+        <% @carts.each do |cart| %>
+          <tr>
+            <td><%= link_to cart[:number], spree.cart_admin_order_path(cart[:number]), class: 'font-weight-bold' %></td>
+            <td><%= cart[:email].presence || content_tag(:span, 'Guest', class: 'text-muted') %></td>
+            <td>
+              <ul class="list-unstyled mb-0 small visitors__items">
+                <% cart[:items].first(4).each do |item| %>
+                  <li><%= item[:name] %> <span class="text-muted">× <%= item[:quantity] %></span></li>
+                <% end %>
+                <% if cart[:items].size > 4 %>
+                  <li class="text-muted">and <%= pluralize(cart[:items].size - 4, 'more item') %></li>
+                <% end %>
+              </ul>
+            </td>
+            <td class="text-right text-nowrap"><%= cart[:total] %> <%= cart[:currency] %></td>
+            <td class="text-nowrap"><%= visitor_span(cart[:updated_at]) %> ago</td>
+            <td><span class="badge badge-light text-capitalize"><%= cart[:state] %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @total > Spree::Admin::VisitorsController::PER_PAGE %>
+    <nav aria-label="Pages" class="d-flex justify-content-between">
+      <%= link_to '← Newer', spree.admin_visitor_carts_path(status: @status, page: @page - 1), class: 'btn btn-sm btn-outline-secondary' if @page > 1 %>
+      <%= link_to 'Older →', spree.admin_visitor_carts_path(status: @status, page: @page + 1), class: 'btn btn-sm btn-outline-secondary ml-auto' if @page * Spree::Admin::VisitorsController::PER_PAGE < @total %>
+    </nav>
+  <% end %>
+</div>
