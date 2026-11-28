@@ -1,7 +1,8 @@
 require 'test_helper'
 
 # The older Rails admin pages for contacts, threads and messages still render with chat data:
-# visitor contacts without an account, conversations, one-party messages and staff notes.
+# visitor contacts without an account, conversations, one-party messages and staff notes. Their
+# index pages redirect to the inbox (admin_tools_navigation_test.rb).
 class Spree::Admin::ChatAdminPagesTest < ActionDispatch::IntegrationTest
   include Warden::Test::Helpers
   include ChatTestHelper
@@ -21,21 +22,15 @@ class Spree::Admin::ChatAdminPagesTest < ActionDispatch::IntegrationTest
 
   teardown { Warden.test_reset! }
 
-  test 'contacts list and pages' do
-    get '/admin/contacts'
-    assert_response :success
-    assert_includes response.body, 'Robin Visitor'
-
+  test 'contact pages' do
     get "/admin/contacts/#{@contact.id}"
     assert_response :success
+    assert_includes response.body, 'Robin Visitor'
     get "/admin/contacts/#{@contact.id}/edit"
     assert_response :success
   end
 
-  test 'threads list, page and conversation' do
-    get '/admin/threads'
-    assert_response :success
-
+  test 'thread page and conversation' do
     get "/admin/threads/#{@conversation.id}"
     assert_response :success
     get "/admin/threads/#{@conversation.id}/conversation"
@@ -44,11 +39,7 @@ class Spree::Admin::ChatAdminPagesTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'Yes, worldwide.'
   end
 
-  test 'messages list and the two-pane inbox' do
-    get '/admin/messages'
-    assert_response :success
-    assert_includes response.body, 'Do you ship abroad?'
-
+  test 'the older two-pane inbox and its conversation pages' do
     get '/admin/messages/conversations'
     assert_response :success
     assert_select '.participant-name', text: 'Legacy Customer'

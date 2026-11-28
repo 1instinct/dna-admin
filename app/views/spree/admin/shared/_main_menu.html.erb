@@ -55,9 +55,9 @@
     </ul>
   <% end %>
 
-  <% if Spree.user_class && can?(:admin, Spree.user_class) %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarUsermenu">
-      <%= tab "Menu Navigator", url: admin_menu_items_path, icon: 'users.svg' %>
+  <% if can? :admin, MenuItem %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarMenus">
+      <%= tab :menus, label: 'Menus', icon: 'menu.svg', url: spree.admin_menus_path %>
     </ul>
   <% end %>
 
@@ -67,15 +67,25 @@
     </ul>
   <% end %>
 
-  <% if can? :admin, Contact %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarContact">
-      <%= tab :contacts, icon: 'contact.svg', url: admin_contacts_path %>
+  <% if can? :admin, ThreadTable %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarInbox">
+      <%# Built by hand for the unread count, which the inbox page keeps up to date. %>
+      <% unread = admin_inbox_unread_count %>
+      <li class="sidebar-menu-item d-block w-100 position-relative <%= 'selected' if controller_name == 'inbox' %>">
+        <%= link_to spree.admin_inbox_path, class: 'w-100 p-3 d-flex align-items-center icon-link with-tip action-chat.svg' do %>
+          <%= svg_icon name: 'chat.svg', classes: 'mr-2 icon icon-chat.svg', width: 16, height: 16 %>
+          <span class="text">Inbox</span>
+          <span class="badge badge-pill badge-danger inbox-unread-badge <%= 'd-none' if unread.zero? %>" data-inbox-unread-badge>
+            <span data-count><%= unread %></span><span class="sr-only"> unread conversations</span>
+          </span>
+        <% end %>
+      </li>
     </ul>
   <% end %>
 
-  <% if can? :admin, Message %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarMessages">
-      <%= main_menu_tree Spree.t(:messages), icon: "message.svg", sub_menu: "message", url: "#sidebar-messages" %>
+  <% if can? :admin, VisitorSession %>
+    <ul class="nav nav-sidebar border-bottom" id="sidebarVisitors">
+      <%= tab :visitors, label: 'Visitors', icon: 'eye-open.svg', url: spree.admin_visitors_path %>
     </ul>
   <% end %>
 
@@ -88,12 +98,6 @@
   <% if can? :admin, ContentAsset %>
     <ul class="nav nav-sidebar border-bottom" id="sidebarContentAssets">
       <%= tab :content_assets, icon: 'images.svg', url: admin_content_assets_path %>
-    </ul>
-  <% end %>
-
-  <% if can? :admin, ThreadTable %>
-    <ul class="nav nav-sidebar border-bottom" id="sidebarThreadTable">
-      <%= tab :threads, icon: 'thread.svg', url: admin_threads_path %>
     </ul>
   <% end %>
 

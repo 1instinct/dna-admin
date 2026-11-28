@@ -1,4 +1,6 @@
 class Spree::Admin::MessagesController < Spree::Admin::BaseController
+	# The inbox (/admin/inbox) replaced this list; the record pages stay, since forks may link to them.
+	before_action(only: :index) { redirect_to spree.admin_inbox_path if request.format.html? }
 	before_action :set_session
   
 	def index
