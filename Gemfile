@@ -59,9 +59,10 @@ gem 'spree_loyalty_points', github: '1instinct/spree-loyalty-points'
 gem 'spree_avatar', github: '1instinct/spree_avatar'
 gem 'spree_editor', github: 'spree-contrib/spree_editor'
 # Companion gem for the Spree Admin Native mobile admin app (and its forks): QR device
-# pairing, new-order push notifications and the app's Home summary. Pinned to a commit; see
-# https://github.com/1instinct/spree-admin-native/tree/76070af7c904ce2fb8381add15ffda14c14414c5/gems/spree_admin_native
-gem 'spree_admin_native', github: '1instinct/spree-admin-native', ref: '76070af7c904ce2fb8381add15ffda14c14414c5',
+# pairing, new-order push notifications, the Home summary, tree views, the inbox, carts and
+# visitors (0.7.0). Pinned to a commit; see
+# https://github.com/1instinct/spree-admin-native/tree/d8afcb62d87ddf4b325d1b43b6147383f4bb73b0/gems/spree_admin_native
+gem 'spree_admin_native', github: '1instinct/spree-admin-native', ref: 'd8afcb62d87ddf4b325d1b43b6147383f4bb73b0',
                           glob: 'gems/spree_admin_native/*.gemspec'
 
 gem 'paperclip', '~> 6.1.0'
